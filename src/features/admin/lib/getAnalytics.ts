@@ -4,12 +4,10 @@ import Booking from "@/database/models/Booking";
 import Quote from "@/database/models/Quote";
 import Payment from "@/database/models/Payment";
 import User from "@/database/models/User";
-import Contact from "@/database/models/Contact";
 import { requireAdmin } from "@/middleware/admin";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { QUOTE_STATUSES } from "@/database/constants/quote-status";
 import { BOOKING_STATUSES } from "@/database/constants/booking-status";
-import { CONTACT_STATUSES } from "@/database/models/Contact";
 import { ROLES } from "@/database/constants/roles";
 import type { IBooking } from "@/types/booking";
 
@@ -21,7 +19,6 @@ export interface DashboardCounts {
   pendingQuotes: number;
   pendingBookingConfirmations: number;
   pendingPayments: number;
-  newMessages: number;
   totalCustomers: number;
 }
 
@@ -29,16 +26,15 @@ export async function getDashboardCounts(): Promise<DashboardCounts> {
   await requireAdmin();
   await connectToDatabase();
 
-  const [pendingQuotes, pendingBookingConfirmations, pendingPayments, newMessages, totalCustomers] =
+  const [pendingQuotes, pendingBookingConfirmations, pendingPayments, totalCustomers] =
     await Promise.all([
       Quote.countDocuments({ status: { $in: [QUOTE_STATUSES.PENDING, QUOTE_STATUSES.REVIEWING] } }),
       Booking.countDocuments({ status: BOOKING_STATUSES.PENDING }),
       Payment.countDocuments({ status: { $in: [PAYMENT_STATUSES.PENDING, PAYMENT_STATUSES.PROCESSING] } }),
-      Contact.countDocuments({ status: CONTACT_STATUSES.NEW }),
       User.countDocuments({ role: ROLES.CUSTOMER }),
     ]);
 
-  return { pendingQuotes, pendingBookingConfirmations, pendingPayments, newMessages, totalCustomers };
+  return { pendingQuotes, pendingBookingConfirmations, pendingPayments, totalCustomers };
 }
 
 export interface RevenueSummary {
