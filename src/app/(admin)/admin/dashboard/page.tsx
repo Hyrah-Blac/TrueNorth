@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Wallet, FileText, CalendarClock, MessageSquare, Users, ArrowRight, PlaneTakeoff } from "lucide-react";
+import {
+  Wallet,
+  FileText,
+  CalendarCheck,
+  Users,
+  ArrowRight,
+  AirplaneTakeoff,
+} from "@phosphor-icons/react/dist/ssr";
 import { StatCard } from "@/components/dashboard/cards/StatCard";
 import { LazyTrendChart as TrendChart } from "@/components/admin/charts/LazyTrendChart";
 import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStatusBadge";
@@ -31,8 +38,7 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Total revenue" value={formatCurrency(revenue.totalRevenue)} icon={Wallet} />
         <StatCard label="Pending quotes" value={String(counts.pendingQuotes)} icon={FileText} />
-        <StatCard label="Awaiting confirmation" value={String(counts.pendingBookingConfirmations)} icon={CalendarClock} />
-        <StatCard label="New messages" value={String(counts.newMessages)} icon={MessageSquare} />
+        <StatCard label="Awaiting confirmation" value={String(counts.pendingBookingConfirmations)} icon={CalendarCheck} />
         <StatCard label="Total customers" value={String(counts.totalCustomers)} icon={Users} />
       </div>
 
@@ -68,7 +74,7 @@ export default async function AdminDashboardPage() {
         <div className="mt-5">
           {recentBookings.length === 0 ? (
             <EmptyState
-              icon={<PlaneTakeoff className="h-5 w-5" aria-hidden="true" />}
+              icon={<AirplaneTakeoff className="h-5 w-5" aria-hidden="true" />}
               title="No bookings yet"
               description="Bookings created from approved quotes will appear here."
             />

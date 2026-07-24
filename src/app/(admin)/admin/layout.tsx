@@ -5,7 +5,6 @@ import {
   FileText,
   Receipt,
   Users,
-  MessageSquare,
   Settings,
 } from "lucide-react";
 import { requireAdmin } from "@/middleware/admin";
@@ -19,7 +18,6 @@ const navItems: SidebarNavItem[] = [
   { label: "Quotes", href: "/admin/quotes", icon: FileText },
   { label: "Payments", href: "/admin/payments", icon: Receipt },
   { label: "Customers", href: "/admin/customers", icon: Users },
-  { label: "Messages", href: "/admin/messages", icon: MessageSquare },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

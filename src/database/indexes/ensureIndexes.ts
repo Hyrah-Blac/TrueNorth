@@ -4,10 +4,9 @@ import Aircraft from "../models/Aircraft";
 import Quote from "../models/Quote";
 import Booking from "../models/Booking";
 import Payment from "../models/Payment";
-import Contact from "../models/Contact";
 import { logger } from "@/lib/logging/logger";
 
-const MODELS = [User, Aircraft, Quote, Booking, Payment, Contact];
+const MODELS = [User, Aircraft, Quote, Booking, Payment];
 
 /**
  * Explicitly syncs indexes for every model with what's defined in the
