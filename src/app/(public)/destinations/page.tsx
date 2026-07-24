@@ -4,7 +4,6 @@ import { Section, SectionHeading } from "@/components/layout/section/Section";
 import { Container } from "@/components/layout/container/Container";
 import { DestinationsExplorer } from "@/components/destinations/DestinationsExplorer";
 import { RouteMapPlaceholder } from "@/components/destinations/RouteMapPlaceholder";
-import { ContactCtaSection } from "@/components/home/ContactCtaSection";
 import { JsonLd } from "@/components/shared/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
 import { siteConfig } from "@/lib/config/site";
@@ -69,7 +68,6 @@ export default function DestinationsPage() {
         <DestinationsExplorer />
       </Section>
 
-      <ContactCtaSection />
     </>
   );
 }
