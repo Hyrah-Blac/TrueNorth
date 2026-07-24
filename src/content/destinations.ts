@@ -1,0 +1,108 @@
+export interface Destination {
+  slug: string;
+  name: string;
+  airportCode: string;
+  region: "domestic" | "regional";
+  category: "safari" | "coastal" | "urban" | "remote";
+  description: string;
+  flightTimeFromNairobi: string;
+  image?: string;
+}
+
+export const destinations: Destination[] = [
+  {
+    slug: "masai-mara",
+    name: "Maasai Mara",
+    airportCode: "MRE",
+    region: "domestic",
+    category: "safari",
+    description: "Kenya's most visited reserve, served by multiple bush airstrips across the conservancies.",
+    flightTimeFromNairobi: "45 min",
+    image: "/images/destinations/Mara.jpg",
+  },
+  {
+    slug: "amboseli",
+    name: "Amboseli",
+    airportCode: "ASV",
+    region: "domestic",
+    category: "safari",
+    description: "Views of Kilimanjaro and reliable elephant sightings, a short hop from Nairobi.",
+    flightTimeFromNairobi: "35 min",
+    image: "/images/destinations/Amboseli.jpg",
+  },
+  {
+    slug: "diani",
+    name: "Diani Beach",
+    airportCode: "UKA",
+    region: "domestic",
+    category: "coastal",
+    description: "South coast beach access without the road transfer time from Mombasa.",
+    flightTimeFromNairobi: "1 hr 10 min",
+    image: "/images/destinations/Diani.jpg",
+  },
+  {
+    slug: "mount-kenya",
+    name: "Mount Kenya",
+    airportCode: "NYK",
+    region: "domestic",
+    category: "safari",
+    description: "Highland lodges, forest conservancies, and Africa's second-highest peak, a short flight north of Nairobi.",
+    flightTimeFromNairobi: "40 min",
+    image: "/images/destinations/Mt Kenya.jpg",
+  },
+  {
+    slug: "lamu",
+    name: "Lamu",
+    airportCode: "LAU",
+    region: "domestic",
+    category: "coastal",
+    description: "Archipelago access to Lamu Old Town and the surrounding islands.",
+    flightTimeFromNairobi: "1 hr 20 min",
+    image: "/images/destinations/Lamu.jpg",
+  },
+  {
+    slug: "lodwar",
+    name: "Lodwar",
+    airportCode: "LOK",
+    region: "domestic",
+    category: "remote",
+    description: "Turkana County access point for NGO, government, and industrial missions.",
+    flightTimeFromNairobi: "1 hr 30 min",
+  },
+  {
+    slug: "kisumu",
+    name: "Kisumu",
+    airportCode: "KIS",
+    region: "domestic",
+    category: "urban",
+    description: "Lake Victoria region business and government travel.",
+    flightTimeFromNairobi: "50 min",
+  },
+  {
+    slug: "zanzibar",
+    name: "Zanzibar",
+    airportCode: "ZNZ",
+    region: "regional",
+    category: "coastal",
+    description: "Cross-border charter into Tanzania's islands, avoiding scheduled connections.",
+    flightTimeFromNairobi: "2 hr",
+  },
+  {
+    slug: "kigali",
+    name: "Kigali",
+    airportCode: "KGL",
+    region: "regional",
+    category: "urban",
+    description: "Direct regional business access into Rwanda.",
+    flightTimeFromNairobi: "2 hr 15 min",
+  },
+  {
+    slug: "juba",
+    name: "Juba",
+    airportCode: "JUB",
+    region: "regional",
+    category: "remote",
+    description: "NGO and humanitarian mission support into South Sudan.",
+    flightTimeFromNairobi: "1 hr 45 min",
+  },
+];

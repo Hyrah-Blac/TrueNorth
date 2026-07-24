@@ -1,0 +1,25 @@
+import connectToDatabase from "../connection";
+import User from "../models/User";
+import Aircraft from "../models/Aircraft";
+import Quote from "../models/Quote";
+import Booking from "../models/Booking";
+import Payment from "../models/Payment";
+import Contact from "../models/Contact";
+import { logger } from "@/lib/logging/logger";
+
+const MODELS = [User, Aircraft, Quote, Booking, Payment, Contact];
+
+/**
+ * Explicitly syncs indexes for every model with what's defined in the
+ * schemas. Mongoose builds indexes automatically in development, but
+ * `autoIndex` is typically disabled in production for performance —
+ * run this once after deploying schema changes instead.
+ */
+export async function ensureIndexes(): Promise<void> {
+  await connectToDatabase();
+
+  for (const model of MODELS) {
+    await model.syncIndexes();
+    logger.info(`Synced indexes for ${model.modelName}`);
+  }
+}

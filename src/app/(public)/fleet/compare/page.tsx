@@ -1,0 +1,129 @@
+"use client";
+
+import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { ArrowLeft, Scale, ImageOff } from "lucide-react";
+import { Container } from "@/components/layout/container/Container";
+import { Skeleton } from "@/components/shared/skeleton/Skeleton";
+import { EmptyState } from "@/components/shared/empty-state/EmptyState";
+import { Button } from "@/components/shared/buttons/Button";
+import { CompareTable } from "@/components/aircraft/compare/CompareTable";
+import { useCompareList } from "@/hooks/useCompareList";
+import type { IAircraft } from "@/types/aircraft";
+
+interface ApiResponse {
+  success: boolean;
+  data?: IAircraft;
+  error?: string;
+}
+
+function CompareContent() {
+  const searchParams = useSearchParams();
+  const { remove: removeFromTray } = useCompareList();
+  const slugs = (searchParams.get("slugs") ?? "").split(",").filter(Boolean);
+
+  const [aircraft, setAircraft] = useState<IAircraft[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      const results = await Promise.all(
+        slugs.map(async (slug) => {
+          try {
+            const res = await fetch(`/api/aircraft/${slug}`);
+            const json: ApiResponse = await res.json();
+            return json.success && json.data ? json.data : null;
+          } catch {
+            return null;
+          }
+        })
+      );
+      if (!cancelled) {
+        setAircraft(results.filter((item): item is IAircraft => item !== null));
+        setLoading(false);
+      }
+    }
+
+    if (slugs.length > 0) {
+      load();
+    } else {
+      setAircraft([]);
+      setLoading(false);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString()]);
+
+  function handleRemove(slug: string) {
+    removeFromTray(slug);
+    setAircraft((prev) => prev.filter((item) => item.slug !== slug));
+  }
+
+  return (
+    <div className="border-t border-slate-200 bg-slate-50 py-14 lg:py-16">
+      <Container>
+        <Link
+          href="/fleet"
+          className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-sky-600"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          Back to fleet
+        </Link>
+
+        <div className="mt-5 flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy-900 text-white">
+            <Scale className="h-4.5 w-4.5" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="spec-readout text-xs uppercase tracking-widest2 text-sky-600">Side by Side</p>
+            <h1 className="font-editorial text-4xl font-light italic tracking-tight text-navy-900 lg:text-5xl">
+              Compare aircraft
+            </h1>
+          </div>
+        </div>
+
+        <div className="mt-10">
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {slugs.map((slug) => (
+                <div key={slug} className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 shadow-soft">
+                  <Skeleton className="aspect-[4/3] w-full" />
+                  <Skeleton className="h-5 w-2/3" />
+                  <Skeleton className="h-3.5 w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : aircraft.length < 2 ? (
+            <EmptyState
+              icon={<ImageOff className="h-5 w-5" aria-hidden="true" />}
+              title="Add at least two aircraft to compare"
+              description="Browse the fleet and use the compare toggle on any aircraft card to build a side-by-side comparison."
+              action={
+                <Button href="/fleet" variant="outline">
+                  Browse the Fleet
+                </Button>
+              }
+            />
+          ) : (
+            <CompareTable aircraft={aircraft} onRemove={handleRemove} />
+          )}
+        </div>
+      </Container>
+    </div>
+  );
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={null}>
+      <CompareContent />
+    </Suspense>
+  );
+}

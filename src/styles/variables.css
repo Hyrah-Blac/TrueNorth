@@ -1,0 +1,63 @@
+:root {
+  /* All brand colors below are stored as space-separated RGB triplets
+     (e.g. "11 22 34"), NOT hex strings. This is required for Tailwind's
+     opacity modifiers (bg-navy-950/60, text-white/75, etc.) to work —
+     Tailwind can only decompose an alpha channel out of a color when the
+     theme value is wired up as rgb(var(--x) / <alpha-value>), which needs
+     the raw numbers, not a pre-composed hex color. See tailwind.config.ts.
+     Any RAW (non-Tailwind-generated) use of these variables — inline
+     styles, SVG stroke/fill, plain CSS — must wrap them in rgb(...). */
+
+  /* Navy — primary ground. Rich navy to deep slate, never pure black. */
+  --color-navy-950: 11 22 34; /* #0b1622 — Rich Navy, primary background */
+  --color-navy-900: 17 24 39; /* #111827 — Deep Slate, secondary surfaces */
+  --color-navy-800: 26 36 51; /* #1a2433 */
+  --color-navy-700: 37 48 68; /* #253044 */
+
+  /* Sky — the single accent role: champagne gold. sky-600 is specifically
+     the "gold text on a light/white background" shade — measured at
+     6.77:1 against white (WCAG AA requires 4.5:1); on dark backgrounds
+     use sky-400 instead, which passes comfortably at its original,
+     brighter value (10.6:1). */
+  --color-sky-600: 107 84 35; /* #6b5423 */
+  --color-sky-500: 200 169 91; /* #c8a95b — Champagne Gold */
+  --color-sky-400: 217 196 137; /* #d9c489 */
+  --color-sky-100: 245 237 218; /* #f5edda */
+
+  /* Slate / gray — neutral text and light-mode surfaces.
+     slate-400 stays a light gray (6.86:1 against navy-950) for muted text
+     ON DARK backgrounds. slate-500 is a separate, deliberately darker
+     gray (5.03:1 against white) for muted/secondary text ON LIGHT
+     backgrounds — the same token can't serve both contexts at once. */
+  --color-slate-900: 18 21 26; /* #12151a */
+  --color-slate-600: 86 91 102; /* #565b66 */
+  --color-slate-500: 102 107 117; /* #666b75 */
+  --color-slate-400: 154 159 168; /* #9a9fa8 */
+  --color-slate-200: 228 229 232; /* #e4e5e8 */
+  --color-slate-50: 250 249 246; /* #faf9f6 — warm off-white, never pure white */
+
+  /* Gold — same champagne family, for hairline rings, dividers, small
+     premium badges. Same AA fix as sky-600: darkened for use as
+     text/icon color on light badge backgrounds. */
+  --color-gold-600: 107 84 35; /* #6b5423 */
+  --color-gold-500: 200 169 91; /* #c8a95b */
+  --color-gold-200: 236 224 196; /* #ece0c4 */
+
+  --color-white: 248 248 246; /* #f8f8f6 — off-white, never pure #ffffff */
+
+  /* Glass — already rgba() literals, used raw (not through Tailwind's
+     color/opacity system), so no triplet conversion needed here. */
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-surface: rgba(255, 255, 255, 0.04);
+
+  /* Elevation — shadows tuned to a near-black-navy ground, softer and
+     more diffuse than a typical UI shadow. */
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.08), 0 12px 32px -10px rgba(0, 0, 0, 0.25);
+  --shadow-lifted: 0 6px 12px rgba(0, 0, 0, 0.12), 0 32px 64px -16px rgba(0, 0, 0, 0.4);
+
+  /* Radii — restrained, never pill-shaped. Elegant rectangles with a
+     subtle softening rather than fully rounded corners. */
+  --radius-md: 0.1875rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.375rem;
+}

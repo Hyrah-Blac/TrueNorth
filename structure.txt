@@ -1,0 +1,572 @@
+﻿[FILE] .env
+[FILE] .gitignore
+[FILE] eslint.config.mjs
+[FILE] next.config.ts
+[FILE] next-env.d.ts
+[FILE] package.json
+[FILE] postcss.config.js
+[DIR ] public
+[DIR ] public\documents
+[DIR ] public\favicon
+[DIR ] public\icons
+[DIR ] public\images
+[DIR ] public\images\aircraft
+[DIR ] public\images\aircraft\cabins
+[DIR ] public\images\aircraft\exteriors
+[FILE] public\images\aircraft\Heli.jpg
+[DIR ] public\images\aircraft\interiors
+[FILE] public\images\aircraft\interiors\Interior.jpg
+[DIR ] public\images\aircraft\placeholders
+[DIR ] public\images\destinations
+[FILE] public\images\destinations\amboseli.jpg
+[FILE] public\images\destinations\diani.jpg
+[FILE] public\images\destinations\lamu.jpg
+[FILE] public\images\destinations\maasai-mara.jpg
+[FILE] public\images\destinations\mt-kenya.jpg
+[FILE] public\images\destinations\nairobi.jpg
+[DIR ] public\images\gallery
+[DIR ] public\images\hero
+[FILE] public\images\hero\2292095.jpg
+[DIR ] public\images\partners
+[DIR ] public\images\team
+[DIR ] public\images\testimonials
+[DIR ] public\logo
+[FILE] public\logo\logo.png
+[DIR ] public\manifest
+[FILE] SEED-SETUP.md
+[FILE] SETUP-auth.md
+[DIR ] src
+[DIR ] src\app
+[DIR ] src\app\(admin)
+[DIR ] src\app\(admin)\admin
+[DIR ] src\app\(admin)\admin\aircraft
+[FILE] src\app\(admin)\admin\aircraft\loading.tsx
+[FILE] src\app\(admin)\admin\aircraft\page.tsx
+[DIR ] src\app\(admin)\admin\bookings
+[DIR ] src\app\(admin)\admin\bookings\[id]
+[FILE] src\app\(admin)\admin\bookings\[id]\page.tsx
+[FILE] src\app\(admin)\admin\bookings\loading.tsx
+[FILE] src\app\(admin)\admin\bookings\page.tsx
+[DIR ] src\app\(admin)\admin\customers
+[DIR ] src\app\(admin)\admin\customers\[id]
+[FILE] src\app\(admin)\admin\customers\[id]\page.tsx
+[FILE] src\app\(admin)\admin\customers\loading.tsx
+[FILE] src\app\(admin)\admin\customers\page.tsx
+[DIR ] src\app\(admin)\admin\dashboard
+[FILE] src\app\(admin)\admin\dashboard\loading.tsx
+[FILE] src\app\(admin)\admin\dashboard\page.tsx
+[FILE] src\app\(admin)\admin\error.tsx
+[FILE] src\app\(admin)\admin\layout.tsx
+[DIR ] src\app\(admin)\admin\messages
+[DIR ] src\app\(admin)\admin\messages\[id]
+[FILE] src\app\(admin)\admin\messages\[id]\page.tsx
+[FILE] src\app\(admin)\admin\messages\loading.tsx
+[FILE] src\app\(admin)\admin\messages\page.tsx
+[FILE] src\app\(admin)\admin\page.tsx
+[DIR ] src\app\(admin)\admin\payments
+[DIR ] src\app\(admin)\admin\payments\[id]
+[FILE] src\app\(admin)\admin\payments\[id]\page.tsx
+[FILE] src\app\(admin)\admin\payments\loading.tsx
+[FILE] src\app\(admin)\admin\payments\page.tsx
+[DIR ] src\app\(admin)\admin\quotes
+[DIR ] src\app\(admin)\admin\quotes\[id]
+[FILE] src\app\(admin)\admin\quotes\[id]\page.tsx
+[FILE] src\app\(admin)\admin\quotes\loading.tsx
+[FILE] src\app\(admin)\admin\quotes\page.tsx
+[DIR ] src\app\(admin)\admin\settings
+[FILE] src\app\(admin)\admin\settings\loading.tsx
+[FILE] src\app\(admin)\admin\settings\page.tsx
+[FILE] src\app\(admin)\admin\template.tsx
+[DIR ] src\app\(customer)
+[DIR ] src\app\(customer)\dashboard
+[DIR ] src\app\(customer)\dashboard\bookings
+[DIR ] src\app\(customer)\dashboard\bookings\[id]
+[FILE] src\app\(customer)\dashboard\bookings\[id]\page.tsx
+[FILE] src\app\(customer)\dashboard\bookings\loading.tsx
+[FILE] src\app\(customer)\dashboard\bookings\page.tsx
+[FILE] src\app\(customer)\dashboard\error.tsx
+[FILE] src\app\(customer)\dashboard\layout.tsx
+[FILE] src\app\(customer)\dashboard\loading.tsx
+[FILE] src\app\(customer)\dashboard\page.tsx
+[DIR ] src\app\(customer)\dashboard\payments
+[DIR ] src\app\(customer)\dashboard\payments\[id]
+[FILE] src\app\(customer)\dashboard\payments\[id]\page.tsx
+[FILE] src\app\(customer)\dashboard\payments\loading.tsx
+[FILE] src\app\(customer)\dashboard\payments\page.tsx
+[DIR ] src\app\(customer)\dashboard\profile
+[FILE] src\app\(customer)\dashboard\profile\page.tsx
+[DIR ] src\app\(customer)\dashboard\quotes
+[DIR ] src\app\(customer)\dashboard\quotes\[id]
+[FILE] src\app\(customer)\dashboard\quotes\[id]\page.tsx
+[FILE] src\app\(customer)\dashboard\quotes\loading.tsx
+[FILE] src\app\(customer)\dashboard\quotes\page.tsx
+[FILE] src\app\(customer)\dashboard\template.tsx
+[DIR ] src\app\(public)
+[DIR ] src\app\(public)\about
+[FILE] src\app\(public)\about\page.tsx
+[DIR ] src\app\(public)\contact
+[FILE] src\app\(public)\contact\page.tsx
+[DIR ] src\app\(public)\destinations
+[FILE] src\app\(public)\destinations\loading.tsx
+[FILE] src\app\(public)\destinations\page.tsx
+[DIR ] src\app\(public)\fleet
+[DIR ] src\app\(public)\fleet\[id]
+[FILE] src\app\(public)\fleet\[id]\loading.tsx
+[FILE] src\app\(public)\fleet\[id]\not-found.tsx
+[FILE] src\app\(public)\fleet\[id]\page.tsx
+[DIR ] src\app\(public)\fleet\compare
+[FILE] src\app\(public)\fleet\compare\loading.tsx
+[FILE] src\app\(public)\fleet\compare\page.tsx
+[FILE] src\app\(public)\fleet\loading.tsx
+[FILE] src\app\(public)\fleet\page.tsx
+[FILE] src\app\(public)\layout.tsx
+[FILE] src\app\(public)\page.tsx
+[DIR ] src\app\(public)\request-charter
+[FILE] src\app\(public)\request-charter\page.tsx
+[DIR ] src\app\(public)\sign-in
+[DIR ] src\app\(public)\sign-in\[[...sign-in]]
+[FILE] src\app\(public)\sign-in\[[...sign-in]]\page.tsx
+[DIR ] src\app\(public)\sign-up
+[DIR ] src\app\(public)\sign-up\[[...sign-up]]
+[FILE] src\app\(public)\sign-up\[[...sign-up]]\page.tsx
+[FILE] src\app\(public)\template.tsx
+[DIR ] src\app\api
+[DIR ] src\app\api\aircraft
+[DIR ] src\app\api\aircraft\[id]
+[FILE] src\app\api\aircraft\[id]\route.ts
+[DIR ] src\app\api\aircraft\featured
+[FILE] src\app\api\aircraft\featured\route.ts
+[FILE] src\app\api\aircraft\route.ts
+[DIR ] src\app\api\aircraft\search
+[FILE] src\app\api\aircraft\search\route.ts
+[DIR ] src\app\api\bookings
+[DIR ] src\app\api\bookings\[id]
+[FILE] src\app\api\bookings\[id]\route.ts
+[DIR ] src\app\api\bookings\availability
+[FILE] src\app\api\bookings\availability\route.ts
+[DIR ] src\app\api\bookings\confirm
+[FILE] src\app\api\bookings\confirm\route.ts
+[FILE] src\app\api\bookings\route.ts
+[DIR ] src\app\api\contact
+[FILE] src\app\api\contact\route.ts
+[DIR ] src\app\api\cron
+[DIR ] src\app\api\cron\booking-reminders
+[FILE] src\app\api\cron\booking-reminders\route.ts
+[DIR ] src\app\api\cron\cleanup-expired-quotes
+[FILE] src\app\api\cron\cleanup-expired-quotes\route.ts
+[DIR ] src\app\api\payments
+[DIR ] src\app\api\payments\[id]
+[FILE] src\app\api\payments\[id]\route.ts
+[FILE] src\app\api\payments\route.ts
+[DIR ] src\app\api\payments\verify
+[FILE] src\app\api\payments\verify\route.ts
+[DIR ] src\app\api\quotes
+[DIR ] src\app\api\quotes\[id]
+[FILE] src\app\api\quotes\[id]\route.ts
+[DIR ] src\app\api\quotes\approve
+[FILE] src\app\api\quotes\approve\route.ts
+[DIR ] src\app\api\quotes\reject
+[FILE] src\app\api\quotes\reject\route.ts
+[FILE] src\app\api\quotes\route.ts
+[DIR ] src\app\api\upload
+[DIR ] src\app\api\upload\aircraft
+[FILE] src\app\api\upload\aircraft\route.ts
+[DIR ] src\app\api\upload\documents
+[FILE] src\app\api\upload\documents\route.ts
+[DIR ] src\app\api\webhooks
+[DIR ] src\app\api\webhooks\clerk
+[FILE] src\app\api\webhooks\clerk\route.ts
+[DIR ] src\app\api\webhooks\mpesa
+[FILE] src\app\api\webhooks\mpesa\route.ts
+[FILE] src\app\error.tsx
+[FILE] src\app\globals.css
+[FILE] src\app\layout.tsx
+[FILE] src\app\not-found.tsx
+[FILE] src\app\robots.ts
+[FILE] src\app\sitemap.ts
+[DIR ] src\components
+[DIR ] src\components\about
+[FILE] src\components\about\CertificationsSection.tsx
+[FILE] src\components\about\StorySection.tsx
+[DIR ] src\components\admin
+[DIR ] src\components\admin\charts
+[FILE] src\components\admin\charts\LazyTrendChart.tsx
+[FILE] src\components\admin\charts\TrendChart.tsx
+[DIR ] src\components\admin\dialogs
+[FILE] src\components\admin\dialogs\AircraftFormDialog.tsx
+[FILE] src\components\admin\dialogs\ApproveQuoteDialog.tsx
+[FILE] src\components\admin\dialogs\BookingStatusActions.tsx
+[FILE] src\components\admin\dialogs\ConfirmDialog.tsx
+[FILE] src\components\admin\dialogs\CustomerActionsPanel.tsx
+[FILE] src\components\admin\dialogs\MessageReplyPanel.tsx
+[FILE] src\components\admin\dialogs\QuoteReviewPanel.tsx
+[FILE] src\components\admin\dialogs\RecheckPaymentButton.tsx
+[FILE] src\components\admin\dialogs\RejectQuoteDialog.tsx
+[DIR ] src\components\admin\forms
+[FILE] src\components\admin\forms\ImageUploader.tsx
+[FILE] src\components\admin\forms\SettingsForm.tsx
+[DIR ] src\components\admin\layout
+[FILE] src\components\admin\layout\FilterTabs.tsx
+[FILE] src\components\admin\layout\ListToolbar.tsx
+[DIR ] src\components\admin\tables
+[FILE] src\components\admin\tables\AdminBookingRow.tsx
+[FILE] src\components\admin\tables\AdminPaymentRow.tsx
+[FILE] src\components\admin\tables\AdminQuoteRow.tsx
+[FILE] src\components\admin\tables\AircraftTable.tsx
+[FILE] src\components\admin\tables\CustomerSearchBox.tsx
+[DIR ] src\components\aircraft
+[DIR ] src\components\aircraft\amenities
+[FILE] src\components\aircraft\amenities\AmenitiesList.tsx
+[FILE] src\components\aircraft\amenities\amenityIcons.tsx
+[DIR ] src\components\aircraft\compare
+[FILE] src\components\aircraft\compare\CompareButton.tsx
+[FILE] src\components\aircraft\compare\CompareTable.tsx
+[FILE] src\components\aircraft\compare\CompareTray.tsx
+[DIR ] src\components\aircraft\gallery
+[FILE] src\components\aircraft\gallery\AircraftGallery.tsx
+[FILE] src\components\aircraft\gallery\GalleryLightbox.tsx
+[DIR ] src\components\aircraft\specifications
+[FILE] src\components\aircraft\specifications\missionIcons.tsx
+[FILE] src\components\aircraft\specifications\PerformanceBars.tsx
+[FILE] src\components\aircraft\specifications\RecommendedMissions.tsx
+[FILE] src\components\aircraft\specifications\SpecificationsTable.tsx
+[FILE] src\components\aircraft\specifications\SpecStrip.tsx
+[DIR ] src\components\booking
+[DIR ] src\components\booking\BookingCard
+[FILE] src\components\booking\BookingCard\BookingCard.tsx
+[FILE] src\components\booking\BookingCard\BookingsTable.tsx
+[FILE] src\components\booking\BookingCard\BookingStatusBadge.tsx
+[DIR ] src\components\booking\BookingForm
+[DIR ] src\components\booking\BookingSummary
+[FILE] src\components\booking\BookingSummary\BookingActionsPanel.tsx
+[DIR ] src\components\booking\BookingTimeline
+[FILE] src\components\booking\BookingTimeline\BookingTimeline.tsx
+[DIR ] src\components\contact
+[FILE] src\components\contact\ContactForm.tsx
+[FILE] src\components\contact\ContactInfoCard.tsx
+[DIR ] src\components\dashboard
+[DIR ] src\components\dashboard\cards
+[FILE] src\components\dashboard\cards\StatCard.tsx
+[DIR ] src\components\dashboard\charts
+[FILE] src\components\dashboard\PageHeader.tsx
+[DIR ] src\components\dashboard\stats
+[FILE] src\components\dashboard\StatusFilterTabs.tsx
+[DIR ] src\components\dashboard\widgets
+[FILE] src\components\dashboard\widgets\ProfileForm.tsx
+[DIR ] src\components\destinations
+[FILE] src\components\destinations\DestinationCard.tsx
+[FILE] src\components\destinations\DestinationsExplorer.tsx
+[FILE] src\components\destinations\RouteMapPlaceholder.tsx
+[DIR ] src\components\feedback
+[DIR ] src\components\feedback\EmptyState
+[DIR ] src\components\feedback\ErrorState
+[FILE] src\components\feedback\ErrorState\ErrorState.tsx
+[DIR ] src\components\feedback\LoadingState
+[DIR ] src\components\feedback\NotFound
+[FILE] src\components\feedback\NotFound\NotFound.tsx
+[DIR ] src\components\feedback\SuccessState
+[FILE] src\components\feedback\SuccessState\SuccessState.tsx
+[DIR ] src\components\fleet
+[DIR ] src\components\fleet\cards
+[FILE] src\components\fleet\cards\AircraftCard.tsx
+[DIR ] src\components\fleet\carousel
+[FILE] src\components\fleet\carousel\RelatedAircraft.tsx
+[DIR ] src\components\fleet\details
+[DIR ] src\components\fleet\filters
+[FILE] src\components\fleet\filters\FleetFilters.tsx
+[DIR ] src\components\fleet\gallery
+[DIR ] src\components\fleet\grid
+[FILE] src\components\fleet\grid\FleetGrid.tsx
+[DIR ] src\components\fleet\hero
+[FILE] src\components\fleet\hero\FleetHero.tsx
+[DIR ] src\components\forms
+[FILE] src\components\forms\DocumentUploader.tsx
+[FILE] src\components\forms\FormField.tsx
+[FILE] src\components\forms\Select.tsx
+[FILE] src\components\forms\Textarea.tsx
+[FILE] src\components\forms\TextInput.tsx
+[FILE] src\components\forms\ToggleSwitch.tsx
+[DIR ] src\components\home
+[FILE] src\components\home\FleetCategoriesSection.tsx
+[FILE] src\components\home\Hero.tsx
+[FILE] src\components\home\ServicesSection.tsx
+[DIR ] src\components\layout
+[DIR ] src\components\layout\container
+[FILE] src\components\layout\container\Container.tsx
+[DIR ] src\components\layout\footer
+[FILE] src\components\layout\footer\Footer.tsx
+[FILE] src\components\layout\footer\FooterLogo.tsx
+[DIR ] src\components\layout\navbar
+[FILE] src\components\layout\navbar\MobileNav.tsx
+[FILE] src\components\layout\navbar\Navbar.tsx
+[DIR ] src\components\layout\section
+[FILE] src\components\layout\section\Section.tsx
+[DIR ] src\components\layout\sidebar
+[FILE] src\components\layout\sidebar\DashboardShell.tsx
+[FILE] src\components\layout\sidebar\DashboardSidebar.tsx
+[DIR ] src\components\payment
+[DIR ] src\components\payment\MpesaButton
+[FILE] src\components\payment\MpesaButton\MpesaButton.tsx
+[DIR ] src\components\payment\PaymentCard
+[FILE] src\components\payment\PaymentCard\PaymentCard.tsx
+[FILE] src\components\payment\PaymentCard\PaymentsTable.tsx
+[FILE] src\components\payment\PaymentCard\PaymentStatusBadge.tsx
+[DIR ] src\components\payment\Receipt
+[FILE] src\components\payment\Receipt\Receipt.tsx
+[DIR ] src\components\quote
+[FILE] src\components\quote\CharterRequestForm.tsx
+[FILE] src\components\quote\QuoteCard.tsx
+[FILE] src\components\quote\QuotesTable.tsx
+[FILE] src\components\quote\QuoteStatusBadge.tsx
+[FILE] src\components\quote\StepIndicator.tsx
+[DIR ] src\components\quote\steps
+[FILE] src\components\quote\steps\ContactStep.tsx
+[FILE] src\components\quote\steps\MissionAircraftStep.tsx
+[FILE] src\components\quote\steps\RequirementsStep.tsx
+[FILE] src\components\quote\steps\ReviewStep.tsx
+[FILE] src\components\quote\steps\TripDetailsStep.tsx
+[DIR ] src\components\shared
+[DIR ] src\components\shared\alert
+[FILE] src\components\shared\alert\InlineAlert.tsx
+[DIR ] src\components\shared\badge
+[FILE] src\components\shared\badge\StatusBadge.tsx
+[DIR ] src\components\shared\buttons
+[FILE] src\components\shared\buttons\Button.tsx
+[DIR ] src\components\shared\cards
+[DIR ] src\components\shared\dialogs
+[DIR ] src\components\shared\empty-state
+[FILE] src\components\shared\empty-state\EmptyState.tsx
+[DIR ] src\components\shared\inputs
+[FILE] src\components\shared\JsonLd.tsx
+[DIR ] src\components\shared\modals
+[FILE] src\components\shared\modals\Modal.tsx
+[FILE] src\components\shared\PageTransition.tsx
+[FILE] src\components\shared\Pagination.tsx
+[FILE] src\components\shared\Reveal.tsx
+[DIR ] src\components\shared\skeleton
+[FILE] src\components\shared\skeleton\Skeleton.tsx
+[FILE] src\components\shared\SkipLink.tsx
+[DIR ] src\components\ui
+[DIR ] src\components\ui\animations
+[DIR ] src\components\ui\charts
+[DIR ] src\components\ui\forms
+[DIR ] src\components\whatsapp
+[FILE] src\components\whatsapp\WhatsAppButton.tsx
+[DIR ] src\constants
+[DIR ] src\content
+[FILE] src\content\airports.ts
+[FILE] src\content\company.ts
+[FILE] src\content\destinations.ts
+[FILE] src\content\faq.ts
+[FILE] src\content\fleet-categories.ts
+[FILE] src\content\navigation.ts
+[FILE] src\content\services.ts
+[FILE] src\content\social-links.ts
+[FILE] src\content\testimonials.ts
+[DIR ] src\database
+[FILE] src\database\connection.ts
+[DIR ] src\database\constants
+[FILE] src\database\constants\aircraft.ts
+[FILE] src\database\constants\booking-status.ts
+[FILE] src\database\constants\mission-type.ts
+[FILE] src\database\constants\payment-status.ts
+[FILE] src\database\constants\quote-status.ts
+[FILE] src\database\constants\roles.ts
+[DIR ] src\database\indexes
+[FILE] src\database\indexes\ensureIndexes.ts
+[DIR ] src\database\interfaces
+[DIR ] src\database\migrations
+[DIR ] src\database\models
+[FILE] src\database\models\Aircraft.ts
+[FILE] src\database\models\Booking.ts
+[FILE] src\database\models\Contact.ts
+[FILE] src\database\models\Counter.ts
+[FILE] src\database\models\Payment.ts
+[FILE] src\database\models\Quote.ts
+[FILE] src\database\models\SiteSettings.ts
+[FILE] src\database\models\User.ts
+[DIR ] src\database\plugins
+[FILE] src\database\plugins\slug.ts
+[FILE] src\database\plugins\softDelete.ts
+[FILE] src\database\plugins\timestamps.ts
+[DIR ] src\database\seed
+[FILE] src\database\seed\seed.ts
+[DIR ] src\emails
+[FILE] src\emails\AdminNewBooking.tsx
+[FILE] src\emails\AdminNewQuote.tsx
+[FILE] src\emails\BookingCancelled.tsx
+[FILE] src\emails\BookingConfirmation.tsx
+[FILE] src\emails\BookingReminder.tsx
+[DIR ] src\emails\components
+[FILE] src\emails\components\EmailLayout.tsx
+[FILE] src\emails\ContactReply.tsx
+[FILE] src\emails\PaymentReceipt.tsx
+[FILE] src\emails\QuoteApproved.tsx
+[FILE] src\emails\QuoteRejected.tsx
+[DIR ] src\features
+[DIR ] src\features\admin
+[DIR ] src\features\admin\actions
+[FILE] src\features\admin\actions\aircraft.actions.ts
+[FILE] src\features\admin\actions\booking.actions.ts
+[FILE] src\features\admin\actions\contact.actions.ts
+[FILE] src\features\admin\actions\payment.actions.ts
+[FILE] src\features\admin\actions\quote.actions.ts
+[FILE] src\features\admin\actions\settings.actions.ts
+[FILE] src\features\admin\actions\upload.actions.ts
+[DIR ] src\features\admin\components
+[DIR ] src\features\admin\hooks
+[DIR ] src\features\admin\lib
+[FILE] src\features\admin\lib\getAnalytics.ts
+[FILE] src\features\admin\lib\getBookingsForAdmin.ts
+[FILE] src\features\admin\lib\getCustomersForAdmin.ts
+[FILE] src\features\admin\lib\getMessagesForAdmin.ts
+[FILE] src\features\admin\lib\getPaymentsForAdmin.ts
+[FILE] src\features\admin\lib\getQuotesForAdmin.ts
+[FILE] src\features\admin\README.md
+[DIR ] src\features\admin\schemas
+[DIR ] src\features\admin\types
+[DIR ] src\features\admin\utils
+[DIR ] src\features\aircraft
+[DIR ] src\features\aircraft\actions
+[DIR ] src\features\aircraft\components
+[DIR ] src\features\aircraft\hooks
+[DIR ] src\features\aircraft\lib
+[FILE] src\features\aircraft\lib\getAircraft.ts
+[FILE] src\features\aircraft\README.md
+[DIR ] src\features\aircraft\schemas
+[FILE] src\features\aircraft\schemas\aircraft.schema.ts
+[DIR ] src\features\aircraft\types
+[DIR ] src\features\aircraft\utils
+[DIR ] src\features\auth
+[DIR ] src\features\auth\actions
+[FILE] src\features\auth\actions\user.actions.ts
+[DIR ] src\features\auth\components
+[FILE] src\features\auth\components\RoleGuard.tsx
+[FILE] src\features\auth\components\Unauthorized.tsx
+[DIR ] src\features\auth\hooks
+[FILE] src\features\auth\hooks\useCurrentUser.ts
+[DIR ] src\features\auth\lib
+[FILE] src\features\auth\lib\permissions.ts
+[FILE] src\features\auth\README.md
+[DIR ] src\features\auth\schemas
+[FILE] src\features\auth\schemas\user.schema.ts
+[DIR ] src\features\auth\types
+[FILE] src\features\auth\types\index.ts
+[DIR ] src\features\auth\utils
+[DIR ] src\features\booking
+[DIR ] src\features\booking\actions
+[FILE] src\features\booking\actions\booking.actions.ts
+[DIR ] src\features\booking\components
+[DIR ] src\features\booking\hooks
+[DIR ] src\features\booking\lib
+[FILE] src\features\booking\lib\getBookings.ts
+[FILE] src\features\booking\lib\transitions.ts
+[FILE] src\features\booking\README.md
+[DIR ] src\features\booking\schemas
+[FILE] src\features\booking\schemas\booking.schema.ts
+[DIR ] src\features\booking\types
+[DIR ] src\features\booking\utils
+[DIR ] src\features\contact
+[DIR ] src\features\contact\actions
+[FILE] src\features\contact\actions\contact.actions.ts
+[DIR ] src\features\contact\components
+[DIR ] src\features\contact\hooks
+[DIR ] src\features\contact\lib
+[FILE] src\features\contact\lib\createContactMessage.ts
+[FILE] src\features\contact\README.md
+[DIR ] src\features\contact\schemas
+[FILE] src\features\contact\schemas\contact.schema.ts
+[DIR ] src\features\contact\types
+[DIR ] src\features\contact\utils
+[DIR ] src\features\dashboard
+[DIR ] src\features\dashboard\actions
+[DIR ] src\features\dashboard\components
+[DIR ] src\features\dashboard\hooks
+[DIR ] src\features\dashboard\lib
+[FILE] src\features\dashboard\README.md
+[DIR ] src\features\dashboard\schemas
+[DIR ] src\features\dashboard\types
+[DIR ] src\features\dashboard\utils
+[DIR ] src\features\payment
+[DIR ] src\features\payment\actions
+[FILE] src\features\payment\actions\payment.actions.ts
+[DIR ] src\features\payment\components
+[DIR ] src\features\payment\hooks
+[DIR ] src\features\payment\lib
+[FILE] src\features\payment\lib\applyMpesaResult.ts
+[FILE] src\features\payment\lib\getPayments.ts
+[FILE] src\features\payment\lib\initiatePayment.ts
+[FILE] src\features\payment\README.md
+[DIR ] src\features\payment\schemas
+[FILE] src\features\payment\schemas\payment.schema.ts
+[DIR ] src\features\payment\types
+[DIR ] src\features\payment\utils
+[DIR ] src\features\quote
+[DIR ] src\features\quote\actions
+[FILE] src\features\quote\actions\quote.actions.ts
+[DIR ] src\features\quote\components
+[DIR ] src\features\quote\hooks
+[DIR ] src\features\quote\lib
+[FILE] src\features\quote\lib\approveQuote.ts
+[FILE] src\features\quote\lib\createQuote.ts
+[FILE] src\features\quote\lib\getQuotes.ts
+[FILE] src\features\quote\lib\rejectQuote.ts
+[FILE] src\features\quote\README.md
+[DIR ] src\features\quote\schemas
+[FILE] src\features\quote\schemas\quote.schema.ts
+[DIR ] src\features\quote\types
+[DIR ] src\features\quote\utils
+[DIR ] src\hooks
+[FILE] src\hooks\useCompareList.ts
+[DIR ] src\jobs
+[FILE] src\jobs\booking-reminders.ts
+[FILE] src\jobs\cleanup-expired-quotes.ts
+[DIR ] src\lib
+[DIR ] src\lib\api
+[FILE] src\lib\api\cloudinary.ts
+[FILE] src\lib\api\cloudinaryClient.ts
+[FILE] src\lib\api\google-maps.ts
+[FILE] src\lib\api\mpesa.ts
+[FILE] src\lib\api\resend.ts
+[FILE] src\lib\api\response.ts
+[DIR ] src\lib\config
+[FILE] src\lib\config\env.ts
+[FILE] src\lib\config\site.ts
+[FILE] src\lib\config\siteSettings.ts
+[DIR ] src\lib\errors
+[FILE] src\lib\errors\AppError.ts
+[FILE] src\lib\errors\HttpError.ts
+[FILE] src\lib\errors\ValidationError.ts
+[DIR ] src\lib\logging
+[FILE] src\lib\logging\logger.ts
+[DIR ] src\lib\security
+[FILE] src\lib\security\csrf.ts
+[FILE] src\lib\security\headers.ts
+[DIR ] src\lib\seo
+[FILE] src\lib\seo\structuredData.ts
+[DIR ] src\middleware
+[FILE] src\middleware.ts
+[FILE] src\middleware\admin.ts
+[FILE] src\middleware\auth.ts
+[FILE] src\middleware\rate-limit.ts
+[DIR ] src\providers
+[DIR ] src\store
+[DIR ] src\styles
+[FILE] src\styles\animations.css
+[FILE] src\styles\variables.css
+[DIR ] src\types
+[FILE] src\types\aircraft.ts
+[FILE] src\types\booking.ts
+[FILE] src\types\payment.ts
+[FILE] src\types\quote.ts
+[FILE] src\types\user.ts
+[DIR ] src\utils
+[FILE] src\utils\currency.ts
+[FILE] src\utils\date.ts
+[FILE] src\utils\format.ts
+[FILE] src\utils\pagination.ts
+[FILE] src\utils\validators.ts
+[FILE] structure.txt
+[FILE] tailwind.config.ts
+[FILE] tsconfig.json
+[FILE] vercel.json

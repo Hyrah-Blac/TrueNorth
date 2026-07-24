@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "../styles/variables.css";
+@import "../styles/animations.css";
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-size: 15px;
+  }
+
+  body {
+    @apply bg-white text-slate-900 antialiased;
+    font-family: var(--font-body), system-ui, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    letter-spacing: -0.01em;
+    font-weight: 500;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-sky-500));
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .horizon-divider {
+    position: relative;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(var(--color-slate-200)) 20%,
+      rgb(var(--color-slate-200)) 80%,
+      transparent 100%
+    );
+  }
+
+  .horizon-divider::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: rgb(var(--color-sky-500));
+    transform: translate(-50%, -50%);
+  }
+
+  .spec-readout {
+    font-family: var(--font-data), ui-monospace, monospace;
+    letter-spacing: 0.06em;
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .glass-panel {
+    background: var(--color-glass-surface);
+    border: 1px solid var(--color-glass-border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  /* Shimmer skeleton — a slow diagonal sweep rather than a flat pulse,
+     used for loading states across the app. */
+  .skeleton {
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--color-slate-50)) 25%,
+      rgb(var(--color-slate-200)) 37%,
+      rgb(var(--color-slate-50)) 63%
+    );
+    background-size: 400% 100%;
+  }
+}
