@@ -57,8 +57,15 @@ export async function POST(req: Request) {
           break;
         }
 
+        // Match by clerkId OR email. A doc can already exist with this
+        // email (earlier signup attempt, seed data, an account recreated
+        // in Clerk, etc.) under a different clerkId — matching on clerkId
+        // alone would miss it and the upsert's insert would then collide
+        // with the unique index on `email` (E11000), silently failing the
+        // whole sync. Matching on either field re-attaches the existing
+        // record to the new clerkId instead of trying to insert a dupe.
         await User.findOneAndUpdate(
-          { clerkId: data.id },
+          { $or: [{ clerkId: data.id }, { email: primaryEmail }] },
           {
             clerkId: data.id,
             email: primaryEmail,

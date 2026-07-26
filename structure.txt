@@ -17,8 +17,11 @@
 [DIR ] public\images\aircraft\interiors
 [FILE] public\images\aircraft\interiors\Interior.jpg
 [DIR ] public\images\aircraft\placeholders
+[FILE] public\images\aircraft\Plane.jpg
+[FILE] public\images\aircraft\safari.jpg
 [DIR ] public\images\destinations
 [FILE] public\images\destinations\amboseli.jpg
+[FILE] public\images\destinations\destinations-hero.jpg
 [FILE] public\images\destinations\diani.jpg
 [FILE] public\images\destinations\lamu.jpg
 [FILE] public\images\destinations\maasai-mara.jpg
@@ -57,11 +60,6 @@
 [FILE] src\app\(admin)\admin\dashboard\page.tsx
 [FILE] src\app\(admin)\admin\error.tsx
 [FILE] src\app\(admin)\admin\layout.tsx
-[DIR ] src\app\(admin)\admin\messages
-[DIR ] src\app\(admin)\admin\messages\[id]
-[FILE] src\app\(admin)\admin\messages\[id]\page.tsx
-[FILE] src\app\(admin)\admin\messages\loading.tsx
-[FILE] src\app\(admin)\admin\messages\page.tsx
 [FILE] src\app\(admin)\admin\page.tsx
 [DIR ] src\app\(admin)\admin\payments
 [DIR ] src\app\(admin)\admin\payments\[id]
@@ -126,9 +124,13 @@
 [DIR ] src\app\(public)\sign-in
 [DIR ] src\app\(public)\sign-in\[[...sign-in]]
 [FILE] src\app\(public)\sign-in\[[...sign-in]]\page.tsx
+[FILE] src\app\(public)\sign-in\[[...sign-in]]\SignInForm.tsx
 [DIR ] src\app\(public)\sign-up
 [DIR ] src\app\(public)\sign-up\[[...sign-up]]
 [FILE] src\app\(public)\sign-up\[[...sign-up]]\page.tsx
+[FILE] src\app\(public)\sign-up\[[...sign-up]]\SignUpForm.tsx
+[DIR ] src\app\(public)\sso-callback
+[FILE] src\app\(public)\sso-callback\page.tsx
 [FILE] src\app\(public)\template.tsx
 [DIR ] src\app\api
 [DIR ] src\app\api\aircraft
@@ -147,8 +149,6 @@
 [DIR ] src\app\api\bookings\confirm
 [FILE] src\app\api\bookings\confirm\route.ts
 [FILE] src\app\api\bookings\route.ts
-[DIR ] src\app\api\contact
-[FILE] src\app\api\contact\route.ts
 [DIR ] src\app\api\cron
 [DIR ] src\app\api\cron\booking-reminders
 [FILE] src\app\api\cron\booking-reminders\route.ts
@@ -186,7 +186,6 @@
 [FILE] src\app\sitemap.ts
 [DIR ] src\components
 [DIR ] src\components\about
-[FILE] src\components\about\CertificationsSection.tsx
 [FILE] src\components\about\StorySection.tsx
 [DIR ] src\components\admin
 [DIR ] src\components\admin\charts
@@ -198,7 +197,6 @@
 [FILE] src\components\admin\dialogs\BookingStatusActions.tsx
 [FILE] src\components\admin\dialogs\ConfirmDialog.tsx
 [FILE] src\components\admin\dialogs\CustomerActionsPanel.tsx
-[FILE] src\components\admin\dialogs\MessageReplyPanel.tsx
 [FILE] src\components\admin\dialogs\QuoteReviewPanel.tsx
 [FILE] src\components\admin\dialogs\RecheckPaymentButton.tsx
 [FILE] src\components\admin\dialogs\RejectQuoteDialog.tsx
@@ -242,7 +240,6 @@
 [DIR ] src\components\booking\BookingTimeline
 [FILE] src\components\booking\BookingTimeline\BookingTimeline.tsx
 [DIR ] src\components\contact
-[FILE] src\components\contact\ContactForm.tsx
 [FILE] src\components\contact\ContactInfoCard.tsx
 [DIR ] src\components\dashboard
 [DIR ] src\components\dashboard\cards
@@ -379,7 +376,6 @@
 [DIR ] src\database\models
 [FILE] src\database\models\Aircraft.ts
 [FILE] src\database\models\Booking.ts
-[FILE] src\database\models\Contact.ts
 [FILE] src\database\models\Counter.ts
 [FILE] src\database\models\Payment.ts
 [FILE] src\database\models\Quote.ts
@@ -399,7 +395,6 @@
 [FILE] src\emails\BookingReminder.tsx
 [DIR ] src\emails\components
 [FILE] src\emails\components\EmailLayout.tsx
-[FILE] src\emails\ContactReply.tsx
 [FILE] src\emails\PaymentReceipt.tsx
 [FILE] src\emails\QuoteApproved.tsx
 [FILE] src\emails\QuoteRejected.tsx
@@ -408,7 +403,6 @@
 [DIR ] src\features\admin\actions
 [FILE] src\features\admin\actions\aircraft.actions.ts
 [FILE] src\features\admin\actions\booking.actions.ts
-[FILE] src\features\admin\actions\contact.actions.ts
 [FILE] src\features\admin\actions\payment.actions.ts
 [FILE] src\features\admin\actions\quote.actions.ts
 [FILE] src\features\admin\actions\settings.actions.ts
@@ -419,7 +413,6 @@
 [FILE] src\features\admin\lib\getAnalytics.ts
 [FILE] src\features\admin\lib\getBookingsForAdmin.ts
 [FILE] src\features\admin\lib\getCustomersForAdmin.ts
-[FILE] src\features\admin\lib\getMessagesForAdmin.ts
 [FILE] src\features\admin\lib\getPaymentsForAdmin.ts
 [FILE] src\features\admin\lib\getQuotesForAdmin.ts
 [FILE] src\features\admin\README.md
@@ -466,18 +459,6 @@
 [FILE] src\features\booking\schemas\booking.schema.ts
 [DIR ] src\features\booking\types
 [DIR ] src\features\booking\utils
-[DIR ] src\features\contact
-[DIR ] src\features\contact\actions
-[FILE] src\features\contact\actions\contact.actions.ts
-[DIR ] src\features\contact\components
-[DIR ] src\features\contact\hooks
-[DIR ] src\features\contact\lib
-[FILE] src\features\contact\lib\createContactMessage.ts
-[FILE] src\features\contact\README.md
-[DIR ] src\features\contact\schemas
-[FILE] src\features\contact\schemas\contact.schema.ts
-[DIR ] src\features\contact\types
-[DIR ] src\features\contact\utils
 [DIR ] src\features\dashboard
 [DIR ] src\features\dashboard\actions
 [DIR ] src\features\dashboard\components
@@ -569,4 +550,5 @@
 [FILE] structure.txt
 [FILE] tailwind.config.ts
 [FILE] tsconfig.json
+[FILE] tsconfig.tsbuildinfo
 [FILE] vercel.json
