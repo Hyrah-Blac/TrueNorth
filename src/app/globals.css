@@ -12,8 +12,19 @@
   }
 
   body {
-    @apply bg-white text-slate-900 antialiased;
+    @apply text-slate-900 antialiased;
     font-family: var(--font-body), system-ui, sans-serif;
+    background-color: rgb(var(--color-white));
+    background-image:
+      radial-gradient(ellipse 60% 50% at 15% 0%, rgb(var(--color-sky-500) / 0.05), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 100% 100%, rgb(var(--color-navy-900) / 0.04), transparent 60%);
+    background-repeat: no-repeat;
+    /* background-attachment: fixed dropped — unreliable on mobile browsers
+       (iOS Safari silently ignores it; mobile Chrome can stutter on
+       scroll while it recalculates a fixed background every frame).
+       The gradient is subtle decoration, not worth the mobile scroll
+       jank. Scrolling with the page (default) looks the same here since
+       the gradient is anchored to page corners, not the viewport. */
   }
 
   h1,

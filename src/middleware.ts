@@ -15,6 +15,13 @@ const isPublicRoute = createRouteMatcher([
   "/sitemap.xml",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  // Required: this is where Clerk's OAuth redirect lands mid-handshake,
+  // *before* a session cookie exists yet. Without this, middleware sees
+  // userId === null on this route and bounces the request back to
+  // /sign-in via redirectToSignIn() before <AuthenticateWithRedirectCallback />
+  // ever gets a chance to mount and finish establishing the session —
+  // this was the actual cause of Google sign-in "bouncing back" to /sign-in.
+  "/sso-callback(.*)",
   "/api/webhooks(.*)",
   "/api/aircraft(.*)",
   "/api/contact",

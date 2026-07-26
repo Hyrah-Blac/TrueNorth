@@ -1,31 +1,32 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter, IBM_Plex_Mono } from "next/font/google";
+import { Poppins, Open_Sans, IBM_Plex_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { siteConfig } from "@/lib/config/site";
 import "./globals.css";
 
-// UI-level headings — nav, cards, dashboard, buttons, body copy. One
-// restrained workhorse family; weight and size do the work, in the
-// Apple-minimalist tradition rather than mixing several sans faces.
-const displayFont = Inter({
+// UI-level headings — nav, cards, dashboard, buttons, body copy.
+// Includes 800 (ExtraBold) since section headings across the site use
+// font-extrabold for the bold/uppercase treatment — without loading this
+// weight explicitly, browsers fake-bold the 700 cut instead of rendering
+// the real ExtraBold glyphs.
+const displayFont = Poppins({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-// Editorial headlines — hero, section titles, page headers. A single
-// elegant serif at size, used sparingly for the big brand moments.
-const editorialFont = Cormorant_Garamond({
+// Editorial headlines — hero, section titles, page headers.
+const editorialFont = Poppins({
   subsets: ["latin"],
   variable: "--font-editorial",
-  weight: ["400", "500", "600"],
+  weight: ["300", "400", "500", "600"],
   style: ["normal", "italic"],
 });
 
-const bodyFont = Inter({
+const bodyFont = Open_Sans({
   subsets: ["latin"],
   variable: "--font-body",
-  weight: ["400", "500", "600"],
+  weight: ["300", "400", "600", "700"],
 });
 
 const dataFont = IBM_Plex_Mono({

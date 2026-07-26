@@ -74,7 +74,7 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
             {AIRCRAFT_CATEGORY_LABELS[aircraft.category]}
           </p>
           <h1
-            className="animate-fade-up-editorial font-editorial text-5xl font-light italic tracking-tight text-navy-900 lg:text-6xl"
+            className="animate-fade-up-editorial font-editorial text-5xl font-light tracking-tight text-navy-900 lg:text-6xl"
             style={{ animationDelay: "80ms" }}
           >
             {aircraft.name}
@@ -99,7 +99,7 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
 
             <div className="mt-12">
               <p className="spec-readout text-xs uppercase tracking-widest2 text-sky-600">Overview</p>
-              <h2 className="mt-2 font-editorial text-3xl font-light italic text-navy-900">The aircraft</h2>
+              <h2 className="mt-2 font-editorial text-3xl font-light text-navy-900">The aircraft</h2>
               <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-slate-600">
                 {aircraft.description}
               </p>
@@ -108,7 +108,7 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
             {aircraft.recommendedMissions.length > 0 ? (
               <div className="mt-12">
                 <p className="spec-readout text-xs uppercase tracking-widest2 text-sky-600">Mission Fit</p>
-                <h2 className="mt-2 font-editorial text-3xl font-light italic text-navy-900">Recommended for</h2>
+                <h2 className="mt-2 font-editorial text-3xl font-light text-navy-900">Recommended for</h2>
                 <div className="mt-5">
                   <RecommendedMissions missions={aircraft.recommendedMissions} />
                 </div>
@@ -118,7 +118,7 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
             {aircraft.amenities.length > 0 ? (
               <div className="mt-12">
                 <p className="spec-readout text-xs uppercase tracking-widest2 text-sky-600">Cabin</p>
-                <h2 className="mt-2 font-editorial text-3xl font-light italic text-navy-900">Amenities</h2>
+                <h2 className="mt-2 font-editorial text-3xl font-light text-navy-900">Amenities</h2>
                 <div className="mt-5">
                   <AmenitiesList amenities={aircraft.amenities} />
                 </div>
@@ -127,7 +127,7 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
 
             <div className="mt-14 border-t border-slate-200 pt-10">
               <p className="spec-readout text-xs uppercase tracking-widest2 text-sky-600">Performance</p>
-              <h2 className="mt-2 font-editorial text-3xl font-light italic text-navy-900">Specifications</h2>
+              <h2 className="mt-2 font-editorial text-3xl font-light text-navy-900">Specifications</h2>
               <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-6">
                 <PerformanceBars rangeNm={aircraft.rangeNm} cruisingSpeedKts={aircraft.cruisingSpeedKts} />
               </div>

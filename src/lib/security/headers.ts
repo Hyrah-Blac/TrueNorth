@@ -10,9 +10,12 @@
  *   };
  *
  * Cloudinary and Clerk domains are allowlisted in the CSP since the
- * app depends on both for images and auth. Extend connectSrc/imgSrc
- * here if later phases (M-Pesa, Resend, Google Maps) need it — don't
- * relax the policy elsewhere.
+ * app depends on both for images and auth. challenges.cloudflare.com
+ * is Clerk's Smart CAPTCHA (Cloudflare Turnstile) widget, required for
+ * the sign-up flow's bot protection — without it, Clerk's backend
+ * rejects sign-up requests with a 400 since no CAPTCHA token can be
+ * generated. Extend connectSrc/imgSrc here if later phases (M-Pesa,
+ * Resend, Google Maps) need it — don't relax the policy elsewhere.
  */
 export const securityHeaders = [
   {
@@ -39,13 +42,13 @@ export const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.com https://challenges.cloudflare.com",
       "worker-src 'self' blob:",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://res.cloudinary.com https://img.clerk.com",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com",
-      "frame-src 'self' https://*.clerk.accounts.dev",
+      "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com https://challenges.cloudflare.com",
+      "frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -59,4 +62,3 @@ export function applySecurityHeaders(response: Response): Response {
   }
   return response;
 }
-

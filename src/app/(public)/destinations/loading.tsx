@@ -4,10 +4,10 @@ export default function DestinationsLoading() {
   return (
     <div>
       <div className="border-b border-navy-800 bg-navy-950 py-20 lg:py-28">
-        <div className="mx-auto max-w-container animate-pulse px-6 lg:px-10">
-          <div className="h-3 w-24 rounded-md bg-white/10" />
-          <div className="mt-4 h-10 w-96 max-w-full rounded-md bg-white/10" />
-          <div className="mt-4 h-4 w-full max-w-xl rounded-md bg-white/10" />
+        <div className="mx-auto max-w-container px-6 lg:px-10">
+          <Skeleton className="h-3 w-24 bg-white/10" />
+          <Skeleton className="mt-4 h-10 w-96 max-w-full bg-white/10" />
+          <Skeleton className="mt-4 h-4 w-full max-w-xl bg-white/10" />
         </div>
       </div>
 

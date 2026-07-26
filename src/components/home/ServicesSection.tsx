@@ -1,43 +1,47 @@
 "use client";
 
-import { Briefcase, Bank, Heartbeat, Compass, Mountains, Camera, type Icon } from "@phosphor-icons/react";
-import { Section, SectionHeading } from "@/components/layout/section/Section";
+import { Section } from "@/components/layout/section/Section";
 import { services } from "@/content/services";
-
-const iconMap: Record<string, Icon> = {
-  briefcase: Briefcase,
-  landmark: Bank,
-  "heart-pulse": Heartbeat,
-  compass: Compass,
-  mountain: Mountains,
-  camera: Camera,
-};
 
 export function ServicesSection() {
   return (
-    <Section tone="slate">
-      <SectionHeading
-        eyebrow="Who We Fly For"
-        title="Built for the work Kenya actually does in the air"
-        description="From boardrooms to bush airstrips — every sector below books through the same charter request process."
-      />
+    <Section
+      tone="navy"
+      size="slim"
+      className="relative isolate overflow-hidden before:absolute before:inset-0 before:-z-10 before:bg-gradient-to-r before:from-navy-950/90 before:via-navy-950/65 before:to-navy-950/25 before:content-['']"
+      style={{
+        backgroundImage: "url('/images/aircraft/Plane.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
+        {/* Text zone — left-aligned manifesto-style copy rather than
+            centered, so it reads as a confident statement rather than
+            a boxed-in banner. */}
+        <div className="max-w-xl">
+          <h2 className="font-display text-xl font-extrabold uppercase leading-[1.15] tracking-tight text-white sm:text-2xl lg:text-3xl">
+            Every Mission. One Trusted Operator.
+          </h2>
+          <p className="mt-4 font-body text-xs leading-relaxed text-slate-300 lg:text-sm">
+            Business meetings, government movement, safari charters, industrial access — Kenya&apos;s
+            aviation needs run through one operator built for all of them.
+          </p>
+        </div>
 
-      <div className="mt-16 grid grid-cols-1 gap-px overflow-hidden rounded-sm bg-slate-200 sm:grid-cols-2 lg:grid-cols-3">
-        {services.map((service) => {
-          const Icon = iconMap[service.icon];
-          return (
-            <div key={service.title} className="flex flex-col bg-white p-8 lg:p-10">
-              <span className="flex h-11 w-11 items-center justify-center rounded-md bg-sky-100 text-sky-600">
-                <Icon className="h-5 w-5" weight="thin" aria-hidden="true" />
-              </span>
-              <div className="mt-5 h-px w-8 bg-slate-200" />
-              <h3 className="mt-4 font-display text-lg font-semibold tracking-tight text-navy-900">
-                {service.title}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">{service.description}</p>
-            </div>
-          );
-        })}
+        {/* Sector tags — recovers the "every sector" idea the old cards
+            carried, without bringing back full cards. Trails to the
+            right on wide screens, wraps below the text on mobile. */}
+        <div className="flex flex-wrap gap-2 lg:max-w-xs lg:justify-end">
+          {services.map((service) => (
+            <span
+              key={service.title}
+              className="rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-[0.6875rem] font-medium uppercase tracking-[0.08em] text-slate-200"
+            >
+              {service.title}
+            </span>
+          ))}
+        </div>
       </div>
     </Section>
   );

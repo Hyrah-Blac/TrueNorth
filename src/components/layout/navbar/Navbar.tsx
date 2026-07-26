@@ -54,7 +54,7 @@ export function Navbar() {
   // --- derived state ---------------------------------------------------------
 
   const transparent = isHome && !scrolled && !mobileOpen;
-  const barHeight = transparent ? "h-[100px]" : "h-[88px]";
+  const barHeight = transparent ? "h-[112px]" : "h-[92px]";
 
   // --- render ----------------------------------------------------------------
 
@@ -145,26 +145,26 @@ function NavbarLogo({
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
       <Link
         href="/"
-        className="pointer-events-auto flex items-center text-[#F7F6F2]"
+        className="pointer-events-auto flex items-center text-[#F7F6F2] transition-opacity duration-300 hover:opacity-80"
         aria-label={siteConfig.shortName}
       >
         {logoError ? (
           <span
             className={`flex items-center justify-center rounded-full border border-[#4EA8DE]/40 bg-[#12263A] ${TRANSITION} ${
-              transparent ? "h-11 w-11" : "h-9 w-9"
+              transparent ? "h-16 w-16" : "h-12 w-12"
             }`}
           >
-            <Compass className="h-4 w-4 text-[#4EA8DE]" aria-hidden="true" />
+            <Compass className="h-6 w-6 text-[#4EA8DE]" aria-hidden="true" />
           </span>
         ) : (
           <Image
             src="/logo/logo.png"
             alt={siteConfig.shortName}
-            width={220}
-            height={64}
+            width={280}
+            height={82}
             priority
             onError={onLogoError}
-            className={`w-auto object-contain ${TRANSITION} ${transparent ? "h-10" : "h-8"}`}
+            className={`w-auto object-contain ${TRANSITION} ${transparent ? "h-16" : "h-12"}`}
           />
         )}
       </Link>
@@ -178,7 +178,7 @@ function NavbarLogo({
 
 function NavbarRightCluster({ pathname }: { pathname: string }) {
   return (
-    <div className="flex items-center gap-8">
+    <div className="flex items-center gap-10">
       <div className="hidden items-center gap-10 lg:flex">
         <TopLink href="/about" active={pathname === "/about"}>
           About
@@ -206,7 +206,7 @@ function NavbarRightCluster({ pathname }: { pathname: string }) {
 
         <Link
           href="/request-charter"
-          className="group relative inline-flex items-center justify-center whitespace-nowrap rounded-full border border-[#F0C24B]/60 px-6 py-2.5 text-[11px] font-medium uppercase tracking-[0.16em] text-[#F0C24B] shadow-[0_4px_24px_rgba(240,194,75,0.14)] transition-all duration-300 ease-out hover:-translate-y-px hover:border-[#F0C24B] hover:bg-[#F0C24B] hover:text-[#1A1200] hover:shadow-[0_10px_32px_rgba(240,194,75,0.32)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F0C24B]"
+          className="group font-display relative inline-flex items-center justify-center whitespace-nowrap rounded-full border border-[#F0C24B]/60 px-6 py-2.5 text-[11px] font-medium uppercase tracking-[0.16em] text-[#F0C24B] shadow-[0_4px_24px_rgba(240,194,75,0.14)] transition-all duration-300 ease-out hover:-translate-y-px hover:border-[#F0C24B] hover:bg-[#F0C24B] hover:text-[#1A1200] hover:shadow-[0_10px_32px_rgba(240,194,75,0.32)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F0C24B]"
         >
           Request Charter
         </Link>
@@ -262,7 +262,7 @@ function TopLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`group relative inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-medium uppercase tracking-[0.2em] transition-all duration-[250ms] ease-out ${
+      className={`group font-display relative inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-medium tracking-normal transition-all duration-[250ms] ease-out ${
         active
           ? "text-[#F7F6F2]"
           : "text-[#B8C2CC] hover:text-[#6EC5F2] hover:drop-shadow-[0_0_10px_rgba(78,168,222,0.55)]"

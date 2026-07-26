@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Globe2 } from "lucide-react";
+import { Globe } from "@phosphor-icons/react";
 import { DestinationCard } from "./DestinationCard";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { destinations, type Destination } from "@/content/destinations";
@@ -44,8 +44,8 @@ export function DestinationsExplorer() {
               key={tab.value}
               type="button"
               onClick={() => setRegion(tab.value)}
-              className={`rounded-md px-4 py-2 text-xs font-medium uppercase tracking-wide transition-all duration-300 ${
-                region === tab.value ? "bg-navy-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              className={`rounded-md px-4 py-2 text-xs font-medium uppercase tracking-wide ${
+                region === tab.value ? "bg-navy-900 text-white" : "bg-slate-100 text-slate-600"
               }`}
             >
               {tab.label}
@@ -59,10 +59,10 @@ export function DestinationsExplorer() {
               key={chip.value}
               type="button"
               onClick={() => setCategory(chip.value)}
-              className={`rounded-md border px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-all duration-300 ${
+              className={`rounded-md border px-3 py-1.5 text-xs font-medium uppercase tracking-wide ${
                 category === chip.value
                   ? "border-sky-500 bg-sky-100 text-sky-700"
-                  : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                  : "border-slate-200 text-slate-500"
               }`}
             >
               {chip.label}
@@ -74,7 +74,7 @@ export function DestinationsExplorer() {
       <div className="mt-10">
         {filtered.length === 0 ? (
           <EmptyState
-            icon={<Globe2 className="h-5 w-5" aria-hidden="true" />}
+            icon={<Globe className="h-5 w-5" weight="thin" aria-hidden="true" />}
             title="No destinations match those filters"
             description="Flying somewhere not listed here? Submit a charter request and tell us the route directly."
           />

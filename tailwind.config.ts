@@ -53,7 +53,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-display)", "system-ui", "sans-serif"],
-        editorial: ["var(--font-editorial)", "Georgia", "serif"],
+        editorial: ["var(--font-editorial)", "system-ui", "sans-serif"],
         body: ["var(--font-body)", "system-ui", "sans-serif"],
         mono: ["var(--font-data)", "ui-monospace", "monospace"],
       },

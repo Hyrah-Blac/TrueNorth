@@ -50,7 +50,8 @@ export function RouteMapPlaceholder() {
               y2={point.y}
               stroke="rgb(var(--color-sky-400))"
               strokeWidth="0.75"
-              strokeOpacity="0.35"
+              strokeOpacity="0.4"
+              strokeDasharray="2 3"
             />
           );
         })}

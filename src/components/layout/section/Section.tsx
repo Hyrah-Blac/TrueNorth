@@ -1,11 +1,13 @@
-import type { ReactNode } from "react";
+import type { ReactNode, CSSProperties } from "react";
 import { Container } from "../container/Container";
 import { Reveal } from "@/components/shared/Reveal";
 
 interface SectionProps {
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
   tone?: "white" | "slate" | "navy" | "graphite";
+  size?: "default" | "slim";
   id?: string;
 }
 
@@ -19,9 +21,25 @@ const toneStyles: Record<NonNullable<SectionProps["tone"]>, string> = {
   graphite: "bg-navy-900 text-white",
 };
 
-export function Section({ children, className = "", tone = "white", id }: SectionProps) {
+// "slim" is for short text-band sections (a heading + a line or two of
+// copy, no grid of content below) — the default vertical rhythm is
+// built for sections with real content beneath the heading and looks
+// bloated on a band that's just text.
+const sizeStyles: Record<NonNullable<SectionProps["size"]>, string> = {
+  default: "py-16 lg:py-24",
+  slim: "py-10 lg:py-14",
+};
+
+export function Section({
+  children,
+  className = "",
+  style,
+  tone = "white",
+  size = "default",
+  id,
+}: SectionProps) {
   return (
-    <section id={id} className={`py-10 lg:py-16 ${toneStyles[tone]} ${className}`}>
+    <section id={id} style={style} className={`${sizeStyles[size]} ${toneStyles[tone]} ${className}`}>
       <Container>
         <Reveal variant="fade-up">{children}</Reveal>
       </Container>
@@ -44,8 +62,15 @@ export function SectionGap({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   return <div className={`w-full bg-white ${heights[size]}`} aria-hidden="true" />;
 }
 
+/**
+ * Site-wide section heading. Bold, uppercase, geometric-display style —
+ * matches the reference brand treatment. Eyebrow labels were dropped
+ * globally in favor of this single, larger headline; the `eyebrow` prop
+ * is kept (unused) so existing call sites that still pass it don't break
+ * the build — remove it from callers when convenient.
+ */
 export function SectionHeading({
-  eyebrow,
+  eyebrow: _eyebrow,
   title,
   description,
   align = "left",
@@ -59,17 +84,8 @@ export function SectionHeading({
 }) {
   return (
     <div className={`max-w-2xl ${align === "center" ? "mx-auto text-center" : ""}`}>
-      {eyebrow ? (
-        <p
-          className={`spec-readout mb-4 text-xs font-medium uppercase tracking-widest2 ${
-            tone === "light" ? "text-sky-400" : "text-sky-600"
-          }`}
-        >
-          {eyebrow}
-        </p>
-      ) : null}
       <h2
-        className={`font-editorial text-3xl font-medium leading-[1.15] tracking-tight lg:text-4xl ${
+        className={`font-display text-xl font-extrabold uppercase leading-[1.15] tracking-tight sm:text-2xl lg:text-3xl ${
           tone === "light" ? "text-white" : "text-navy-900"
         }`}
       >
@@ -77,7 +93,7 @@ export function SectionHeading({
       </h2>
       {description ? (
         <p
-          className={`mt-5 font-body text-base leading-relaxed lg:text-lg ${
+          className={`mt-4 font-body text-xs leading-relaxed lg:text-sm ${
             tone === "light" ? "text-slate-200" : "text-slate-600"
           }`}
         >

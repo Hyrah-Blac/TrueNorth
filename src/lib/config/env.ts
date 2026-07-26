@@ -14,6 +14,16 @@ const envSchema = z.object({
   CLERK_SECRET_KEY: z.string().min(1, "Clerk secret key is required"),
   CLERK_WEBHOOK_SIGNING_SECRET: z.string().min(1, "Clerk webhook signing secret is required"),
 
+  // Tells Clerk where the app's own sign-in/sign-up pages and post-auth
+  // landing routes live. Without these, Clerk falls back to its own
+  // defaults during flows like the OAuth sign-in/sign-up "transfer"
+  // step, which can bounce users back to the wrong page after Google
+  // sign-in completes.
+  NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string().min(1).default("/sign-in"),
+  NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string().min(1).default("/sign-up"),
+  NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: z.string().min(1).default("/dashboard"),
+  NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: z.string().min(1).default("/dashboard"),
+
   MPESA_ENVIRONMENT: z.enum(["sandbox", "production"]).default("production"),
   MPESA_CONSUMER_KEY: z.string().min(1, "M-Pesa consumer key is required"),
   MPESA_CONSUMER_SECRET: z.string().min(1, "M-Pesa consumer secret is required"),
@@ -46,6 +56,10 @@ export function getEnv(): Env {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
+    NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
+    NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL,
+    NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL,
     MPESA_ENVIRONMENT: process.env.MPESA_ENVIRONMENT,
     MPESA_CONSUMER_KEY: process.env.MPESA_CONSUMER_KEY,
     MPESA_CONSUMER_SECRET: process.env.MPESA_CONSUMER_SECRET,

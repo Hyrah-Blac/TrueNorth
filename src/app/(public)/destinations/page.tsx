@@ -30,7 +30,7 @@ export default function DestinationsPage() {
 
       <div className="relative overflow-hidden border-b border-navy-800 bg-navy-950 py-20 lg:py-28">
         <Image
-          src="/images/destinations/Heli.jpg"
+          src="/images/destinations/destinations-hero.jpg"
           alt=""
           fill
           priority

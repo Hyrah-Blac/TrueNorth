@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Hero } from "@/components/home/Hero";
 import { FleetCategoriesSection } from "@/components/home/FleetCategoriesSection";
 import { ServicesSection } from "@/components/home/ServicesSection";
-import { WhatsAppButton } from "@/components/whatsapp/WhatsAppButton";
 
 const description =
   "Helicopters, turboprops, light jets, and medevac aircraft for business, government, NGO, safari, and emergency charter across Kenya and East Africa.";
@@ -20,7 +19,6 @@ export default function HomePage() {
       <Hero />
       <FleetCategoriesSection />
       <ServicesSection />
-      <WhatsAppButton />
     </>
   );
 }

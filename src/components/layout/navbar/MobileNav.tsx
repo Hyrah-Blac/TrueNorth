@@ -14,10 +14,12 @@ interface MobileNavProps {
 // Shared style for the flat top-level links below — kept as constants so
 // all links stay visually identical without repeating the class list.
 // The last link (Contact) skips the bottom border since it's followed by
-// the auth/CTA section's own border.
+// the auth/CTA section's own border. Matches the desktop nav's hover
+// treatment (subtle background wash + accent text) and transition timing.
 const LINK_CLASS =
-  "border-b border-white/10 py-4 text-lg font-medium text-white/90 transition-colors hover:text-[#4EA8DE]";
-const LAST_LINK_CLASS = "py-4 text-lg font-medium text-white/90 transition-colors hover:text-[#4EA8DE]";
+  "font-display rounded-md border-b border-white/10 px-2 py-4 text-lg font-medium text-white/90 transition-colors duration-300 hover:bg-white/5 hover:text-[#4EA8DE]";
+const LAST_LINK_CLASS =
+  "font-display rounded-md px-2 py-4 text-lg font-medium text-white/90 transition-colors duration-300 hover:bg-white/5 hover:text-[#4EA8DE]";
 
 export function MobileNav({ open, onClose }: MobileNavProps) {
   return (
@@ -26,7 +28,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
         open ? "max-h-[calc(100vh-5rem)] opacity-100" : "max-h-0 opacity-0"
       }`}
     >
-      <Container className="flex flex-col py-4">
+      <Container className="flex flex-col py-6">
         <Link href="/fleet" onClick={onClose} className={LINK_CLASS}>
           Fleet
         </Link>
@@ -40,12 +42,12 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
           Contact
         </Link>
 
-        <div className="mt-4 border-t border-white/10 pt-6">
+        <div className="mt-5 border-t border-white/10 pt-6">
           <SignedOut>
             <Link
               href="/sign-in"
               onClick={onClose}
-              className="block rounded-md px-2 py-3 text-base font-medium text-white/80 hover:bg-white/5"
+              className="font-display block rounded-md px-2 py-3 text-base font-medium text-white/80 transition-colors duration-300 hover:bg-white/5 hover:text-[#4EA8DE]"
             >
               Sign In
             </Link>
@@ -54,7 +56,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
             <Link
               href="/dashboard"
               onClick={onClose}
-              className="block rounded-md px-2 py-3 text-base font-medium text-white/80 hover:bg-white/5"
+              className="font-display block rounded-md px-2 py-3 text-base font-medium text-white/80 transition-colors duration-300 hover:bg-white/5 hover:text-[#4EA8DE]"
             >
               Dashboard
             </Link>
@@ -66,7 +68,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
           </div>
           <a
             href={`tel:${siteConfig.phone.replace(/\s/g, "")}`}
-            className="mt-5 block px-2 text-center text-xs uppercase tracking-[0.14em] text-slate-400"
+            className="mt-5 block px-2 text-center text-xs uppercase tracking-[0.14em] text-slate-400 transition-colors duration-300 hover:text-slate-300"
           >
             {siteConfig.phoneDisplay}
           </a>
