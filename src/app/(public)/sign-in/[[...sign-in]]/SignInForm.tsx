@@ -3,6 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSignIn, useClerk } from "@clerk/nextjs";
+import type {
+  EmailCodeFactor,
+  SignInFirstFactor,
+  SignInResource,
+  SignInSecondFactor,
+} from "@clerk/types";
 import Link from "next/link";
 import { Container } from "@/components/layout/container/Container";
 import { Button } from "@/components/shared/buttons/Button";
@@ -12,14 +18,28 @@ import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 const RESEND_WAIT = 30; // seconds
 
 // ── parse Clerk's non-enumerable error object ────────────────────────────────
+interface ClerkErrorDetail {
+  code?: string;
+  message?: string;
+  longMessage?: string;
+}
+
 function parseClerkError(err: unknown): { code: string; message: string; longMessage: string } {
   const errorsArr = (err as { errors?: unknown })?.errors;
-  const e = Array.isArray(errorsArr) ? errorsArr[0] : (err as any);
+  const e = (Array.isArray(errorsArr) ? errorsArr[0] : err) as ClerkErrorDetail | undefined;
   return {
     code: String(e?.code ?? ""),
     message: String(e?.message ?? ""),
     longMessage: String(e?.longMessage ?? e?.message ?? ""),
   };
+}
+
+// Narrows a first/second factor down to the email_code variant so we can
+// read `emailAddressId` off it without casting.
+function isEmailCodeFactor(
+  factor: SignInFirstFactor | SignInSecondFactor
+): factor is EmailCodeFactor {
+  return factor.strategy === "email_code";
 }
 
 // Never reveal whether the email/account exists — same generic message
@@ -142,15 +162,13 @@ export function SignInForm() {
         return;
       }
 
-      const emailCodeFactor = result.supportedFirstFactors?.find(
-        (f: any) => f.strategy === "email_code"
-      ) as any;
+      const emailCodeFactor = result.supportedFirstFactors?.find(isEmailCodeFactor);
 
       const needsEmail =
         result.status === "needs_second_factor" ||
         result.status === "needs_first_factor" ||
         Boolean(emailCodeFactor) ||
-        result.supportedSecondFactors?.some((f: any) => f.strategy === "email_code");
+        result.supportedSecondFactors?.some(isEmailCodeFactor);
 
       if (needsEmail) {
         try {
@@ -163,7 +181,7 @@ export function SignInForm() {
           // an MFA second factor after password) — prepare that instead so
           // a code actually gets sent before the verify screen shows.
           try {
-            await (signIn as any).prepareSecondFactor({ strategy: "email_code" });
+            await signIn.prepareSecondFactor({ strategy: "email_code" });
           } catch {
             // Neither applies — nothing we can do but let the verify
             // screen's own error handling surface the real problem.
@@ -189,11 +207,11 @@ export function SignInForm() {
     setError("");
     setLoading(true);
     try {
-      let result: any;
+      let result: SignInResource;
       try {
         result = await signIn.attemptFirstFactor({ strategy: "email_code", code });
       } catch {
-        result = await (signIn as any).attemptSecondFactor({ strategy: "email_code", code });
+        result = await signIn.attemptSecondFactor({ strategy: "email_code", code });
       }
 
       const status = result?.status ?? signIn.status;
@@ -219,9 +237,7 @@ export function SignInForm() {
     setResendSuccess(false);
     setError("");
     try {
-      const emailCodeFactor = (signIn as any).supportedFirstFactors?.find(
-        (f: any) => f.strategy === "email_code"
-      ) as any;
+      const emailCodeFactor = signIn.supportedFirstFactors?.find(isEmailCodeFactor);
       await signIn.prepareFirstFactor({
         strategy: "email_code",
         emailAddressId: emailCodeFactor?.emailAddressId ?? "",

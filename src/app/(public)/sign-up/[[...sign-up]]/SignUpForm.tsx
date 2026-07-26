@@ -11,9 +11,15 @@ import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 const RESEND_WAIT = 30; // seconds
 
 // ── parse Clerk's non-enumerable error object ────────────────────────────────
+interface ClerkErrorDetail {
+  code?: string;
+  message?: string;
+  longMessage?: string;
+}
+
 function parseClerkError(err: unknown): { code: string; message: string; longMessage: string } {
   const errorsArr = (err as { errors?: unknown })?.errors;
-  const e = Array.isArray(errorsArr) ? errorsArr[0] : (err as any);
+  const e = (Array.isArray(errorsArr) ? errorsArr[0] : err) as ClerkErrorDetail | undefined;
   return {
     code: String(e?.code ?? ""),
     message: String(e?.message ?? ""),
