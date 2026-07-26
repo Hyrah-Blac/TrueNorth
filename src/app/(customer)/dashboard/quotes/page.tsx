@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FileText } from "lucide-react";
+import { FileText } from "@phosphor-icons/react/dist/ssr";
 import { QuoteCard } from "@/components/quote/QuoteCard";
 import { QuotesTable } from "@/components/quote/QuotesTable";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";

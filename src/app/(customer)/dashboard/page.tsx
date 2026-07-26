@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PlaneTakeoff, FileText, Wallet, ArrowRight } from "lucide-react";
+import { AirplaneTakeoff, FileText, Wallet, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { StatCard } from "@/components/dashboard/cards/StatCard";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { BookingCard } from "@/components/booking/BookingCard/BookingCard";
@@ -30,7 +30,7 @@ export default async function DashboardOverviewPage() {
         <StatCard
           label="Active bookings"
           value={String(activeBookings.length)}
-          icon={PlaneTakeoff}
+          icon={AirplaneTakeoff}
           hint={activeBookings.length === 0 ? "No trips in progress" : "In progress or upcoming"}
         />
         <StatCard
@@ -53,7 +53,7 @@ export default async function DashboardOverviewPage() {
 
       <div>
         <div className="flex items-center justify-between">
-          <h2 className="font-editorial text-2xl font-light italic text-white">Recent bookings</h2>
+          <h2 className="font-editorial text-2xl font-light text-white">Recent bookings</h2>
           <Link
             href="/dashboard/bookings"
             className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-sky-400 transition-colors hover:text-sky-300"
@@ -65,7 +65,7 @@ export default async function DashboardOverviewPage() {
           {bookings.length === 0 ? (
             <div className="lg:col-span-3">
               <EmptyState
-                icon={<PlaneTakeoff className="h-5 w-5" aria-hidden="true" />}
+                icon={<AirplaneTakeoff className="h-5 w-5" aria-hidden="true" />}
                 title="No bookings yet"
                 description="Once a charter request is approved, it will show up here."
                 action={
@@ -83,7 +83,7 @@ export default async function DashboardOverviewPage() {
 
       <div>
         <div className="flex items-center justify-between">
-          <h2 className="font-editorial text-2xl font-light italic text-white">Recent quotes</h2>
+          <h2 className="font-editorial text-2xl font-light text-white">Recent quotes</h2>
           <Link
             href="/dashboard/quotes"
             className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-sky-400 transition-colors hover:text-sky-300"

@@ -2,14 +2,20 @@
 
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import type { MonthlyPoint } from "@/features/admin/lib/getAnalytics";
+import { formatCurrency } from "@/utils/currency";
 
 export function TrendChart({
   data,
-  valueFormatter,
+  formatAsCurrency = false,
   color = "rgb(var(--color-sky-500))",
 }: {
   data: MonthlyPoint[];
-  valueFormatter?: (value: number) => string;
+  /**
+   * Server Components can't pass functions to Client Components (only
+   * serializable props), so instead of accepting a formatter function
+   * this just takes a flag and calls formatCurrency() itself.
+   */
+  formatAsCurrency?: boolean;
   color?: string;
 }) {
   return (
@@ -31,7 +37,7 @@ export function TrendChart({
           />
           <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "rgb(var(--color-slate-400))" }} width={40} />
           <Tooltip
-            formatter={(value: number) => (valueFormatter ? valueFormatter(value) : value)}
+            formatter={(value: number) => (formatAsCurrency ? formatCurrency(value) : value)}
             contentStyle={{
               borderRadius: 6,
               borderColor: "rgb(var(--color-slate-200))",

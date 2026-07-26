@@ -1,24 +1,24 @@
 import {
-  LayoutDashboard,
-  PlaneTakeoff,
+  SquaresFour,
+  AirplaneTakeoff,
   CalendarCheck,
   FileText,
   Receipt,
   Users,
-  Settings,
-} from "lucide-react";
+  Gear,
+} from "@phosphor-icons/react/dist/ssr";
 import { requireAdmin } from "@/middleware/admin";
 import { DashboardShell } from "@/components/layout/sidebar/DashboardShell";
 import type { SidebarNavItem } from "@/components/layout/sidebar/DashboardSidebar";
 
 const navItems: SidebarNavItem[] = [
-  { label: "Overview", href: "/admin/dashboard", icon: LayoutDashboard, exact: true },
-  { label: "Aircraft", href: "/admin/aircraft", icon: PlaneTakeoff },
-  { label: "Bookings", href: "/admin/bookings", icon: CalendarCheck },
-  { label: "Quotes", href: "/admin/quotes", icon: FileText },
-  { label: "Payments", href: "/admin/payments", icon: Receipt },
-  { label: "Customers", href: "/admin/customers", icon: Users },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
+  { label: "Overview", href: "/admin/dashboard", icon: <SquaresFour aria-hidden="true" />, exact: true },
+  { label: "Aircraft", href: "/admin/aircraft", icon: <AirplaneTakeoff aria-hidden="true" /> },
+  { label: "Bookings", href: "/admin/bookings", icon: <CalendarCheck aria-hidden="true" /> },
+  { label: "Quotes", href: "/admin/quotes", icon: <FileText aria-hidden="true" /> },
+  { label: "Payments", href: "/admin/payments", icon: <Receipt aria-hidden="true" /> },
+  { label: "Customers", href: "/admin/customers", icon: <Users aria-hidden="true" /> },
+  { label: "Settings", href: "/admin/settings", icon: <Gear aria-hidden="true" /> },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

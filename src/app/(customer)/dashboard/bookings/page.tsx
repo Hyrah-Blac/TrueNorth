@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PlaneTakeoff } from "lucide-react";
+import { AirplaneTakeoff } from "@phosphor-icons/react/dist/ssr";
 import { BookingCard } from "@/components/booking/BookingCard/BookingCard";
 import { BookingsTable } from "@/components/booking/BookingCard/BookingsTable";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
@@ -45,7 +45,7 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
       <div className="mt-7">
         {bookings.length === 0 ? (
           <EmptyState
-            icon={<PlaneTakeoff className="h-5 w-5" aria-hidden="true" />}
+            icon={<AirplaneTakeoff className="h-5 w-5" aria-hidden="true" />}
             title="No bookings found"
             description="Bookings appear here once a charter request has been approved."
             action={

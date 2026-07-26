@@ -23,7 +23,7 @@ export function PageHeader({
         {eyebrow ? (
           <p className="spec-readout text-xs uppercase tracking-widest2 text-sky-400">{eyebrow}</p>
         ) : null}
-        <h1 className={`font-editorial text-3xl font-light italic text-white ${eyebrow ? "mt-1.5" : ""}`}>
+        <h1 className={`font-editorial text-4xl font-light tracking-tight text-white ${eyebrow ? "mt-1.5" : ""}`}>
           {title}
         </h1>
         {description ? <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-400">{description}</p> : null}

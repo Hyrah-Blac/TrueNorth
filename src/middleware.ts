@@ -1,5 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { getRoleFromSessionClaims } from "@/lib/auth/session";
+import { ROLES } from "@/database/constants/roles";
 
 // Everything NOT listed here requires sign-in by default once it hits
 // a protected matcher below. Keep this list in sync with the (public)
@@ -41,9 +43,9 @@ export default clerkMiddleware(async (authFn, req) => {
     return redirectToSignIn({ returnBackUrl: req.url });
   }
 
-  const role = (sessionClaims?.metadata as { role?: string } | undefined)?.role ?? "customer";
+  const role = getRoleFromSessionClaims(sessionClaims);
 
-  if (isAdminRoute(req) && role !== "admin") {
+  if (isAdminRoute(req) && role !== ROLES.ADMIN) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

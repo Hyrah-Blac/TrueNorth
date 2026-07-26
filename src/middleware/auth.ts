@@ -2,7 +2,8 @@ import "server-only";
 import { cache } from "react";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { UnauthorizedError } from "@/lib/errors/AppError";
-import { ROLES, type Role } from "@/database/constants/roles";
+import { type Role } from "@/database/constants/roles";
+import { getRoleFromSessionClaims } from "@/lib/auth/session";
 import connectToDatabase from "@/database/connection";
 import User, { type UserDocument } from "@/database/models/User";
 
@@ -24,8 +25,7 @@ export async function requireAuth(): Promise<SessionUser> {
     throw new UnauthorizedError();
   }
 
-  const claimedRole = (sessionClaims?.metadata as { role?: Role } | undefined)?.role;
-  const role: Role = claimedRole ?? ROLES.CUSTOMER;
+  const role = getRoleFromSessionClaims(sessionClaims);
 
   return { clerkId: userId, role };
 }
@@ -69,7 +69,7 @@ async function syncUserFromClerk(clerkId: string): Promise<UserDocument> {
     firstName: clerkUser.firstName || "Customer",
     lastName: clerkUser.lastName || "",
     avatarUrl: clerkUser.imageUrl,
-    role: ROLES.CUSTOMER,
+    role: "customer" as Role,
     isActive: true,
   };
 

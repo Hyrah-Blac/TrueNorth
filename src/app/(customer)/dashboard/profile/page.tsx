@@ -24,16 +24,16 @@ export default async function ProfilePage() {
         description="Keep your contact details current so we can reach you about bookings and quotes."
       />
 
-      <div className="max-w-2xl rounded-xl border border-slate-200 bg-white p-7 shadow-soft sm:p-9">
-        <div className="mb-8 flex items-center gap-4 border-b border-slate-100 pb-7">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-navy-900 font-display text-lg font-semibold text-sky-400 ring-1 ring-inset ring-gold-500/30">
+      <div className="glass-panel max-w-2xl rounded-xl p-7 sm:p-9">
+        <div className="mb-8 flex items-center gap-4 border-b border-white/10 pb-7">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/10 font-display text-lg font-semibold text-sky-400 ring-1 ring-inset ring-gold-500/30">
             {initials || "?"}
           </span>
           <div>
-            <p className="font-display text-base font-semibold text-navy-900">
+            <p className="font-display text-base font-semibold text-white">
               {user.firstName} {user.lastName}
             </p>
-            <p className="text-sm text-slate-500">{user.email}</p>
+            <p className="text-sm text-slate-400">{user.email}</p>
           </div>
         </div>
 

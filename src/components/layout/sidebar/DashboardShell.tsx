@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, Compass } from "lucide-react";
+// Client component, so the default @phosphor-icons/react export is fine
+// here (no RSC boundary to cross). Phosphor's hamburger glyph is "List",
+// not "Menu" — X and Compass keep their lucide names as-is.
+import { List, X, Compass } from "@phosphor-icons/react";
 import { UserButton } from "@clerk/nextjs";
 import { DashboardSidebar, type SidebarNavItem } from "./DashboardSidebar";
 import { SkipLink } from "@/components/shared/SkipLink";
-import { siteConfig } from "@/lib/config/site";
 
 export function DashboardShell({
   items,
@@ -19,6 +22,7 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const pathname = usePathname();
 
   // Close the mobile drawer whenever the route changes, so tapping a nav
@@ -52,17 +56,38 @@ export function DashboardShell({
               onClick={() => setMobileOpen((open) => !open)}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
             >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileOpen ? <X className="h-5 w-5" /> : <List className="h-5 w-5" />}
             </button>
-            <Link href="/" className="hidden items-center gap-2 lg:flex">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-500 ring-1 ring-inset ring-gold-500/40">
-                <Compass className="h-3.5 w-3.5 text-navy-950" aria-hidden="true" />
+            {/* Home link. Previously hidden on mobile and lacking any hover
+                state, so nothing signaled it was clickable — now visible at
+                every breakpoint, with a hover treatment and an explicit
+                "Home" label (progressively hidden on the very smallest
+                screens purely for space, not intent) so it reads as a way
+                out of the dashboard, not just a static logo. */}
+            <Link
+              href="/"
+              className="group flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-white/5"
+              aria-label="Home"
+            >
+              {logoError ? (
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-500 ring-1 ring-inset ring-gold-500/40">
+                  <Compass className="h-4 w-4 text-navy-950" aria-hidden="true" />
+                </span>
+              ) : (
+                <Image
+                  src="/logo/logo.png"
+                  alt=""
+                  width={140}
+                  height={41}
+                  priority
+                  onError={() => setLogoError(true)}
+                  className="h-9 w-auto object-contain"
+                />
+              )}
+              <span className="hidden text-xs font-medium uppercase tracking-wide text-slate-400 transition-colors group-hover:text-white sm:inline">
+                Home
               </span>
-              <span className="font-editorial text-lg italic text-white">{siteConfig.shortName}</span>
             </Link>
-            <h1 className="font-display text-sm font-semibold uppercase tracking-wide text-white lg:ml-4 lg:border-l lg:border-white/10 lg:pl-4">
-              {title}
-            </h1>
           </div>
 
           <UserButton
@@ -71,7 +96,7 @@ export function DashboardShell({
           />
         </header>
 
-        <main id="main-content" className="flex-1 p-4 lg:p-10">
+        <main id="main-content" aria-label={title} className="flex-1 p-4 lg:p-10">
           {children}
         </main>
       </div>

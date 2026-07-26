@@ -47,7 +47,7 @@ export default async function AdminDashboardPage() {
           <h2 className="font-display text-base font-semibold text-navy-900">Revenue (6 months)</h2>
           <p className="text-xs text-slate-500">This month: {formatCurrency(revenue.thisMonthRevenue)}</p>
           <div className="mt-5">
-            <TrendChart data={revenueSeries} valueFormatter={(v) => formatCurrency(v)} />
+            <TrendChart data={revenueSeries} formatAsCurrency />
           </div>
         </div>
 

@@ -1,13 +1,13 @@
 "use client";
 
+import { cloneElement, isValidElement } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
 
 export interface SidebarNavItem {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: React.ReactNode;
   exact?: boolean;
 }
 
@@ -26,6 +26,14 @@ export function DashboardSidebar({
         {items.map((item) => {
           const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
+          const icon = isValidElement<{ className?: string }>(item.icon)
+            ? cloneElement(item.icon, {
+                className: `h-4 w-4 shrink-0 transition-colors ${
+                  isActive ? "text-sky-400" : "text-slate-500 group-hover:text-slate-300"
+                }`,
+              })
+            : item.icon;
+
           return (
             <Link
               key={item.href}
@@ -37,10 +45,7 @@ export function DashboardSidebar({
               {isActive ? (
                 <span className="absolute -left-5 h-5 w-0.5 rounded-full bg-sky-500" aria-hidden="true" />
               ) : null}
-              <item.icon
-                className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-sky-400" : "text-slate-500 group-hover:text-slate-300"}`}
-                aria-hidden="true"
-              />
+              {icon}
               {item.label}
             </Link>
           );
