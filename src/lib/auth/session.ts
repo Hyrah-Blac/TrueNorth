@@ -25,8 +25,36 @@ export interface ClerkSessionClaims {
 let hasWarnedMissingClaim = false;
 
 /**
+ * Narrows an unknown value down to the { metadata: { role } } shape we
+ * care about, without asserting anything about the rest of the object.
+ */
+function readRoleClaim(sessionClaims: unknown): string | undefined {
+  if (typeof sessionClaims !== "object" || sessionClaims === null) {
+    return undefined;
+  }
+
+  const metadata = (sessionClaims as { metadata?: unknown }).metadata;
+
+  if (typeof metadata !== "object" || metadata === null) {
+    return undefined;
+  }
+
+  const role = (metadata as { role?: unknown }).role;
+  return typeof role === "string" ? role : undefined;
+}
+
+/**
  * Resolves the app Role from Clerk sessionClaims, falling back to
  * ROLES.CUSTOMER if the claim is missing or invalid.
+ *
+ * Accepts `unknown` rather than a specific Clerk type on purpose: Clerk's
+ * real sessionClaims type (JwtPayload & CustomJwtSessionClaims) has no
+ * `metadata` property declared by default — that only exists at runtime
+ * once the "metadata" custom claim is configured in the Clerk Dashboard.
+ * Typing this parameter as a narrow object with only an optional
+ * `metadata` field made TypeScript treat it as a "weak type" with zero
+ * properties in common with Clerk's real type, which broke the build.
+ * Accepting `unknown` and narrowing manually sidesteps that entirely.
  *
  * IMPORTANT: falling back to CUSTOMER here is a deliberate, safe
  * default (fail closed rather than fail open) — but it can also mask
@@ -37,13 +65,8 @@ let hasWarnedMissingClaim = false;
  * user, so a genuinely misconfigured token surfaces in logs instead
  * of just looking like a permissions bug.
  */
-export function getRoleFromSessionClaims(sessionClaims: ClerkSessionClaims | null | undefined): Role {
-  const claimedRole = sessionClaims?.metadata?.role;
-
-  // TEMPORARY DEBUG LOG — remove once the missing-claim issue is confirmed
-  // fixed. Prints the raw sessionClaims object so we can see exactly what
-  // Clerk is sending (or not sending) at runtime.
-  console.log("[auth debug] sessionClaims:", JSON.stringify(sessionClaims));
+export function getRoleFromSessionClaims(sessionClaims: unknown): Role {
+  const claimedRole = readRoleClaim(sessionClaims);
 
   if (claimedRole === undefined) {
     if (!hasWarnedMissingClaim) {
