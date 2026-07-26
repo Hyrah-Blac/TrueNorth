@@ -12,7 +12,6 @@ import type {
 import Link from "next/link";
 import { Container } from "@/components/layout/container/Container";
 import { Button } from "@/components/shared/buttons/Button";
-import { ROLES } from "@/database/constants/roles";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 
 const RESEND_WAIT = 30; // seconds
@@ -104,7 +103,7 @@ export function SignInForm() {
   const { signIn, setActive } = useSignIn();
   const clerk = useClerk();
   const router = useRouter();
-  const { role, isSignedIn, isLoaded: userLoaded } = useCurrentUser();
+  const { isSignedIn, isLoaded: userLoaded } = useCurrentUser();
 
   const redirectedRef = useRef(false);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -125,16 +124,12 @@ export function SignInForm() {
   useEffect(() => () => { if (cooldownRef.current) clearInterval(cooldownRef.current); }, []);
 
   // ── redirect once Clerk confirms the session ─────────────────────────────
-  // Role comes straight from Clerk's publicMetadata (via useCurrentUser,
-  // the same source of truth used everywhere else in the app) — there is
-  // no backend "sync" call to wait on, since new users are already
-  // upserted into Mongo by the Clerk webhook before they can sign in.
   useEffect(() => {
     if (!userLoaded || !isSignedIn) return;
     if (redirectedRef.current) return;
     redirectedRef.current = true;
-    router.replace(role === ROLES.ADMIN ? "/admin" : "/dashboard");
-  }, [userLoaded, isSignedIn, role, router]);
+    router.replace("/");
+  }, [userLoaded, isSignedIn, router]);
 
   // ── cooldown ticker ───────────────────────────────────────────────────────
   const startCooldown = () => {
@@ -274,9 +269,9 @@ export function SignInForm() {
       await clerkSignIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: `${appUrl}/sso-callback`,
-        // Land back on /sign-in (not the homepage) so this component's own
-        // isSignedIn effect is still mounted to run the role-based redirect
-        // (admin -> /admin, everyone else -> /dashboard).
+        // Land back on /sign-in (not the homepage directly) so this
+        // component's own isSignedIn effect is still mounted to run the
+        // redirect to home.
         redirectUrlComplete: `${appUrl}/sign-in`,
       });
     } catch (err) {

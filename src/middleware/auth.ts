@@ -1,5 +1,5 @@
 import "server-only";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { UnauthorizedError } from "@/lib/errors/AppError";
 import { ROLES, type Role } from "@/database/constants/roles";
 import connectToDatabase from "@/database/connection";
@@ -35,16 +35,75 @@ export async function isSignedIn(): Promise<boolean> {
 }
 
 /**
+ * Creates the Mongo User doc for a Clerk account that doesn't have one
+ * yet, pulling the details straight from Clerk's backend API. This is
+ * the same shape as the `user.created` webhook handler, and matches by
+ * clerkId OR email for the same reason (avoid E11000 collisions with a
+ * pre-existing record under the same email).
+ *
+ * Exists to close a race condition: setActive() makes a session live
+ * immediately on sign-up, but the `user.created` webhook that creates
+ * the Mongo record is a separate async call from Clerk — it can easily
+ * arrive after the client has already redirected to a page that needs
+ * the User doc. This self-heals instead of throwing in that window.
+ */
+async function syncUserFromClerk(clerkId: string): Promise<UserDocument> {
+  const clerk = await clerkClient();
+  const clerkUser = await clerk.users.getUser(clerkId);
+
+  const primaryEmail = clerkUser.emailAddresses.find(
+    (email) => email.id === clerkUser.primaryEmailAddressId
+  )?.emailAddress;
+
+  if (!primaryEmail) {
+    throw new UnauthorizedError("Your account is missing a verified email address.");
+  }
+
+  await connectToDatabase();
+
+  const user = await User.findOneAndUpdate(
+    { $or: [{ clerkId }, { email: primaryEmail }] },
+    {
+      clerkId,
+      email: primaryEmail,
+      firstName: clerkUser.firstName || "Customer",
+      lastName: clerkUser.lastName || "",
+      avatarUrl: clerkUser.imageUrl,
+      role: ROLES.CUSTOMER,
+      isActive: true,
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+
+  return user;
+}
+
+/**
  * Fetches the MongoDB User document for the current Clerk session, or
- * null if not signed in / not yet synced. Prefer this whenever you
- * need profile fields (name, phone, company) rather than just the role.
+ * null if not signed in. Prefer this whenever you need profile fields
+ * (name, phone, company) rather than just the role.
+ *
+ * If the webhook hasn't synced this account to Mongo yet (e.g. right
+ * after sign-up), this falls back to creating it on the spot from
+ * Clerk's own data rather than returning null.
  */
 export async function getCurrentDbUser(): Promise<UserDocument | null> {
   const { userId } = await auth();
   if (!userId) return null;
 
   await connectToDatabase();
-  return User.findOne({ clerkId: userId });
+  const existing = await User.findOne({ clerkId: userId });
+  if (existing) return existing;
+
+  try {
+    return await syncUserFromClerk(userId);
+  } catch (error) {
+    // If the self-heal itself fails (e.g. Clerk API hiccup), fall back
+    // to the original "not found" behavior rather than throwing a
+    // different, more confusing error from here.
+    console.error("Failed to self-heal missing User doc", { clerkId: userId, error });
+    return null;
+  }
 }
 
 export async function getCurrentUserOrThrow(): Promise<UserDocument> {

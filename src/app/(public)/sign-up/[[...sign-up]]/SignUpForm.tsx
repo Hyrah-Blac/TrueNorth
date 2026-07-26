@@ -108,12 +108,11 @@ export function SignUpForm() {
 
   useEffect(() => () => { if (cooldownRef.current) clearInterval(cooldownRef.current); }, []);
 
-  // New accounts are always customers — no role check needed, straight to dashboard.
   useEffect(() => {
     if (!userLoaded || !isSignedIn) return;
     if (redirectedRef.current) return;
     redirectedRef.current = true;
-    router.replace("/dashboard");
+    router.replace("/");
   }, [userLoaded, isSignedIn, router]);
 
   const startCooldown = () => {
@@ -227,8 +226,9 @@ export function SignUpForm() {
       await clerkSignUp.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: `${appUrl}/sso-callback`,
-        // Land back on /sign-up (not the homepage) so this component's own
-        // isSignedIn effect is still mounted to run the redirect to /dashboard.
+        // Land back on /sign-up (not the homepage directly) so this
+        // component's own isSignedIn effect is still mounted to run the
+        // redirect to home.
         redirectUrlComplete: `${appUrl}/sign-up`,
       });
     } catch (err) {
