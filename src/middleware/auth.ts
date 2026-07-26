@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { UnauthorizedError } from "@/lib/errors/AppError";
 import { ROLES, type Role } from "@/database/constants/roles";
@@ -61,21 +62,42 @@ async function syncUserFromClerk(clerkId: string): Promise<UserDocument> {
 
   await connectToDatabase();
 
-  const user = await User.findOneAndUpdate(
-    { $or: [{ clerkId }, { email: primaryEmail }] },
-    {
-      clerkId,
-      email: primaryEmail,
-      firstName: clerkUser.firstName || "Customer",
-      lastName: clerkUser.lastName || "",
-      avatarUrl: clerkUser.imageUrl,
-      role: ROLES.CUSTOMER,
-      isActive: true,
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  const query = { $or: [{ clerkId }, { email: primaryEmail }] };
+  const update = {
+    clerkId,
+    email: primaryEmail,
+    firstName: clerkUser.firstName || "Customer",
+    lastName: clerkUser.lastName || "",
+    avatarUrl: clerkUser.imageUrl,
+    role: ROLES.CUSTOMER,
+    isActive: true,
+  };
 
-  return user;
+  try {
+    const user = await User.findOneAndUpdate(query, update, {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    });
+    return user;
+  } catch (error) {
+    // The webhook and this self-heal path (or multiple concurrent
+    // Server Components each calling getCurrentDbUser on the same
+    // request) can race to create the same document at once. Mongo's
+    // unique index correctly rejects the loser with E11000 — that's
+    // not a real failure, it just means another caller already won
+    // the race and created the record we wanted. Fetch it instead of
+    // giving up.
+    const isDuplicateKeyError =
+      typeof error === "object" && error !== null && "code" in error && error.code === 11000;
+
+    if (isDuplicateKeyError) {
+      const existing = await User.findOne(query);
+      if (existing) return existing;
+    }
+
+    throw error;
+  }
 }
 
 /**
@@ -86,8 +108,14 @@ async function syncUserFromClerk(clerkId: string): Promise<UserDocument> {
  * If the webhook hasn't synced this account to Mongo yet (e.g. right
  * after sign-up), this falls back to creating it on the spot from
  * Clerk's own data rather than returning null.
+ *
+ * Wrapped in React's cache() so multiple Server Components (layout,
+ * page, nested data loaders) calling this during the same request
+ * share one lookup instead of each independently racing to sync —
+ * this doesn't help across separate requests (webhook vs. page load),
+ * but it removes the biggest source of same-request collisions.
  */
-export async function getCurrentDbUser(): Promise<UserDocument | null> {
+export const getCurrentDbUser = cache(async (): Promise<UserDocument | null> => {
   const { userId } = await auth();
   if (!userId) return null;
 
@@ -98,13 +126,14 @@ export async function getCurrentDbUser(): Promise<UserDocument | null> {
   try {
     return await syncUserFromClerk(userId);
   } catch (error) {
-    // If the self-heal itself fails (e.g. Clerk API hiccup), fall back
-    // to the original "not found" behavior rather than throwing a
-    // different, more confusing error from here.
+    // If the self-heal itself fails for a reason other than the race
+    // handled above (e.g. a genuine Clerk API hiccup), fall back to the
+    // original "not found" behavior rather than throwing a different,
+    // more confusing error from here.
     console.error("Failed to self-heal missing User doc", { clerkId: userId, error });
     return null;
   }
-}
+});
 
 export async function getCurrentUserOrThrow(): Promise<UserDocument> {
   const user = await getCurrentDbUser();
