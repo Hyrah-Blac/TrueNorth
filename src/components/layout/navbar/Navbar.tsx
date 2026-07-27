@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { Menu, X, Compass } from "lucide-react";
 import { Container } from "../container/Container";
 import { MobileNav } from "./MobileNav";
@@ -201,7 +201,7 @@ function NavbarRightCluster({ pathname }: { pathname: string }) {
           <TopLink href="/dashboard" active={pathname === "/dashboard"}>
             Dashboard
           </TopLink>
-          <UserButton afterSwitchSessionUrl="/" />
+          <ProfileAvatarLink active={pathname === "/dashboard/profile"} />
         </SignedIn>
 
         <Link
@@ -212,6 +212,45 @@ function NavbarRightCluster({ pathname }: { pathname: string }) {
         </Link>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Profile avatar — links straight to the app's own dashboard profile page
+// (/dashboard/profile) instead of opening Clerk's built-in <UserButton />
+// account popup. Uses Clerk's useUser() purely as a data source for the
+// photo/initials; navigation is a plain Next Link.
+// ---------------------------------------------------------------------------
+
+function ProfileAvatarLink({ active }: { active: boolean }) {
+  const { user } = useUser();
+
+  const initials =
+    user?.firstName?.[0]?.toUpperCase() ?? user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase() ?? "?";
+
+  return (
+    <Link
+      href="/dashboard/profile"
+      aria-label="View profile"
+      aria-current={active ? "page" : undefined}
+      className={`flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border ${TRANSITION} ${
+        active ? "border-[#F0C24B]" : "border-[rgba(255,255,255,0.16)] hover:border-[#4EA8DE]"
+      }`}
+    >
+      {user?.imageUrl ? (
+        <Image
+          src={user.imageUrl}
+          alt={user.fullName ?? "Profile"}
+          width={36}
+          height={36}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <span className="flex h-full w-full items-center justify-center bg-[#12263A] text-xs font-medium text-[#F7F6F2]">
+          {initials}
+        </span>
+      )}
+    </Link>
   );
 }
 
