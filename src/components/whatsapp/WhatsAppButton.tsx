@@ -1,13 +1,15 @@
 "use client";
 
-import { siteConfig } from "@/lib/config/site";
+interface WhatsAppButtonProps {
+  /** Live, admin-configured WhatsApp number (falls back to phone upstream if unset). */
+  whatsapp: string;
+}
 
 // WhatsApp deep link needs digits only (country code + number, no spaces,
-// no "+"). siteConfig.phone is formatted for display elsewhere (e.g. the
-// tel: links in Navbar/MobileNav/Footer), so strip everything but digits
-// here rather than assuming a particular format.
-function getWhatsAppHref() {
-  const digitsOnly = siteConfig.phone.replace(/\D/g, "");
+// no "+"). The number passed in is formatted for display elsewhere, so
+// strip everything but digits here rather than assuming a particular format.
+function getWhatsAppHref(whatsapp: string) {
+  const digitsOnly = whatsapp.replace(/\D/g, "");
   return `https://wa.me/${digitsOnly}`;
 }
 
@@ -18,10 +20,10 @@ function getWhatsAppHref() {
  * matters more than palette consistency. Swap the two hex values below
  * if you'd rather match the site's own colors instead.
  */
-export function WhatsAppButton() {
+export function WhatsAppButton({ whatsapp }: WhatsAppButtonProps) {
   return (
     <a
-      href={getWhatsAppHref()}
+      href={getWhatsAppHref(whatsapp)}
       target="_blank"
       rel="noreferrer noopener"
       aria-label="Chat with us on WhatsApp"

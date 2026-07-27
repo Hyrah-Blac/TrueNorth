@@ -1,7 +1,7 @@
 import "server-only";
 import connectToDatabase from "@/database/connection";
 import Quote, { type QuoteDocument } from "@/database/models/Quote";
-import User from "@/database/models/User";
+import { getCurrentDbUser } from "@/middleware/auth";
 import { sanitizePlainText } from "@/utils/validators";
 import { sendEmail, getAdminNotificationEmail } from "@/lib/api/resend";
 import { siteConfig } from "@/lib/config/site";
@@ -14,14 +14,17 @@ import type { CreateQuoteInput } from "../schemas/quote.schema";
  * customer's account when one exists. Charter requests can be
  * submitted signed-out (the public form) or signed-in (attaches to
  * the customer's dashboard automatically) — both paths call this.
+ *
+ * Uses getCurrentDbUser() (not a plain User.findOne) so that a
+ * signed-in customer who hasn't triggered the Mongo profile sync yet
+ * (e.g. submitting a request right after signup, before ever visiting
+ * /dashboard) gets self-healed on the spot instead of silently having
+ * their quote created with no customer link at all.
  */
-export async function createQuoteFromInput(
-  data: CreateQuoteInput,
-  clerkId: string | null
-): Promise<QuoteDocument> {
+export async function createQuoteFromInput(data: CreateQuoteInput): Promise<QuoteDocument> {
   await connectToDatabase();
 
-  const dbUser = clerkId ? await User.findOne({ clerkId }).select("_id") : null;
+  const dbUser = await getCurrentDbUser();
 
   const quote = await Quote.create({
     ...data,

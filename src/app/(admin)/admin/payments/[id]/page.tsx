@@ -97,7 +97,9 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
             ) : null}
           </div>
         ) : (
-          <p className="mt-4 text-sm text-slate-500">No customer profile linked.</p>
+          <p className="mt-4 text-sm text-slate-500">
+            This customer&apos;s account has been deleted.
+          </p>
         )}
       </aside>
     </div>

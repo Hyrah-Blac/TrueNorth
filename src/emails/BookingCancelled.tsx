@@ -1,14 +1,20 @@
-import { EmailLayout, EmailText, EmailDetailRow } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
 
 export interface BookingCancelledProps {
   customerName: string;
   bookingNumber: string;
   cancellationReason: string;
+  contact?: EmailContact;
 }
 
-export default function BookingCancelled({ customerName, bookingNumber, cancellationReason }: BookingCancelledProps) {
+export default function BookingCancelled({
+  customerName,
+  bookingNumber,
+  cancellationReason,
+  contact,
+}: BookingCancelledProps) {
   return (
-    <EmailLayout previewText={`Booking ${bookingNumber} has been cancelled`} heading="Booking cancelled">
+    <EmailLayout previewText={`Booking ${bookingNumber} has been cancelled`} heading="Booking cancelled" contact={contact}>
       <EmailText>Hi {customerName},</EmailText>
       <EmailText>Your booking has been cancelled. Details are below for your records.</EmailText>
 

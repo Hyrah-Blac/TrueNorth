@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Receipt } from "@/components/payment/Receipt/Receipt";
 import { getMyPaymentById } from "@/features/payment/lib/getPayments";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 import { NotFoundError, ForbiddenError, isAppError } from "@/lib/errors/AppError";
 
 export const metadata: Metadata = { title: "Receipt" };
@@ -23,5 +24,7 @@ export default async function PaymentDetailPage({ params }: PaymentDetailPagePro
     throw error;
   }
 
-  return <Receipt payment={payment} />;
+  const settings = await getSiteSettings();
+
+  return <Receipt payment={payment} contactEmail={settings.email} />;
 }

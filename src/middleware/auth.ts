@@ -62,7 +62,13 @@ async function syncUserFromClerk(clerkId: string): Promise<UserDocument> {
 
   await connectToDatabase();
 
-  const query = { $or: [{ clerkId }, { email: primaryEmail }] };
+  // includeDeleted: true so this also finds (and revives) a user who was
+  // soft-deleted under the same email before user.deleted switched to a
+  // hard delete — without it, the soft-delete plugin hides that doc, the
+  // upsert below tries to insert a new one with the same email, and
+  // collides with the unique index (E11000). New deletions are hard
+  // deletes now, so this is mainly a safety net for legacy rows.
+  const query = { $or: [{ clerkId }, { email: primaryEmail }], includeDeleted: true };
   const update = {
     clerkId,
     email: primaryEmail,
@@ -71,6 +77,8 @@ async function syncUserFromClerk(clerkId: string): Promise<UserDocument> {
     avatarUrl: clerkUser.imageUrl,
     role: "customer" as Role,
     isActive: true,
+    isDeleted: false,
+    deletedAt: null,
   };
 
   try {

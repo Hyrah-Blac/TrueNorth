@@ -20,6 +20,22 @@ export interface ResolvedSiteSettings {
 }
 
 /**
+ * Shape expected by the `contact` prop on email templates
+ * (src/emails/*.tsx) — a small projection of ResolvedSiteSettings.
+ * Centralized here so every email-sending call site builds it the
+ * same way instead of repeating the field mapping.
+ */
+export function toEmailContact(settings: ResolvedSiteSettings) {
+  return {
+    email: settings.email,
+    addressLine1: settings.addressLine1,
+    addressLine2: settings.addressLine2,
+    city: settings.city,
+    country: settings.country,
+  };
+}
+
+/**
  * Returns admin-configured site settings, falling back to the static
  * defaults in site.ts for any field that hasn't been set yet (or if
  * no settings document exists at all). Safe to call from public pages

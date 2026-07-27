@@ -5,7 +5,13 @@ import { formatDateTime } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
 import type { IPayment } from "@/types/payment";
 
-export function Receipt({ payment }: { payment: IPayment }) {
+interface ReceiptProps {
+  payment: IPayment;
+  /** Live, admin-configured support email (falls back to the static default upstream). */
+  contactEmail?: string;
+}
+
+export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptProps) {
   const bookingNumber =
     typeof payment.booking === "object" && payment.booking !== null
       ? payment.booking.bookingNumber
@@ -30,7 +36,7 @@ export function Receipt({ payment }: { payment: IPayment }) {
       <div className="flex items-start justify-between">
         <div>
           <p className="font-editorial text-xl italic text-navy-900">{siteConfig.name}</p>
-          <p className="text-xs text-slate-500">{siteConfig.email}</p>
+          <p className="text-xs text-slate-500">{contactEmail}</p>
         </div>
         <button
           type="button"

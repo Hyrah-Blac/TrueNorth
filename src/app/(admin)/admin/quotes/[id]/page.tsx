@@ -110,6 +110,8 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
                 quoteId={quote._id}
                 aircraftOptions={aircraftOptions}
                 preferredAircraftId={preferredAircraftId}
+                hasCustomer={Boolean(quote.customer)}
+                suggestedEmail={quote.contactInfo.email}
               />
             </div>
           </div>

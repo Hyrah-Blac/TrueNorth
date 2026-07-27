@@ -1,4 +1,4 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
 
 export interface BookingReminderProps {
   customerName: string;
@@ -8,6 +8,7 @@ export interface BookingReminderProps {
   destinationAirportCode: string;
   departureDate: string;
   dashboardUrl: string;
+  contact?: EmailContact;
 }
 
 export default function BookingReminder({
@@ -18,9 +19,10 @@ export default function BookingReminder({
   destinationAirportCode,
   departureDate,
   dashboardUrl,
+  contact,
 }: BookingReminderProps) {
   return (
-    <EmailLayout previewText={`Reminder: your charter departs soon`} heading="Your charter departs soon">
+    <EmailLayout previewText={`Reminder: your charter departs soon`} heading="Your charter departs soon" contact={contact}>
       <EmailText>Hi {customerName},</EmailText>
       <EmailText>This is a reminder that your charter is coming up.</EmailText>
 

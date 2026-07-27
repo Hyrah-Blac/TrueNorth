@@ -1,7 +1,6 @@
 "use server";
 
 import { headers } from "next/headers";
-import { auth } from "@clerk/nextjs/server";
 import { createQuoteSchema, type CreateQuoteInput } from "../schemas/quote.schema";
 import { createQuoteFromInput } from "../lib/createQuote";
 import { checkRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
@@ -35,8 +34,7 @@ export async function submitCharterRequest(input: CreateQuoteInput): Promise<Sub
       return { success: false, error: "Please check the highlighted fields.", fieldErrors };
     }
 
-    const { userId: clerkId } = await auth();
-    const quote = await createQuoteFromInput(parsed.data, clerkId);
+    const quote = await createQuoteFromInput(parsed.data);
 
     return { success: true, quoteNumber: quote.quoteNumber };
   } catch (error) {

@@ -1,4 +1,4 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
 
 export interface PaymentReceiptProps {
   customerName: string;
@@ -8,6 +8,7 @@ export interface PaymentReceiptProps {
   mpesaReceiptNumber?: string;
   transactionDate: string;
   receiptUrl: string;
+  contact?: EmailContact;
 }
 
 export default function PaymentReceipt({
@@ -18,9 +19,10 @@ export default function PaymentReceipt({
   mpesaReceiptNumber,
   transactionDate,
   receiptUrl,
+  contact,
 }: PaymentReceiptProps) {
   return (
-    <EmailLayout previewText={`Payment received — ${paymentNumber}`} heading="Payment received">
+    <EmailLayout previewText={`Payment received — ${paymentNumber}`} heading="Payment received" contact={contact}>
       <EmailText>Hi {customerName},</EmailText>
       <EmailText>We&apos;ve received your payment. Here&apos;s your receipt for your records.</EmailText>
 

@@ -82,7 +82,12 @@ export const rejectQuoteSchema = z.object({
 });
 
 export type RejectQuoteInput = z.infer<typeof rejectQuoteSchema>;
+export const linkQuoteCustomerSchema = z.object({
+  quoteId: objectId,
+  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
+});
 
+export type LinkQuoteCustomerInput = z.infer<typeof linkQuoteCustomerSchema>;
 export const updateQuoteNotesSchema = z.object({
   adminNotes: z.string().trim().max(2000).optional(),
 });

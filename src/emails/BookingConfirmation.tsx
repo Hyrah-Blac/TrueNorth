@@ -1,4 +1,4 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
 
 export interface BookingConfirmationProps {
   customerName: string;
@@ -10,6 +10,7 @@ export interface BookingConfirmationProps {
   passengerCount: number;
   totalAmount: string;
   dashboardUrl: string;
+  contact?: EmailContact;
 }
 
 export default function BookingConfirmation({
@@ -22,9 +23,10 @@ export default function BookingConfirmation({
   passengerCount,
   totalAmount,
   dashboardUrl,
+  contact,
 }: BookingConfirmationProps) {
   return (
-    <EmailLayout previewText={`Booking ${bookingNumber} is confirmed`} heading="Your booking is confirmed">
+    <EmailLayout previewText={`Booking ${bookingNumber} is confirmed`} heading="Your booking is confirmed" contact={contact}>
       <EmailText>Hi {customerName},</EmailText>
       <EmailText>
         Your charter booking is confirmed. Here are the details for your records — you can also

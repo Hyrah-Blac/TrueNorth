@@ -9,7 +9,6 @@ import { checkRateLimit, getRequestKey, rateLimitResponse, RATE_LIMITS } from "@
 import { buildPaginatedResult } from "@/utils/pagination";
 import { createQuoteSchema, quoteQuerySchema } from "@/features/quote/schemas/quote.schema";
 import { createQuoteFromInput } from "@/features/quote/lib/createQuote";
-import { auth } from "@clerk/nextjs/server";
 
 export async function GET(req: NextRequest) {
   try {
@@ -53,8 +52,8 @@ export async function POST(req: NextRequest) {
 
     // Charter requests can be submitted signed-out (public form) or
     // signed-in (auto-attaches the customer for dashboard tracking).
-    const { userId: clerkId } = await auth();
-    const quote = await createQuoteFromInput(data, clerkId);
+    // createQuoteFromInput reads the session itself via getCurrentDbUser.
+    const quote = await createQuoteFromInput(data);
 
     return successResponse(quote, 201);
   } catch (error) {

@@ -6,6 +6,7 @@ import { AppError, NotFoundError } from "@/lib/errors/AppError";
 import { QUOTE_STATUSES, QUOTE_TERMINAL_STATUSES } from "@/database/constants/quote-status";
 import { sendEmail } from "@/lib/api/resend";
 import { siteConfig } from "@/lib/config/site";
+import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
 import QuoteRejected from "@/emails/QuoteRejected";
 import type { RejectQuoteInput } from "../schemas/quote.schema";
 
@@ -27,6 +28,8 @@ export async function rejectQuoteById(data: RejectQuoteInput, adminClerkId: stri
   quote.reviewedAt = new Date();
   await quote.save();
 
+  const settings = await getSiteSettings();
+
   await sendEmail({
     to: quote.contactInfo.email,
     subject: `Update on your charter request ${quote.quoteNumber}`,
@@ -35,6 +38,7 @@ export async function rejectQuoteById(data: RejectQuoteInput, adminClerkId: stri
       quoteNumber: quote.quoteNumber,
       rejectionReason: data.rejectionReason,
       requestUrl: `${siteConfig.url}/request-charter`,
+      contact: toEmailContact(settings),
     }),
   });
 

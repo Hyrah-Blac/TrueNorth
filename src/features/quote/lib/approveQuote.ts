@@ -11,6 +11,7 @@ import { sendEmail, getAdminNotificationEmail } from "@/lib/api/resend";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
+import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
 import QuoteApproved from "@/emails/QuoteApproved";
 import AdminNewBooking from "@/emails/AdminNewBooking";
 import type { ApproveQuoteInput } from "../schemas/quote.schema";
@@ -67,6 +68,9 @@ export async function approveQuoteById(
   quote.convertedBooking = booking._id;
   await quote.save();
 
+  const settings = await getSiteSettings();
+  const contact = toEmailContact(settings);
+
   await Promise.all([
     sendEmail({
       to: quote.contactInfo.email,
@@ -77,6 +81,7 @@ export async function approveQuoteById(
         quotedAmount: formatCurrency(data.quotedAmount, data.quotedCurrency),
         validUntil: data.validUntil ? formatDate(data.validUntil) : undefined,
         dashboardUrl: `${siteConfig.url}/dashboard/bookings/${booking._id}`,
+        contact,
       }),
     }),
     sendEmail({
@@ -90,6 +95,7 @@ export async function approveQuoteById(
         destinationAirportCode: booking.destinationAirportCode,
         totalAmount: formatCurrency(booking.totalAmount, booking.currency),
         adminUrl: `${siteConfig.url}/admin/bookings/${booking._id}`,
+        contact,
       }),
     }),
   ]);

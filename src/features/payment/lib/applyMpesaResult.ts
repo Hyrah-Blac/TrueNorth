@@ -8,6 +8,7 @@ import { sendEmail } from "@/lib/api/resend";
 import { formatCurrency } from "@/utils/currency";
 import { formatDateTime } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
+import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
 import PaymentReceipt from "@/emails/PaymentReceipt";
 import { logger } from "@/lib/logging/logger";
 
@@ -73,6 +74,8 @@ export async function applyMpesaResult(
 
     const customer = await User.findById(payment.customer).select("firstName email");
     if (customer) {
+      const settings = await getSiteSettings();
+
       await sendEmail({
         to: customer.email,
         subject: `Payment received — ${payment.paymentNumber}`,
@@ -84,6 +87,7 @@ export async function applyMpesaResult(
           mpesaReceiptNumber: payment.mpesa.mpesaReceiptNumber,
           transactionDate: formatDateTime(payment.mpesa.transactionDate ?? new Date()),
           receiptUrl: `${siteConfig.url}/dashboard/payments/${payment._id}`,
+          contact: toEmailContact(settings),
         }),
       });
     }

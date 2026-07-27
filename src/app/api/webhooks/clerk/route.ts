@@ -4,6 +4,7 @@ import { Webhook } from "svix";
 import type { WebhookEvent } from "@clerk/nextjs/server";
 import connectToDatabase from "@/database/connection";
 import User from "@/database/models/User";
+import Quote from "@/database/models/Quote";
 import { ROLES } from "@/database/constants/roles";
 import { logger } from "@/lib/logging/logger";
 
@@ -64,8 +65,17 @@ export async function POST(req: Request) {
         // with the unique index on `email` (E11000), silently failing the
         // whole sync. Matching on either field re-attaches the existing
         // record to the new clerkId instead of trying to insert a dupe.
+        //
+        // includeDeleted: true is required here too — user.deleted now
+        // hard-deletes, so this mainly guards against any legacy row
+        // that was soft-deleted before that change shipped. Without it,
+        // that old row is invisible to this query, the upsert tries to
+        // insert a fresh doc with the same email, and collides with the
+        // unique index on the old soft-deleted one (E11000). We
+        // explicitly reset isDeleted/deletedAt so that case revives the
+        // old record instead of leaving it stuck deleted forever.
         await User.findOneAndUpdate(
-          { $or: [{ clerkId: data.id }, { email: primaryEmail }] },
+          { $or: [{ clerkId: data.id }, { email: primaryEmail }], includeDeleted: true },
           {
             clerkId: data.id,
             email: primaryEmail,
@@ -74,6 +84,8 @@ export async function POST(req: Request) {
             avatarUrl: data.image_url,
             role: ROLES.CUSTOMER,
             isActive: true,
+            isDeleted: false,
+            deletedAt: null,
           },
           { upsert: true, new: true, setDefaultsOnInsert: true }
         );
@@ -106,13 +118,52 @@ export async function POST(req: Request) {
       case "user.deleted": {
         const data = event.data;
 
-        if (data.id) {
-          const user = await User.findOne({ clerkId: data.id });
-          if (user) {
-            await user.softDelete();
-            logger.info("User soft-deleted via Clerk webhook", { clerkId: data.id });
-          }
+        if (!data.id) {
+          logger.warn("user.deleted event missing an id, skipping");
+          break;
         }
+
+        const user = await User.findOne({ clerkId: data.id }).select("_id");
+
+        if (!user) {
+          logger.warn("user.deleted event received but no matching User doc found", {
+            clerkId: data.id,
+          });
+          break;
+        }
+
+        // Quotes are pre-booking inquiries tied to this customer's
+        // profile — per product decision, they're deleted along with
+        // the account rather than kept around as orphaned records.
+        // Note: if a quote was already converted into a booking, the
+        // resulting Booking's `quote` field becomes a dangling
+        // reference — nothing currently renders that populated field,
+        // so this is safe, but flagging it here in case that changes.
+        //
+        // Bookings and Payments are deliberately left untouched. Those
+        // are financial/operational records (charter bookings, payment
+        // transactions) that the business needs to retain for
+        // accounting, tax, and dispute-resolution purposes regardless
+        // of whether the customer's account still exists. Their
+        // `customer` field becomes a dangling ObjectId reference after
+        // this runs — `.populate("customer")` on those models resolves
+        // to null going forward. Admin UI reading
+        // `booking.customer.firstName` etc. after population handles
+        // that null case (see AdminBookingRow, AdminPaymentRow, and
+        // their corresponding detail pages).
+        const quoteResult = await Quote.deleteMany({ customer: user._id });
+
+        // Hard delete, not soft delete: this permanently removes the
+        // User document (name, email, phone, company, avatar) from
+        // Mongo. This is intentional per product decision — full
+        // erasure of the account/profile itself.
+        await User.deleteOne({ _id: user._id });
+
+        logger.info("User hard-deleted via Clerk webhook", {
+          clerkId: data.id,
+          quotesDeleted: quoteResult.deletedCount,
+        });
+
         break;
       }
 

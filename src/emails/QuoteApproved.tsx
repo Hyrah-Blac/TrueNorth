@@ -1,4 +1,4 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
 
 export interface QuoteApprovedProps {
   customerName: string;
@@ -6,6 +6,7 @@ export interface QuoteApprovedProps {
   quotedAmount: string;
   validUntil?: string;
   dashboardUrl: string;
+  contact?: EmailContact;
 }
 
 export default function QuoteApproved({
@@ -14,9 +15,14 @@ export default function QuoteApproved({
   quotedAmount,
   validUntil,
   dashboardUrl,
+  contact,
 }: QuoteApprovedProps) {
   return (
-    <EmailLayout previewText={`Your charter quote ${quoteNumber} is ready`} heading="Your charter quote is ready">
+    <EmailLayout
+      previewText={`Your charter quote ${quoteNumber} is ready`}
+      heading="Your charter quote is ready"
+      contact={contact}
+    >
       <EmailText>Hi {customerName},</EmailText>
       <EmailText>
         Good news — your charter request has been reviewed and approved. A booking has been

@@ -1,10 +1,16 @@
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
-import { getSiteSettings } from "@/lib/config/siteSettings";
+import { getSiteSettings, type ResolvedSiteSettings } from "@/lib/config/siteSettings";
 
-export async function ContactInfoCard() {
-  const settings = await getSiteSettings();
+interface ContactInfoCardProps {
+  /** Pass settings down if the parent already fetched them, to avoid a duplicate DB call. */
+  settings?: ResolvedSiteSettings;
+}
+
+export async function ContactInfoCard({ settings: settingsProp }: ContactInfoCardProps = {}) {
+  const settings = settingsProp ?? (await getSiteSettings());
 
   const items = [
+    // ...unchanged from here down
     {
       icon: MapPin,
       label: "Office",

@@ -41,7 +41,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative flex h-[100svh] min-h-[640px] items-center overflow-hidden bg-navy-950">
+    <section className="relative flex h-screen min-h-[640px] items-center overflow-hidden bg-navy-950">
       <div className="absolute inset-0" aria-hidden="true">
         <div ref={parallaxRef} className="absolute inset-0 transition-transform duration-700 ease-out">
           <Image
@@ -65,7 +65,7 @@ export function Hero() {
       </div>
 
       <Container className="relative flex justify-center">
-        <div className="max-w-2xl animate-fade-up-editorial text-center">
+        <div className="max-w-2xl text-center">
           <p className="spec-readout mb-4 text-xs uppercase tracking-widest2 text-white/50">
             True North Charters
           </p>

@@ -4,18 +4,19 @@ import { JsonLd } from "@/components/shared/JsonLd";
 import { SkipLink } from "@/components/shared/SkipLink";
 import { WhatsAppButton } from "@/components/whatsapp/WhatsAppButton";
 import { getOrganizationSchema } from "@/lib/seo/structuredData";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const organizationSchema = await getOrganizationSchema();
+  const [organizationSchema, settings] = await Promise.all([getOrganizationSchema(), getSiteSettings()]);
 
   return (
     <>
       <JsonLd data={organizationSchema} />
       <SkipLink />
-      <Navbar />
+      <Navbar phone={settings.phone} />
       <main id="main-content">{children}</main>
       <Footer />
-      <WhatsAppButton />
+      <WhatsAppButton whatsapp={settings.whatsapp || settings.phone} />
     </>
   );
 }

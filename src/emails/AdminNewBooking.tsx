@@ -1,4 +1,4 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
 
 export interface AdminNewBookingProps {
   bookingNumber: string;
@@ -8,6 +8,7 @@ export interface AdminNewBookingProps {
   destinationAirportCode: string;
   totalAmount: string;
   adminUrl: string;
+  contact?: EmailContact;
 }
 
 export default function AdminNewBooking({
@@ -18,9 +19,10 @@ export default function AdminNewBooking({
   destinationAirportCode,
   totalAmount,
   adminUrl,
+  contact,
 }: AdminNewBookingProps) {
   return (
-    <EmailLayout previewText={`New booking: ${bookingNumber}`} heading="New booking created">
+    <EmailLayout previewText={`New booking: ${bookingNumber}`} heading="New booking created" contact={contact}>
       <EmailDetailRow label="Booking reference" value={bookingNumber} />
       <EmailDetailRow label="Customer" value={customerName} />
       <EmailDetailRow label="Aircraft" value={aircraftName} />

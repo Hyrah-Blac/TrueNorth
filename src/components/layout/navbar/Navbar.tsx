@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
-import { Menu, X, Compass } from "lucide-react";
+import { Compass } from "lucide-react";
 import { Container } from "../container/Container";
 import { MobileNav } from "./MobileNav";
+import { NavMenuTrigger } from "./NavMenuTrigger";
 import { siteConfig } from "@/lib/config/site";
 
 // ---------------------------------------------------------------------------
@@ -19,107 +19,111 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // Brand accents used throughout this file (kept as plain hex literals,
 // not JS variables, so Tailwind's static scanner can pick up the
 // arbitrary-value classes at build time):
-//   Yellow #F0C24B — primary accent: active-page underline, CTA button
-//   Blue   #4EA8DE — secondary accent: link hover states, logo fallback badge
+//   Yellow #F0C24B — primary accent: CTA button
+//   Blue   #4EA8DE — secondary accent: logo fallback badge
 // To retune the palette, find/replace these two hex values across the file.
 
 // ---------------------------------------------------------------------------
 // Navbar
+//
+// Transparent at the very top of the page, then smoothly gains a
+// dark/blurred background once the page scrolls — this covers the
+// common case where scrolling brings a light/white section (or just
+// busy content) underneath the bar, which would otherwise wash out the
+// white text. The transition is a plain background-color/backdrop-filter
+// fade (see TRANSITION), not a layout shift — height stays constant so
+// nothing jumps.
+//
+// Fleet / Destinations / About are inline top-bar links (visible from lg
+// upward). The hamburger stays visible at every breakpoint — on mobile
+// it's still the only way to reach Fleet/Destinations/About, and at
+// every screen size it holds the account/dashboard items (Bookings,
+// Quotes, Payments, Profile, Sign Out) plus Contact and auth, since
+// dashboards are admin-only and customers reach their own data through
+// this menu instead of a sidebar.
 // ---------------------------------------------------------------------------
 
-export function Navbar() {
+export function Navbar({ phone }: { phone: string }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
 
   const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
-  // --- effects -------------------------------------------------------------
-
+  // Runs on every page now, not just home — any page can have a light
+  // or busy section scroll under the bar, not only the homepage hero.
   useEffect(() => {
-    if (!isHome) return;
-    const handleScroll = () => setScrolled(window.scrollY > 40);
+    const handleScroll = () => setScrolled(window.scrollY > 24);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isHome]);
+  }, []);
 
-  // Close the mobile menu on route change — the layout persists across
+  // Close the menu on route change — the layout persists across
   // navigations in the App Router, so state has to be reset explicitly.
   useEffect(() => {
-    setMobileOpen(false);
+    setMenuOpen(false);
   }, [pathname]);
 
-  // --- derived state ---------------------------------------------------------
+  // Lock body scroll while the slide-out panel is open, since it now
+  // covers the full viewport at every breakpoint rather than just
+  // pushing mobile content down.
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
-  const transparent = isHome && !scrolled && !mobileOpen;
-  const barHeight = transparent ? "h-[112px]" : "h-[92px]";
+  const showSolid = scrolled || menuOpen;
 
   // --- render ----------------------------------------------------------------
 
   return (
     <header
       className={`${isHome ? "fixed inset-x-0 top-0" : "sticky top-0"} z-50 w-full ${TRANSITION} ${
-        transparent
-          ? "bg-transparent"
-          : "border-b border-[rgba(255,255,255,0.08)] bg-[rgba(10,18,30,0.70)] shadow-[0_20px_60px_-18px_rgba(0,0,0,0.55)] backdrop-blur-[18px]"
+        showSolid
+          ? "border-b border-white/[0.06] bg-[rgba(18,22,28,0.38)] shadow-[0_20px_60px_-18px_rgba(0,0,0,0.35)] backdrop-blur-[22px]"
+          : "border-b border-transparent bg-transparent"
       }`}
     >
       <Container>
-        <nav
-          className={`relative flex items-center justify-between ${TRANSITION} ${barHeight}`}
-          aria-label="Primary"
-        >
-          <NavbarLeftCluster
-            pathname={pathname}
-            mobileOpen={mobileOpen}
-            onToggleMobile={() => setMobileOpen((open) => !open)}
-          />
+        <nav className={`relative flex h-16 items-center justify-between ${TRANSITION}`} aria-label="Primary">
+          <div className="flex items-center gap-8">
+            <NavMenuTrigger open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} />
 
-          <NavbarLogo
-            transparent={transparent}
-            logoError={logoError}
-            onLogoError={() => setLogoError(true)}
-          />
+            <div className="hidden items-center gap-8 lg:flex">
+              <TopLink href="/fleet" active={pathname === "/fleet"}>
+                Fleet
+              </TopLink>
+              <TopLink href="/destinations" active={pathname === "/destinations"}>
+                Destinations
+              </TopLink>
+            </div>
+          </div>
 
-          <NavbarRightCluster pathname={pathname} />
+          <NavbarLogo logoError={logoError} onLogoError={() => setLogoError(true)} />
+
+          <div className="flex items-center gap-8">
+            <div className="hidden lg:flex">
+              <TopLink href="/about" active={pathname === "/about"}>
+                About
+              </TopLink>
+            </div>
+
+            <Link
+              href="/request-charter"
+              className="group font-display relative inline-flex items-center justify-center whitespace-nowrap rounded-full border border-[#F0C24B] bg-[#F0C24B] px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-[#1A1200] shadow-[0_4px_24px_rgba(240,194,75,0.24)] transition-all duration-300 ease-out hover:-translate-y-px hover:shadow-[0_10px_32px_rgba(240,194,75,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F0C24B]"
+            >
+              Request Charter
+            </Link>
+          </div>
         </nav>
       </Container>
 
-      <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <MobileNav open={menuOpen} onClose={() => setMenuOpen(false)} phone={phone} />
     </header>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Left cluster — mobile trigger + Fleet / Destinations plain links
-// (no dropdowns — kept flat and premium-feeling per design direction)
-// ---------------------------------------------------------------------------
-
-function NavbarLeftCluster({
-  pathname,
-  mobileOpen,
-  onToggleMobile,
-}: {
-  pathname: string;
-  mobileOpen: boolean;
-  onToggleMobile: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-10">
-      <NavbarMobileTrigger mobileOpen={mobileOpen} onToggle={onToggleMobile} />
-
-      <div className="hidden items-center gap-10 lg:flex">
-        <TopLink href="/fleet" active={pathname === "/fleet"}>
-          Fleet
-        </TopLink>
-
-        <TopLink href="/destinations" active={pathname === "/destinations"}>
-          Destinations
-        </TopLink>
-      </div>
-    </div>
   );
 }
 
@@ -128,16 +132,14 @@ function NavbarLeftCluster({
 // against the full nav width, so it can never be pushed off-center or
 // overlapped by the left/right clusters no matter how their content
 // lengths compare. pointer-events-none on the wrapper keeps it from
-// stealing clicks meant for the flanking links; the inner Link re-enables
-// them for just the logo itself.
+// stealing clicks meant for the flanking controls; the inner Link
+// re-enables them for just the logo itself.
 // ---------------------------------------------------------------------------
 
 function NavbarLogo({
-  transparent,
   logoError,
   onLogoError,
 }: {
-  transparent: boolean;
   logoError: boolean;
   onLogoError: () => void;
 }) {
@@ -149,12 +151,8 @@ function NavbarLogo({
         aria-label={siteConfig.shortName}
       >
         {logoError ? (
-          <span
-            className={`flex items-center justify-center rounded-full border border-[#4EA8DE]/40 bg-[#12263A] ${TRANSITION} ${
-              transparent ? "h-16 w-16" : "h-12 w-12"
-            }`}
-          >
-            <Compass className="h-6 w-6 text-[#4EA8DE]" aria-hidden="true" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#4EA8DE]/40 bg-[#12263A]">
+            <Compass className="h-4 w-4 text-[#4EA8DE]" aria-hidden="true" />
           </span>
         ) : (
           <Image
@@ -164,118 +162,11 @@ function NavbarLogo({
             height={82}
             priority
             onError={onLogoError}
-            className={`w-auto object-contain ${TRANSITION} ${transparent ? "h-16" : "h-12"}`}
+            className="h-8 w-auto object-contain"
           />
         )}
       </Link>
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Right cluster — About / Contact, auth links, Request Charter CTA
-// ---------------------------------------------------------------------------
-
-function NavbarRightCluster({ pathname }: { pathname: string }) {
-  return (
-    <div className="flex items-center gap-10">
-      <div className="hidden items-center gap-10 lg:flex">
-        <TopLink href="/about" active={pathname === "/about"}>
-          About
-        </TopLink>
-        <TopLink href="/contact" active={pathname === "/contact"}>
-          Contact
-        </TopLink>
-      </div>
-
-      <div className="hidden items-center gap-6 lg:flex">
-        <span className="h-6 w-px bg-[rgba(255,255,255,0.08)]" aria-hidden="true" />
-
-        <SignedOut>
-          <TopLink href="/sign-in" active={pathname === "/sign-in"}>
-            Sign In
-          </TopLink>
-        </SignedOut>
-
-        <SignedIn>
-          <TopLink href="/dashboard" active={pathname === "/dashboard"}>
-            Dashboard
-          </TopLink>
-          <ProfileAvatarLink active={pathname === "/dashboard/profile"} />
-        </SignedIn>
-
-        <Link
-          href="/request-charter"
-          className="group font-display relative inline-flex items-center justify-center whitespace-nowrap rounded-full border border-[#F0C24B]/60 px-6 py-2.5 text-[11px] font-medium uppercase tracking-[0.16em] text-[#F0C24B] shadow-[0_4px_24px_rgba(240,194,75,0.14)] transition-all duration-300 ease-out hover:-translate-y-px hover:border-[#F0C24B] hover:bg-[#F0C24B] hover:text-[#1A1200] hover:shadow-[0_10px_32px_rgba(240,194,75,0.32)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F0C24B]"
-        >
-          Request Charter
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Profile avatar — links straight to the app's own dashboard profile page
-// (/dashboard/profile) instead of opening Clerk's built-in <UserButton />
-// account popup. Uses Clerk's useUser() purely as a data source for the
-// photo/initials; navigation is a plain Next Link.
-// ---------------------------------------------------------------------------
-
-function ProfileAvatarLink({ active }: { active: boolean }) {
-  const { user } = useUser();
-
-  const initials =
-    user?.firstName?.[0]?.toUpperCase() ?? user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase() ?? "?";
-
-  return (
-    <Link
-      href="/dashboard/profile"
-      aria-label="View profile"
-      aria-current={active ? "page" : undefined}
-      className={`flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border ${TRANSITION} ${
-        active ? "border-[#F0C24B]" : "border-[rgba(255,255,255,0.16)] hover:border-[#4EA8DE]"
-      }`}
-    >
-      {user?.imageUrl ? (
-        <Image
-          src={user.imageUrl}
-          alt={user.fullName ?? "Profile"}
-          width={36}
-          height={36}
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <span className="flex h-full w-full items-center justify-center bg-[#12263A] text-xs font-medium text-[#F7F6F2]">
-          {initials}
-        </span>
-      )}
-    </Link>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Mobile hamburger trigger — kept separate so it can sit in the header's
-// own left edge outside the flex clusters above on small screens.
-// ---------------------------------------------------------------------------
-
-export function NavbarMobileTrigger({
-  mobileOpen,
-  onToggle,
-}: {
-  mobileOpen: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className="flex h-11 w-11 items-center justify-center text-[#F7F6F2] transition-colors duration-300 hover:text-[#4EA8DE] lg:hidden"
-      onClick={onToggle}
-      aria-label={mobileOpen ? "Close menu" : "Open menu"}
-      aria-expanded={mobileOpen}
-    >
-      {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-    </button>
   );
 }
 
@@ -301,10 +192,10 @@ function TopLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`group font-display relative inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-medium tracking-normal transition-all duration-[250ms] ease-out ${
+      className={`group font-display relative inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-normal tracking-normal transition-all duration-[250ms] ease-out ${
         active
-          ? "text-[#F7F6F2]"
-          : "text-[#B8C2CC] hover:text-[#6EC5F2] hover:drop-shadow-[0_0_10px_rgba(78,168,222,0.55)]"
+          ? "text-white"
+          : "text-white/75 hover:text-[#6EC5F2]"
       } ${className}`}
       {...rest}
     >

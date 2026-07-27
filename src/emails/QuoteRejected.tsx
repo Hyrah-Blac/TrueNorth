@@ -1,10 +1,11 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
 
 export interface QuoteRejectedProps {
   customerName: string;
   quoteNumber: string;
   rejectionReason: string;
   requestUrl: string;
+  contact?: EmailContact;
 }
 
 export default function QuoteRejected({
@@ -12,9 +13,14 @@ export default function QuoteRejected({
   quoteNumber,
   rejectionReason,
   requestUrl,
+  contact,
 }: QuoteRejectedProps) {
   return (
-    <EmailLayout previewText={`Update on your charter request ${quoteNumber}`} heading="Update on your charter request">
+    <EmailLayout
+      previewText={`Update on your charter request ${quoteNumber}`}
+      heading="Update on your charter request"
+      contact={contact}
+    >
       <EmailText>Hi {customerName},</EmailText>
       <EmailText>
         We&apos;re unable to fulfil your charter request as submitted. Details are below.

@@ -9,6 +9,7 @@ import { sendEmail } from "@/lib/api/resend";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
+import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
 import BookingConfirmation from "@/emails/BookingConfirmation";
 import BookingCancelled from "@/emails/BookingCancelled";
 
@@ -80,6 +81,8 @@ async function notifyBookingConfirmed(booking: BookingDocument): Promise<void> {
 
   if (!customer) return;
 
+  const settings = await getSiteSettings();
+
   await sendEmail({
     to: customer.email,
     subject: `Booking ${booking.bookingNumber} is confirmed`,
@@ -93,6 +96,7 @@ async function notifyBookingConfirmed(booking: BookingDocument): Promise<void> {
       passengerCount: booking.passengerCount,
       totalAmount: formatCurrency(booking.totalAmount, booking.currency),
       dashboardUrl: `${siteConfig.url}/dashboard/bookings/${booking._id}`,
+      contact: toEmailContact(settings),
     }),
   });
 }
@@ -101,6 +105,8 @@ async function notifyBookingCancelled(booking: BookingDocument, reason: string):
   const customer = await User.findById(booking.customer).select("firstName lastName email");
   if (!customer) return;
 
+  const settings = await getSiteSettings();
+
   await sendEmail({
     to: customer.email,
     subject: `Booking ${booking.bookingNumber} has been cancelled`,
@@ -108,6 +114,7 @@ async function notifyBookingCancelled(booking: BookingDocument, reason: string):
       customerName: customer.firstName,
       bookingNumber: booking.bookingNumber,
       cancellationReason: reason,
+      contact: toEmailContact(settings),
     }),
   });
 }

@@ -10,6 +10,18 @@ export function AdminQuoteRow({ quote }: { quote: IQuote }) {
       ? (quote.customer as unknown as { firstName?: string; lastName?: string })
       : null;
 
+  // Mongoose populate distinguishes these two cases: a ref that was never
+  // set comes back `undefined` (a true guest submission), while a ref that
+  // pointed at a now-deleted User comes back `null`. Don't collapse them
+  // into the same "(guest)" label — a deleted customer's quote isn't a
+  // guest submission and shouldn't read like one.
+  const wasRegisteredCustomer = quote.customer !== undefined;
+  const customerLabel = customer
+    ? ""
+    : wasRegisteredCustomer
+      ? " (deleted account)"
+      : " (guest)";
+
   return (
     <Link
       href={`/admin/quotes/${quote._id}`}
@@ -23,7 +35,7 @@ export function AdminQuoteRow({ quote }: { quote: IQuote }) {
           <p className="spec-readout text-sm font-medium text-navy-900">{quote.quoteNumber}</p>
           <p className="mt-0.5 text-sm text-slate-600">
             {quote.contactInfo.fullName}
-            {customer ? "" : " (guest)"} · {quote.departureAirportCode} → {quote.destinationAirportCode}
+            {customerLabel} · {quote.departureAirportCode} → {quote.destinationAirportCode}
           </p>
           <p className="mt-1 text-xs text-slate-500">{formatDate(quote.departureDate)}</p>
         </div>

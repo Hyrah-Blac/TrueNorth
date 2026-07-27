@@ -20,15 +20,38 @@ const colors = {
   bg: "#f5f7fa",
 };
 
+// Static fallback only — used if a caller forgets to pass live contact
+// info. Every real send path should supply `contact` from
+// getSiteSettings() so the footer reflects whatever's set in
+// /admin/settings rather than this hardcoded default.
+const DEFAULT_CONTACT: EmailContact = {
+  email: "operations@truenorthcharters.co.ke",
+  addressLine1: "Wilson Airport",
+  city: "Nairobi",
+  country: "Kenya",
+};
+
+export interface EmailContact {
+  email: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  country: string;
+}
+
 export function EmailLayout({
   previewText,
   heading,
   children,
+  contact = DEFAULT_CONTACT,
 }: {
   previewText: string;
   heading: string;
   children: ReactNode;
+  contact?: EmailContact;
 }) {
+  const addressParts = [contact.addressLine1, contact.addressLine2, contact.city, contact.country].filter(Boolean);
+
   return (
     <Html>
       <Head />
@@ -66,10 +89,10 @@ export function EmailLayout({
           <Section style={{ marginTop: 24 }}>
             <Hr style={{ borderColor: colors.border, margin: "0 0 16px" }} />
             <Text style={{ fontSize: 12, color: colors.slateLight, margin: 0, lineHeight: "18px" }}>
-              True North Charters · Wilson Airport, Nairobi, Kenya
+              True North Charters · {addressParts.join(", ")}
               <br />
-              <Link href="mailto:operations@truenorthcharters.co.ke" style={{ color: colors.sky }}>
-                operations@truenorthcharters.co.ke
+              <Link href={`mailto:${contact.email}`} style={{ color: colors.sky }}>
+                {contact.email}
               </Link>
             </Text>
           </Section>

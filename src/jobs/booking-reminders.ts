@@ -7,6 +7,7 @@ import { BOOKING_STATUSES } from "@/database/constants/booking-status";
 import { sendEmail } from "@/lib/api/resend";
 import { formatDate } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
+import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
 import BookingReminder from "@/emails/BookingReminder";
 import { logger } from "@/lib/logging/logger";
 
@@ -33,6 +34,8 @@ export async function sendBookingReminders(): Promise<{ sent: number; failed: nu
   let sent = 0;
   let failed = 0;
 
+  const contact = toEmailContact(await getSiteSettings());
+
   for (const booking of bookings) {
     try {
       const [customer, aircraft] = await Promise.all([
@@ -56,6 +59,7 @@ export async function sendBookingReminders(): Promise<{ sent: number; failed: nu
           destinationAirportCode: booking.destinationAirportCode,
           departureDate: formatDate(booking.departureDate),
           dashboardUrl: `${siteConfig.url}/dashboard/bookings/${booking._id}`,
+          contact,
         }),
       });
 
