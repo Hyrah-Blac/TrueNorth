@@ -25,7 +25,7 @@ export function FleetCategoriesSection() {
   const remainingCount = fleetCategories.length - featured.length;
 
   return (
-    <Section tone="white" className="relative z-10 -mt-16 rounded-t-3xl shadow-lifted sm:-mt-24 md:-mt-40 lg:-mt-64">
+    <Section tone="white" className="relative z-10 -mt-6 rounded-t-3xl shadow-lifted sm:-mt-10 md:-mt-14 lg:-mt-20">
       <SectionHeading
         align="center"
         title="The Right Aircraft, Every Mission"

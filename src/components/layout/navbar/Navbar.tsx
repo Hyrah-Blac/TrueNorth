@@ -76,7 +76,7 @@ export function Navbar({ phone }: { phone: string }) {
     };
   }, [menuOpen]);
 
-  const showSolid = scrolled || menuOpen;
+  const showSolid = !isHome || scrolled || menuOpen;
 
   // --- render ----------------------------------------------------------------
 

@@ -9,6 +9,16 @@ const missionEnum = z.enum(MISSION_TYPE_VALUES as [MissionType, ...MissionType[]
 const statusEnum = z.enum(QUOTE_STATUS_VALUES as [QuoteStatus, ...QuoteStatus[]]);
 const objectId = z.string().regex(OBJECT_ID_REGEX, "Invalid ID");
 
+// Phone numbers are naturally typed/pasted with spaces or dashes
+// (e.g. "+254 708 892 669"). Strip those before testing against
+// GENERAL_PHONE_REGEX, which only accepts a leading "+" and digits —
+// otherwise every normally-formatted number gets rejected.
+const phoneField = z
+  .string()
+  .trim()
+  .transform((value) => value.replace(/[\s-]/g, ""))
+  .pipe(z.string().regex(GENERAL_PHONE_REGEX, "Enter a valid phone number"));
+
 const attachmentSchema = z.object({
   url: z.string().url(),
   publicId: z.string().min(1),
@@ -21,7 +31,7 @@ export const createQuoteSchema = z
     contactInfo: z.object({
       fullName: z.string().trim().min(2).max(100),
       email: z.string().trim().email(),
-      phone: z.string().trim().regex(GENERAL_PHONE_REGEX, "Enter a valid phone number"),
+      phone: phoneField,
       company: z.string().trim().max(100).optional(),
     }),
     passengerCount: z.number().int().min(1).max(100),

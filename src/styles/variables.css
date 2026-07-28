@@ -14,15 +14,19 @@
   --color-navy-800: 26 36 51; /* #1a2433 */
   --color-navy-700: 37 48 68; /* #253044 */
 
-  /* Sky — the single accent role: champagne gold. sky-600 is specifically
-     the "gold text on a light/white background" shade — measured at
-     6.77:1 against white (WCAG AA requires 4.5:1); on dark backgrounds
-     use sky-400 instead, which passes comfortably at its original,
-     brighter value (10.6:1). */
+  /* Sky — the single accent role: champagne gold. sky-600/700 are the
+     "gold text on a light/white background" shades — measured well
+     above WCAG AA (4.5:1) against white; on dark backgrounds use
+     sky-400/300, which pass comfortably at their original, brighter
+     values (10.6:1+). */
+  --color-sky-700: 85 64 27; /* #55401b */
   --color-sky-600: 107 84 35; /* #6b5423 */
   --color-sky-500: 200 169 91; /* #c8a95b — Champagne Gold */
   --color-sky-400: 217 196 137; /* #d9c489 */
+  --color-sky-300: 226 205 160; /* #e2cda0 */
+  --color-sky-200: 236 223 192; /* #ecdfc0 */
   --color-sky-100: 245 237 218; /* #f5edda */
+  --color-sky-50: 250 246 236; /* #faf6ec */
 
   /* Slate / gray — neutral text and light-mode surfaces.
      slate-400 stays a light gray (6.86:1 against navy-950) for muted text
@@ -30,10 +34,14 @@
      gray (5.03:1 against white) for muted/secondary text ON LIGHT
      backgrounds — the same token can't serve both contexts at once. */
   --color-slate-900: 18 21 26; /* #12151a */
+  --color-slate-800: 33 37 45; /* #21252d */
+  --color-slate-700: 54 59 69; /* #363b45 */
   --color-slate-600: 86 91 102; /* #565b66 */
   --color-slate-500: 102 107 117; /* #666b75 */
   --color-slate-400: 154 159 168; /* #9a9fa8 */
+  --color-slate-300: 195 198 204; /* #c3c6cc */
   --color-slate-200: 228 229 232; /* #e4e5e8 */
+  --color-slate-100: 241 240 237; /* #f1f0ed */
   --color-slate-50: 250 249 246; /* #faf9f6 — warm off-white, never pure white */
 
   /* Gold — same champagne family, for hairline rings, dividers, small
@@ -45,6 +53,29 @@
 
   --color-white: 248 248 246; /* #f8f8f6 — off-white, never pure #ffffff */
 
+  /* Success / danger — muted forest green and brick red, tuned to sit
+     next to champagne gold and navy instead of Tailwind's stock
+     saturated green/red, which clash with the rest of this palette.
+     400 shades are the "on dark background" variant (SignIn/SignUp form
+     validation on the navy gradient); 600 is the "on light background"
+     variant (StatusBadge pills, light-surface alerts), same convention
+     as sky-400 vs sky-600 above. */
+  --color-green-700: 47 79 53; /* #2f4f35 */
+  --color-green-600: 60 100 66; /* #3c6442 — AA on white */
+  --color-green-500: 74 122 82; /* #4a7a52 */
+  --color-green-400: 127 179 132; /* #7fb384 — AA on navy-950 */
+  --color-green-100: 226 237 224; /* #e2ede0 */
+  --color-green-50: 242 247 240; /* #f2f7f0 */
+
+  --color-red-700: 125 47 34; /* #7d2f22 */
+  --color-red-600: 156 61 44; /* #9c3d2c — AA on white */
+  --color-red-500: 184 80 60; /* #b8503c */
+  --color-red-400: 207 122 106; /* #cf7a6a — AA on navy-950 */
+  --color-red-300: 224 160 148; /* #e0a094 */
+  --color-red-200: 238 196 188; /* #eec4bc */
+  --color-red-100: 246 224 220; /* #f6e0dc */
+  --color-red-50: 251 241 239; /* #fbf1ef */
+
   /* Glass — already rgba() literals, used raw (not through Tailwind's
      color/opacity system), so no triplet conversion needed here. */
   --color-glass-border: rgba(255, 255, 255, 0.08);
@@ -54,6 +85,8 @@
      more diffuse than a typical UI shadow. */
   --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.08), 0 12px 32px -10px rgba(0, 0, 0, 0.25);
   --shadow-lifted: 0 6px 12px rgba(0, 0, 0, 0.12), 0 32px 64px -16px rgba(0, 0, 0, 0.4);
+  --shadow-crisp: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 10px -4px rgba(0, 0, 0, 0.18);
+  --shadow-glow: 0 0 0 1px rgba(200, 169, 91, 0.25), 0 12px 32px -8px rgba(0, 0, 0, 0.45);
 
   /* Radii — restrained, never pill-shaped. Elegant rectangles with a
      subtle softening rather than fully rounded corners. */

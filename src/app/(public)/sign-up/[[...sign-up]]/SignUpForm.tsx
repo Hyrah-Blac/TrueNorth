@@ -300,7 +300,7 @@ export function SignUpForm() {
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Otieno"
+                    placeholder="Mark"
                     className={inputClass}
                   />
                 </div>
@@ -441,7 +441,7 @@ export function SignUpForm() {
                 </div>
 
                 {resendSuccess && (
-                  <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+                 <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-green-400">
                     <CheckIcon />
                     New code sent — check your inbox.
                   </p>

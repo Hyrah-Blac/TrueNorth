@@ -445,7 +445,7 @@ export function SignInForm() {
                 </div>
 
                 {resendSuccess && (
-                  <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+                 <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-green-400">
                     <CheckIcon />
                     New code sent — check your inbox.
                   </p>

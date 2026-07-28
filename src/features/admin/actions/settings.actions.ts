@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import connectToDatabase from "@/database/connection";
 import SiteSettings from "@/database/models/SiteSettings";
@@ -8,21 +7,8 @@ import { requireAdmin } from "@/middleware/admin";
 import { resolveDbUserId } from "@/middleware/auth";
 import { isAppError } from "@/lib/errors/AppError";
 import { logger } from "@/lib/logging/logger";
-import { GENERAL_PHONE_REGEX } from "@/utils/validators";
 import { SITE_SETTINGS_ID, type ResolvedSiteSettings } from "@/lib/config/siteSettings";
-
-export const siteSettingsSchema = z.object({
-  phone: z.string().trim().regex(GENERAL_PHONE_REGEX, "Enter a valid phone number"),
-  email: z.string().trim().email("Enter a valid email address"),
-  whatsapp: z.string().trim().regex(GENERAL_PHONE_REGEX).optional().or(z.literal("")),
-  addressLine1: z.string().trim().min(1, "Address is required").max(150),
-  addressLine2: z.string().trim().max(150).optional().or(z.literal("")),
-  city: z.string().trim().min(1, "City is required").max(100),
-  country: z.string().trim().min(1, "Country is required").max(100),
-  operatingHours: z.string().trim().min(1, "Operating hours are required").max(200),
-});
-
-export type SiteSettingsInput = z.infer<typeof siteSettingsSchema>;
+import { siteSettingsSchema, type SiteSettingsInput } from "../schemas/settings.schema";
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
 

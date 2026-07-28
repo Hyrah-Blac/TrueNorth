@@ -24,10 +24,14 @@ const config: Config = {
           700: withOpacity("--color-navy-700"),
         },
         sky: {
+          700: withOpacity("--color-sky-700"),
           600: withOpacity("--color-sky-600"),
           500: withOpacity("--color-sky-500"),
           400: withOpacity("--color-sky-400"),
+          300: withOpacity("--color-sky-300"),
+          200: withOpacity("--color-sky-200"),
           100: withOpacity("--color-sky-100"),
+          50: withOpacity("--color-sky-50"),
         },
         gold: {
           600: withOpacity("--color-gold-600"),
@@ -36,11 +40,37 @@ const config: Config = {
         },
         slate: {
           900: withOpacity("--color-slate-900"),
+          800: withOpacity("--color-slate-800"),
+          700: withOpacity("--color-slate-700"),
           600: withOpacity("--color-slate-600"),
           500: withOpacity("--color-slate-500"),
           400: withOpacity("--color-slate-400"),
+          300: withOpacity("--color-slate-300"),
           200: withOpacity("--color-slate-200"),
+          100: withOpacity("--color-slate-100"),
           50: withOpacity("--color-slate-50"),
+        },
+        // Brand-consistent success/danger — replaces Tailwind's stock
+        // saturated green/red (which clash with the navy/champagne-gold
+        // palette) for every existing bg-green-*/text-red-* usage
+        // sitewide, without needing to touch each component.
+        green: {
+          700: withOpacity("--color-green-700"),
+          600: withOpacity("--color-green-600"),
+          500: withOpacity("--color-green-500"),
+          400: withOpacity("--color-green-400"),
+          100: withOpacity("--color-green-100"),
+          50: withOpacity("--color-green-50"),
+        },
+        red: {
+          700: withOpacity("--color-red-700"),
+          600: withOpacity("--color-red-600"),
+          500: withOpacity("--color-red-500"),
+          400: withOpacity("--color-red-400"),
+          300: withOpacity("--color-red-300"),
+          200: withOpacity("--color-red-200"),
+          100: withOpacity("--color-red-100"),
+          50: withOpacity("--color-red-50"),
         },
         // Repointed so `text-white` / `bg-white` / `border-white` resolve to
         // an off-white, never pure #fff — alpha modifiers (bg-white/95,
@@ -60,7 +90,8 @@ const config: Config = {
       boxShadow: {
         soft: "var(--shadow-soft)",
         lifted: "var(--shadow-lifted)",
-        glow: "0 0 0 1px rgba(200, 169, 91, 0.25), 0 12px 32px -8px rgba(0, 0, 0, 0.45)",
+        crisp: "var(--shadow-crisp)",
+        glow: "var(--shadow-glow)",
       },
       borderRadius: {
         md: "var(--radius-md)",

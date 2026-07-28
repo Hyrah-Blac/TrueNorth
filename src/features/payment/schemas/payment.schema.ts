@@ -5,9 +5,22 @@ import type { PaymentStatus } from "@/database/constants/payment-status";
 
 const objectId = z.string().regex(OBJECT_ID_REGEX, "Invalid ID");
 
+// Phone numbers are naturally typed/pasted with spaces or dashes
+// (e.g. "0708 892 669"). Strip those before testing against
+// GENERAL_PHONE_REGEX, which only accepts a leading "+" and digits —
+// otherwise every normally-formatted number gets rejected. Downstream,
+// toMpesaPhoneFormat() does its own normalization to the 2547XXXXXXXX
+// format M-Pesa's API requires, so this only fixes validation, not the
+// eventual STK push format.
+const phoneField = z
+  .string()
+  .trim()
+  .transform((value) => value.replace(/[\s-]/g, ""))
+  .pipe(z.string().regex(GENERAL_PHONE_REGEX, "Enter a valid phone number"));
+
 export const initiatePaymentSchema = z.object({
   bookingId: objectId,
-  phoneNumber: z.string().trim().regex(GENERAL_PHONE_REGEX, "Enter a valid phone number"),
+  phoneNumber: phoneField,
 });
 
 export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;

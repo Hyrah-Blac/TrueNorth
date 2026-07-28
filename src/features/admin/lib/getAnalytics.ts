@@ -4,12 +4,19 @@ import Booking from "@/database/models/Booking";
 import Quote from "@/database/models/Quote";
 import Payment from "@/database/models/Payment";
 import User from "@/database/models/User";
+// Imported for its side effect only: registers the Aircraft schema with
+// Mongoose so Booking.find().populate("aircraft") below can resolve it.
+// Without this import present somewhere in the module graph that runs
+// before this query, populate() throws MissingSchemaError.
+import Aircraft from "@/database/models/Aircraft";
 import { requireAdmin } from "@/middleware/admin";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { QUOTE_STATUSES } from "@/database/constants/quote-status";
 import { BOOKING_STATUSES } from "@/database/constants/booking-status";
 import { ROLES } from "@/database/constants/roles";
 import type { IBooking } from "@/types/booking";
+
+void Aircraft;
 
 function serialize<T>(doc: unknown): T {
   return JSON.parse(JSON.stringify(doc)) as T;

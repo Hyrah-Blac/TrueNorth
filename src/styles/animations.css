@@ -1,78 +1,13 @@
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes horizon-drift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes marker-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(47, 143, 219, 0.35);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(47, 143, 219, 0);
-  }
-}
-
-@keyframes drift {
-  0% {
-    transform: translateX(-8%);
-  }
-  50% {
-    transform: translateX(8%);
-  }
-  100% {
-    transform: translateX(-8%);
-  }
-}
-
-@keyframes drift-reverse {
-  0% {
-    transform: translateX(8%);
-  }
-  50% {
-    transform: translateX(-8%);
-  }
-  100% {
-    transform: translateX(8%);
-  }
-}
-
-.animate-fade-up {
-  animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.9s ease-out both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-fade-up,
-  .animate-fade-in {
-    animation: none;
-  }
-}
+/* Canonical entrance-animation keyframes and utilities live in
+   tailwind.config.ts (animate-fade-up-editorial, animate-fade-in-editorial,
+   animate-blur-in-editorial, animate-zoom-slow) so every timing/easing
+   value is defined once, in one place. This file previously held a
+   second, duplicate "fade-up"/"fade-in" implementation with different
+   durations (0.7s/0.9s vs the Tailwind config's 1.1s) that nothing in
+   the app actually used, plus several other unused keyframes
+   (horizon-drift, marker-pulse, drift, drift-reverse) — all removed.
+   Add new keyframes here only for cases Tailwind's config can't express
+   (e.g. multi-step keyframes referencing runtime values); otherwise
+   prefer extending tailwind.config.ts so there's a single source of
+   truth for motion.
+   */

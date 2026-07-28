@@ -41,6 +41,39 @@
     outline-offset: 2px;
   }
 
+  ::selection {
+    background-color: rgb(var(--color-sky-500) / 0.25);
+    color: rgb(var(--color-navy-950));
+  }
+
+  /* Thin, brand-colored scrollbar — subtle, not a gimmick. Firefox gets
+     its native thin scrollbar API; WebKit/Blink get the equivalent via
+     pseudo-elements. Falls back to the browser default silently on any
+     engine that supports neither. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--color-slate-300)) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--color-slate-300));
+    border-radius: 9999px;
+    border: 2px solid rgb(var(--color-white));
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(var(--color-sky-500) / 0.6);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

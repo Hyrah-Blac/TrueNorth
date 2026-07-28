@@ -7,8 +7,8 @@ import { Loader2, Save, CheckCircle2 } from "lucide-react";
 import { FormField } from "@/components/forms/FormField";
 import { TextInput } from "@/components/forms/TextInput";
 import { Button } from "@/components/shared/buttons/Button";
-import { siteSettingsSchema, updateSiteSettings, type SiteSettingsInput } from "@/features/admin/actions/settings.actions";
-
+import { updateSiteSettings } from "@/features/admin/actions/settings.actions";
+import { siteSettingsSchema, type SiteSettingsInput } from "@/features/admin/schemas/settings.schema";
 export function SettingsForm({ defaultValues }: { defaultValues: SiteSettingsInput }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
