@@ -51,6 +51,18 @@
   --color-gold-500: 200 169 91; /* #c8a95b */
   --color-gold-200: 236 224 196; /* #ece0c4 */
 
+  /* Blue — a genuine, separate blue accent (distinct from "sky," which
+     despite its name renders champagne gold). A rich sapphire/cobalt,
+     not Tailwind's stock saturated blue, so it still feels like it
+     belongs next to navy and gold rather than looking like a generic
+     Bootstrap-blue button. 700/600 are the "on light background" AA-safe
+     text/border shades; 400 is the "on dark background" AA-safe shade,
+     same convention as the green/red ramps above.  */
+  --color-blue-700: 22 40 92; /* #16285c */
+  --color-blue-600: 30 58 128; /* #1e3a80 — AA on white */
+  --color-blue-500: 43 91 191; /* #2b5bbf — Sapphire Blue */
+  --color-blue-400: 108 148 227; /* #6c94e3 — AA on navy-950 */
+
   --color-white: 248 248 246; /* #f8f8f6 — off-white, never pure #ffffff */
 
   /* Success / danger — muted forest green and brick red, tuned to sit

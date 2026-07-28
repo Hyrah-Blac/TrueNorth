@@ -38,6 +38,12 @@ const config: Config = {
           500: withOpacity("--color-gold-500"),
           200: withOpacity("--color-gold-200"),
         },
+        blue: {
+          700: withOpacity("--color-blue-700"),
+          600: withOpacity("--color-blue-600"),
+          500: withOpacity("--color-blue-500"),
+          400: withOpacity("--color-blue-400"),
+        },
         slate: {
           900: withOpacity("--color-slate-900"),
           800: withOpacity("--color-slate-800"),

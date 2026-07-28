@@ -65,29 +65,39 @@ export function Hero() {
       </div>
 
       <Container className="relative flex justify-center">
-        <div className="max-w-2xl text-center">
-          <p className="spec-readout mb-4 text-xs uppercase tracking-widest2 text-white/50">
+        <div className="max-w-2xl text-center lg:max-w-4xl xl:max-w-5xl">
+          <p className="spec-readout mb-3 font-mono text-[clamp(0.625rem,0.6rem+0.1vw,0.6875rem)] font-medium uppercase tracking-widest2 text-white/50">
             True North Charters
           </p>
 
-          <h1 className="font-editorial text-4xl font-light uppercase leading-[1.15] tracking-[0.01em] text-white sm:text-5xl lg:text-6xl">
+          <h1 className="font-editorial text-[clamp(2.5rem,1.7rem+3vw,4.75rem)] font-light uppercase leading-[1.1] tracking-[0.005em] text-white">
             Adventure,
             <br />
             above &amp; <span className="text-sky-400">beyond</span>
           </h1>
 
-          <div className="mx-auto mt-6 h-px w-12 bg-white/20" />
+          <div className="mx-auto mt-8 h-px w-12 bg-white/20" />
 
-          <p className="mx-auto mt-6 max-w-md text-base leading-relaxed text-slate-200">
+          <p className="mx-auto mt-5 max-w-md text-[clamp(0.8125rem,0.8rem+0.15vw,0.9375rem)] leading-relaxed text-slate-200">
             Helicopters, turboprops, light jets, and medevac aircraft — dispatched across
             Kenya and East Africa.
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button href="/request-charter" variant="primary" size="lg">
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
+            <Button
+              href="/request-charter"
+              variant="outline-light"
+              size="lg"
+              className="px-[clamp(1.125rem,0.95rem+0.7vw,1.5rem)] py-[clamp(0.5rem,0.45rem+0.25vw,0.625rem)] text-[clamp(0.6875rem,0.66rem+0.1vw,0.75rem)]"
+            >
               Request Charter
             </Button>
-            <Button href="/fleet" variant="secondary" size="lg">
+            <Button
+              href="/fleet"
+              variant="outline-light"
+              size="lg"
+              className="px-[clamp(1.125rem,0.95rem+0.7vw,1.5rem)] py-[clamp(0.5rem,0.45rem+0.25vw,0.625rem)] text-[clamp(0.6875rem,0.66rem+0.1vw,0.75rem)]"
+            >
               Explore Fleet
             </Button>
           </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Open_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Poppins, Raleway, IBM_Plex_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { siteConfig } from "@/lib/config/site";
 import "./globals.css";
@@ -23,7 +23,7 @@ const editorialFont = Poppins({
   style: ["normal", "italic"],
 });
 
-const bodyFont = Open_Sans({
+const bodyFont = Raleway({
   subsets: ["latin"],
   variable: "--font-body",
   weight: ["300", "400", "600", "700"],

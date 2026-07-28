@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -8,6 +8,7 @@ import { Compass } from "lucide-react";
 import { Container } from "../container/Container";
 import { MobileNav } from "./MobileNav";
 import { NavMenuTrigger } from "./NavMenuTrigger";
+import { Button } from "@/components/shared/buttons/Button";
 import { siteConfig } from "@/lib/config/site";
 
 // ---------------------------------------------------------------------------
@@ -16,23 +17,33 @@ import { siteConfig } from "@/lib/config/site";
 
 const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 
-// Brand accents used throughout this file (kept as plain hex literals,
-// not JS variables, so Tailwind's static scanner can pick up the
-// arbitrary-value classes at build time):
-//   Yellow #F0C24B — primary accent: CTA button
-//   Blue   #4EA8DE — secondary accent: logo fallback badge
-// To retune the palette, find/replace these two hex values across the file.
+// Brand accent used elsewhere in this file (kept as a plain hex literal,
+// not a JS variable, so Tailwind's static scanner can pick it up at build
+// time):
+//   Blue #4EA8DE — logo fallback badge
+// The CTA button now comes from the shared <Button /> component (see
+// components/shared/buttons/Button.tsx) rather than a one-off styled
+// <Link />. It uses the "blue" variant — a flat, static pill (solid
+// blue, white text, no lift/shadow on hover, just a quiet color fade to
+// blue-700) — the same variant used for the "View Entire Fleet" CTA in
+// FleetCategoriesSection, so its color/hover behavior is controlled
+// there, not here.
 
 // ---------------------------------------------------------------------------
 // Navbar
 //
-// Transparent at the very top of the page, then smoothly gains a
-// dark/blurred background once the page scrolls — this covers the
-// common case where scrolling brings a light/white section (or just
-// busy content) underneath the bar, which would otherwise wash out the
-// white text. The transition is a plain background-color/backdrop-filter
-// fade (see TRANSITION), not a layout shift — height stays constant so
-// nothing jumps.
+// Completely transparent at the very top of every page — not just
+// home — then smoothly gains a solid white background once the page
+// scrolls (or the mobile menu opens). Nav link/logo colors flip from
+// white to dark navy at the same moment (see the `solid` prop threaded
+// through TopLink/NavbarLogo) so text stays legible against whichever
+// background is showing. Fixed positioning is used everywhere (not
+// just home) so the transparent state can actually overlay page
+// content instead of just sitting inline above it; pages need top
+// padding/margin equal to the bar's height (h-24) to avoid their
+// content being tucked underneath it. The transition is a plain
+// background-color fade (see TRANSITION), not a layout shift — height
+// stays constant so nothing jumps.
 //
 // Fleet / Destinations / About are inline top-bar links (visible from lg
 // upward). The hamburger stays visible at every breakpoint — on mobile
@@ -45,16 +56,40 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 
 export function Navbar({ phone }: { phone: string }) {
   const pathname = usePathname();
-  const isHome = pathname === "/";
 
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const lastY = useRef(0);
 
   // Runs on every page now, not just home — any page can have a light
   // or busy section scroll under the bar, not only the homepage hero.
+  //
+  // Same listener also drives the hide-on-scroll-down / reveal-on-
+  // scroll-up behavior: comparing the current position against the
+  // last one tells us direction, and a small threshold (12px) stops it
+  // from flickering on tiny scroll jitter (trackpads, mobile bounce).
+  // Hiding only kicks in past 80px so the bar doesn't disappear the
+  // moment someone nudges the page near the very top.
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 24);
+    lastY.current = window.scrollY;
+
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      setScrolled(currentY > 24);
+
+      const delta = currentY - lastY.current;
+      if (Math.abs(delta) > 12) {
+        if (delta > 0 && currentY > 80) {
+          setHidden(true);
+        } else if (delta < 0) {
+          setHidden(false);
+        }
+        lastY.current = currentY;
+      }
+    };
+
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -68,56 +103,64 @@ export function Navbar({ phone }: { phone: string }) {
 
   // Lock body scroll while the slide-out panel is open, since it now
   // covers the full viewport at every breakpoint rather than just
-  // pushing mobile content down.
+  // pushing mobile content down. Also force the bar back into view
+  // when the menu opens — it would be disorienting for the trigger
+  // itself to be scrolled off-screen while its panel is open.
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
+    if (menuOpen) setHidden(false);
     return () => {
       document.body.style.overflow = "";
     };
   }, [menuOpen]);
 
-  const showSolid = !isHome || scrolled || menuOpen;
+  const showSolid = scrolled || menuOpen;
 
   // --- render ----------------------------------------------------------------
 
   return (
     <header
-      className={`${isHome ? "fixed inset-x-0 top-0" : "sticky top-0"} z-50 w-full ${TRANSITION} ${
+      className={`fixed inset-x-0 top-0 z-50 w-full ${TRANSITION} ${
+        hidden && !menuOpen ? "-translate-y-full" : "translate-y-0"
+      } ${
         showSolid
-          ? "border-b border-white/[0.06] bg-[rgba(18,22,28,0.38)] shadow-[0_20px_60px_-18px_rgba(0,0,0,0.35)] backdrop-blur-[22px]"
+          ? "border-b border-slate-200 bg-white shadow-[0_8px_30px_-12px_rgba(0,0,0,0.15)]"
           : "border-b border-transparent bg-transparent"
       }`}
     >
       <Container>
-        <nav className={`relative flex h-16 items-center justify-between ${TRANSITION}`} aria-label="Primary">
+        <nav className={`relative flex h-24 items-center justify-between ${TRANSITION}`} aria-label="Primary">
           <div className="flex items-center gap-8">
-            <NavMenuTrigger open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} />
+            <NavMenuTrigger open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} solid={showSolid} />
 
             <div className="hidden items-center gap-8 lg:flex">
-              <TopLink href="/fleet" active={pathname === "/fleet"}>
+              <TopLink href="/fleet" active={pathname === "/fleet"} solid={showSolid}>
                 Fleet
               </TopLink>
-              <TopLink href="/destinations" active={pathname === "/destinations"}>
+              <TopLink href="/destinations" active={pathname === "/destinations"} solid={showSolid}>
                 Destinations
               </TopLink>
             </div>
           </div>
 
-          <NavbarLogo logoError={logoError} onLogoError={() => setLogoError(true)} />
+          <NavbarLogo logoError={logoError} onLogoError={() => setLogoError(true)} solid={showSolid} />
 
           <div className="flex items-center gap-8">
             <div className="hidden lg:flex">
-              <TopLink href="/about" active={pathname === "/about"}>
+              <TopLink href="/about" active={pathname === "/about"} solid={showSolid}>
                 About
               </TopLink>
             </div>
 
-            <Link
+            <Button
               href="/request-charter"
-              className="group font-display relative inline-flex items-center justify-center whitespace-nowrap rounded-full border border-[#F0C24B] bg-[#F0C24B] px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-[#1A1200] shadow-[0_4px_24px_rgba(240,194,75,0.24)] transition-all duration-300 ease-out hover:-translate-y-px hover:shadow-[0_10px_32px_rgba(240,194,75,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F0C24B]"
+              variant="blue"
+              size="md"
+              className="!px-4 !py-2 !text-[10px] sm:!px-5"
             >
-              Request Charter
-            </Link>
+              <span className="sm:hidden">Charter</span>
+              <span className="hidden sm:inline">Request Charter</span>
+            </Button>
           </div>
         </nav>
       </Container>
@@ -139,19 +182,27 @@ export function Navbar({ phone }: { phone: string }) {
 function NavbarLogo({
   logoError,
   onLogoError,
+  solid,
 }: {
   logoError: boolean;
   onLogoError: () => void;
+  solid: boolean;
 }) {
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
       <Link
         href="/"
-        className="pointer-events-auto flex items-center text-[#F7F6F2] transition-opacity duration-300 hover:opacity-80"
+        className={`pointer-events-auto flex items-center transition-opacity duration-300 hover:opacity-80 ${
+          solid ? "text-navy-900" : "text-[#F7F6F2]"
+        }`}
         aria-label={siteConfig.shortName}
       >
         {logoError ? (
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#4EA8DE]/40 bg-[#12263A]">
+          <span
+            className={`flex h-9 w-9 items-center justify-center rounded-full border ${
+              solid ? "border-[#4EA8DE]/60 bg-[#EAF4FB]" : "border-[#4EA8DE]/40 bg-[#12263A]"
+            }`}
+          >
             <Compass className="h-4 w-4 text-[#4EA8DE]" aria-hidden="true" />
           </span>
         ) : (
@@ -179,12 +230,14 @@ function NavbarLogo({
 function TopLink({
   href,
   active,
+  solid,
   children,
   className = "",
   ...rest
 }: {
   href: string;
   active?: boolean;
+  solid?: boolean;
   children: React.ReactNode;
   className?: string;
 } & React.ComponentProps<typeof Link>) {
@@ -193,9 +246,13 @@ function TopLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={`group font-display relative inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-normal tracking-normal transition-all duration-[250ms] ease-out ${
-        active
-          ? "text-white"
-          : "text-white/75 hover:text-[#6EC5F2]"
+        solid
+          ? active
+            ? "text-navy-900"
+            : "text-slate-600 hover:text-sky-600"
+          : active
+            ? "text-white"
+            : "text-white/75 hover:text-[#6EC5F2]"
       } ${className}`}
       {...rest}
     >

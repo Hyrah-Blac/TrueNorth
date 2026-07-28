@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Twitter, Facebook, Linkedin, Instagram, type LucideIcon } from "lucide-react";
 import { siteConfig } from "@/lib/config/site";
 import { socialLinks } from "@/content/social-links";
@@ -16,10 +15,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 export function Footer() {
   return (
-    <footer className="relative bg-navy-950">
-      {/* Thin gold accent line across the very top — the only color
-          accent in an otherwise monochrome, minimal footer. */}
-      <div className="h-[3px] bg-sky-500" aria-hidden="true" />
+    <footer className="relative bg-blue-500">
 
       <div className="mx-auto flex max-w-container flex-col items-center gap-8 px-6 py-16 text-center lg:py-20">
         <div className="flex items-center gap-5">
@@ -34,7 +30,10 @@ export function Footer() {
                 target="_blank"
                 rel="noreferrer noopener"
                 aria-label={social.label}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/50 transition-all duration-300 ease-out hover:scale-110 hover:border-sky-400 hover:text-sky-400 hover:shadow-[0_0_20px_rgba(78,168,222,0.35)]"
+                // Brightened from white/50 + slate icon tones, which were
+                // tuned for a near-black navy-950 background — against
+                // the lighter Sapphire blue-500 they read as washed out.
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 text-white/85 transition-all duration-300 ease-out hover:scale-110 hover:border-sky-300 hover:text-sky-300 hover:shadow-[0_0_20px_rgba(78,168,222,0.35)]"
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </a>
@@ -42,12 +41,12 @@ export function Footer() {
           })}
         </div>
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-white/80">
           © {new Date().getFullYear()} {siteConfig.name} — All Rights Reserved{" "}
-          <span className="text-slate-600">|</span>{" "}
-          <Link href="/privacy-policy" className="transition-colors hover:text-slate-300">
-            Privacy Policy
-          </Link>
+          <span className="text-white/60">|</span>{" "}
+          {/* Plain text, not a link — no privacy-policy page to send
+              people to. */}
+          <span>Privacy Policy</span>
         </p>
       </div>
     </footer>

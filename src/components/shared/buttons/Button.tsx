@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "outline-light" | "ghost";
+type ButtonVariant = "primary" | "secondary" | "outline" | "outline-light" | "ghost" | "blue";
 type ButtonSize = "md" | "lg";
 
 interface BaseProps {
@@ -16,7 +16,11 @@ interface BaseProps {
 // hover. Secondary / outline-light: glass/white-text, for use over
 // photography or dark sections ONLY (white text is invisible on light
 // backgrounds). Outline: the light-background equivalent of secondary —
-// dark text, a neutral border, for use on white/slate surfaces.
+// dark text, a neutral border, for use on white/slate surfaces. Blue: a
+// flat, static CTA pill — solid blue, white text, no lift/shadow/color
+// shift on hover, just a quiet text fade. Used where the button needs to
+// stay visually still (e.g. sitting next to a photo) rather than "lift
+// off" like primary does.
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
     "border border-sky-500 bg-sky-500 text-navy-950 shadow-soft hover:bg-sky-600 hover:border-sky-600 hover:shadow-glow hover:-translate-y-0.5",
@@ -24,8 +28,9 @@ const variantStyles: Record<ButtonVariant, string> = {
     "border border-glass-border bg-glass-surface text-white backdrop-blur-md hover:border-sky-400 hover:bg-white/[0.08] hover:-translate-y-0.5",
   outline:
     "border border-slate-300 text-navy-900 hover:border-sky-500 hover:text-sky-600 hover:-translate-y-0.5",
-  "outline-light": "border border-white/25 text-white hover:border-sky-400 hover:bg-white/5",
+  "outline-light": "border border-white/25 text-white",
   ghost: "text-navy-900 hover:bg-slate-100",
+  blue: "border border-blue-500 bg-blue-500 text-white transition-colors hover:bg-blue-700 hover:border-blue-700",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

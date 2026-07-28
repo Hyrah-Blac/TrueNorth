@@ -20,12 +20,16 @@ const categoryImages: Partial<Record<string, string>> = {
 // two strong examples and then pointing at "five more categories" does.
 const FEATURED_CATEGORIES = ["helicopter", "safari"];
 
+// Image used in the closing "full fleet" CTA panel below — kept as its
+// own constant since it's not tied to a category like the ones above.
+const FLEET_CTA_IMAGE = "/images/aircraft/category.jpg";
+
 export function FleetCategoriesSection() {
   const featured = fleetCategories.filter((item) => FEATURED_CATEGORIES.includes(item.category));
   const remainingCount = fleetCategories.length - featured.length;
 
   return (
-    <Section tone="white" className="relative z-10 -mt-6 rounded-t-3xl shadow-lifted sm:-mt-10 md:-mt-14 lg:-mt-20">
+    <Section tone="white" className="relative z-10 -mt-6 rounded-t-3xl shadow-none sm:-mt-10 md:-mt-14 lg:-mt-20">
       <SectionHeading
         align="center"
         title="The Right Aircraft, Every Mission"
@@ -35,9 +39,9 @@ export function FleetCategoriesSection() {
       <div className="mt-16 flex flex-col gap-6">
         {featured.map((item, index) => {
           const image = categoryImages[item.category];
-          // Zigzag layout: first row shows image-left/text-right, the
-          // next flips to text-left/image-right.
-          const reversed = index % 2 === 0;
+          // Zigzag layout: first row shows image-right/text-left, the
+          // next flips to image-left/text-right.
+          const reversed = index % 2 !== 0;
 
           return (
             <Link
@@ -52,8 +56,20 @@ export function FleetCategoriesSection() {
                   standing in as a fake image placeholder. Full width and
                   stacked below the photo on mobile; narrows to a side
                   column from sm upward so the photo side never gets
-                  crowded out. */}
-              <div className="order-2 flex w-full flex-col justify-center bg-gradient-to-br from-white via-white to-slate-50 p-6 sm:order-none sm:w-[45%] sm:shrink-0 md:p-10 lg:w-[45%] lg:p-12">
+                  crowded out.
+
+                  The grey isn't centered under the text — sampled from the
+                  reference, it sits right at the seam where this panel
+                  meets the photo and fades out to white toward the page's
+                  outer edge. Since `reversed` puts the text panel on the
+                  right (image on the left) in that case, the grey needs to
+                  start on the LEFT side of the panel there, and on the
+                  right side otherwise — hence the conditional from/to. */}
+              <div
+                className={`order-2 flex w-full flex-col justify-center bg-gradient-to-r p-6 sm:order-none sm:w-[45%] sm:shrink-0 sm:p-8 md:p-10 lg:p-12 ${
+                  reversed ? "from-slate-200 to-white" : "from-white to-slate-200"
+                }`}
+              >
                 <h3 className="font-display text-base font-semibold leading-[1.15] tracking-tight text-navy-900 sm:text-lg md:text-lg lg:text-xl">
                   {item.label}
                 </h3>
@@ -67,7 +83,7 @@ export function FleetCategoriesSection() {
                   height on mobile since it's no longer sharing row
                   height with the text panel; stretches to match the
                   row's height from sm upward. */}
-              <div className="relative order-1 h-56 w-full sm:order-none sm:h-auto sm:w-[55%] sm:flex-1">
+              <div className="relative order-1 h-56 w-full sm:order-none sm:h-auto sm:flex-1">
                 {image ? (
                   <Image
                     src={image}
@@ -87,16 +103,33 @@ export function FleetCategoriesSection() {
         })}
       </div>
 
-      {/* Closing CTA — the whole point of showing only two categories:
-          make it obvious there's more, and give a single clear next step.
-          One button only — no duplicate link, no arrow clutter. */}
-      <div className="mt-12 flex flex-col items-center gap-5 border-t border-slate-200 pt-12 text-center">
-        <p className="text-xs text-slate-500">
-          Plus {remainingCount} more categories — turboprops, light jets, cargo, and medevac aircraft.
-        </p>
-        <Button href="/fleet" variant="outline" size="md">
-          View Entire Fleet
-        </Button>
+      {/* Closing CTA — image-right / text-left, mirroring the featured
+          rows above but calmer: no link-wrap, no hover state, just a
+          clear "there's more" moment before the button. */}
+      <div className="mt-12 flex flex-col overflow-hidden rounded-2xl sm:flex-row sm:min-h-[18rem]">
+        <div className="flex w-full flex-col justify-center gap-5 bg-gradient-to-r from-white to-slate-100 p-8 sm:w-[45%] sm:shrink-0 md:p-10 lg:p-12">
+          <h3 className="font-display text-sm font-semibold text-navy-900 sm:text-base">
+            The Full Fleet
+          </h3>
+          <p className="text-sm leading-relaxed text-slate-600">
+            Plus {remainingCount} more categories — turboprops, light jets, cargo, and medevac aircraft, each matched to a different kind of mission.
+          </p>
+          <div>
+            <Button href="/fleet" variant="blue" size="md">
+              View Entire Fleet
+            </Button>
+          </div>
+        </div>
+
+        <div className="relative h-56 w-full sm:h-auto sm:flex-1">
+          <Image
+            src={FLEET_CTA_IMAGE}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(min-width: 768px) 55vw, 100vw"
+          />
+        </div>
       </div>
     </Section>
   );
