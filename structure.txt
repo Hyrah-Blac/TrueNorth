@@ -8,10 +8,12 @@
 [DIR ] public
 [DIR ] public\documents
 [DIR ] public\favicon
+[FILE] public\favicon\favicon.ico
 [DIR ] public\icons
 [DIR ] public\images
 [DIR ] public\images\aircraft
 [DIR ] public\images\aircraft\cabins
+[FILE] public\images\aircraft\category.jpg
 [DIR ] public\images\aircraft\exteriors
 [FILE] public\images\aircraft\Heli.jpg
 [DIR ] public\images\aircraft\interiors
@@ -19,6 +21,7 @@
 [DIR ] public\images\aircraft\placeholders
 [FILE] public\images\aircraft\Plane.jpg
 [FILE] public\images\aircraft\safari.jpg
+[FILE] public\images\aircraft\sign.jpg
 [DIR ] public\images\destinations
 [FILE] public\images\destinations\amboseli.jpg
 [FILE] public\images\destinations\destinations-hero.jpg
@@ -75,6 +78,16 @@
 [FILE] src\app\(admin)\admin\settings\loading.tsx
 [FILE] src\app\(admin)\admin\settings\page.tsx
 [FILE] src\app\(admin)\admin\template.tsx
+[DIR ] src\app\(auth)
+[FILE] src\app\(auth)\layout.tsx
+[DIR ] src\app\(auth)\sign-in
+[DIR ] src\app\(auth)\sign-in\[[...sign-in]]
+[FILE] src\app\(auth)\sign-in\[[...sign-in]]\page.tsx
+[FILE] src\app\(auth)\sign-in\[[...sign-in]]\SignInForm.tsx
+[DIR ] src\app\(auth)\sign-up
+[DIR ] src\app\(auth)\sign-up\[[...sign-up]]
+[FILE] src\app\(auth)\sign-up\[[...sign-up]]\page.tsx
+[FILE] src\app\(auth)\sign-up\[[...sign-up]]\SignUpForm.tsx
 [DIR ] src\app\(customer)
 [DIR ] src\app\(customer)\dashboard
 [DIR ] src\app\(customer)\dashboard\bookings
@@ -121,14 +134,6 @@
 [FILE] src\app\(public)\page.tsx
 [DIR ] src\app\(public)\request-charter
 [FILE] src\app\(public)\request-charter\page.tsx
-[DIR ] src\app\(public)\sign-in
-[DIR ] src\app\(public)\sign-in\[[...sign-in]]
-[FILE] src\app\(public)\sign-in\[[...sign-in]]\page.tsx
-[FILE] src\app\(public)\sign-in\[[...sign-in]]\SignInForm.tsx
-[DIR ] src\app\(public)\sign-up
-[DIR ] src\app\(public)\sign-up\[[...sign-up]]
-[FILE] src\app\(public)\sign-up\[[...sign-up]]\page.tsx
-[FILE] src\app\(public)\sign-up\[[...sign-up]]\SignUpForm.tsx
 [DIR ] src\app\(public)\sso-callback
 [FILE] src\app\(public)\sso-callback\page.tsx
 [FILE] src\app\(public)\template.tsx
@@ -197,6 +202,7 @@
 [FILE] src\components\admin\dialogs\BookingStatusActions.tsx
 [FILE] src\components\admin\dialogs\ConfirmDialog.tsx
 [FILE] src\components\admin\dialogs\CustomerActionsPanel.tsx
+[FILE] src\components\admin\dialogs\LinkCustomerDialog.tsx
 [FILE] src\components\admin\dialogs\QuoteReviewPanel.tsx
 [FILE] src\components\admin\dialogs\RecheckPaymentButton.tsx
 [FILE] src\components\admin\dialogs\RejectQuoteDialog.tsx
@@ -292,10 +298,10 @@
 [FILE] src\components\layout\container\Container.tsx
 [DIR ] src\components\layout\footer
 [FILE] src\components\layout\footer\Footer.tsx
-[FILE] src\components\layout\footer\FooterLogo.tsx
 [DIR ] src\components\layout\navbar
 [FILE] src\components\layout\navbar\MobileNav.tsx
 [FILE] src\components\layout\navbar\Navbar.tsx
+[FILE] src\components\layout\navbar\NavMenuTrigger.tsx
 [DIR ] src\components\layout\section
 [FILE] src\components\layout\section\Section.tsx
 [DIR ] src\components\layout\sidebar
@@ -417,6 +423,7 @@
 [FILE] src\features\admin\lib\getQuotesForAdmin.ts
 [FILE] src\features\admin\README.md
 [DIR ] src\features\admin\schemas
+[FILE] src\features\admin\schemas\settings.schema.ts
 [DIR ] src\features\admin\types
 [DIR ] src\features\admin\utils
 [DIR ] src\features\aircraft
@@ -491,6 +498,7 @@
 [FILE] src\features\quote\lib\approveQuote.ts
 [FILE] src\features\quote\lib\createQuote.ts
 [FILE] src\features\quote\lib\getQuotes.ts
+[FILE] src\features\quote\lib\linkQuoteCustomer.ts
 [FILE] src\features\quote\lib\rejectQuote.ts
 [FILE] src\features\quote\README.md
 [DIR ] src\features\quote\schemas
@@ -510,6 +518,8 @@
 [FILE] src\lib\api\mpesa.ts
 [FILE] src\lib\api\resend.ts
 [FILE] src\lib\api\response.ts
+[DIR ] src\lib\auth
+[FILE] src\lib\auth\session.ts
 [DIR ] src\lib\config
 [FILE] src\lib\config\env.ts
 [FILE] src\lib\config\site.ts
@@ -523,6 +533,7 @@
 [DIR ] src\lib\security
 [FILE] src\lib\security\csrf.ts
 [FILE] src\lib\security\headers.ts
+[FILE] src\lib\security\verifyCronSecret.ts
 [DIR ] src\lib\seo
 [FILE] src\lib\seo\structuredData.ts
 [DIR ] src\middleware

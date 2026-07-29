@@ -42,7 +42,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
       >
         {/* Header row: photo, name, remove, CTA */}
         <div className="sticky left-0 z-10 flex items-end bg-slate-50 p-5">
-          <p className="spec-readout text-[11px] uppercase tracking-widest2 text-slate-400">Fleet Comparison</p>
+          <p className="text-xs font-medium text-slate-500">Fleet comparison</p>
         </div>
         {aircraft.map((item) => (
           <div key={item._id} className="border-l border-slate-100 bg-slate-50 p-5">
@@ -63,10 +63,8 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
                 <Minus className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
-            <p className="spec-readout mt-3 text-[10px] uppercase tracking-widest2 text-sky-600">
-              {AIRCRAFT_CATEGORY_LABELS[item.category]}
-            </p>
-            <h3 className="mt-1 font-editorial text-xl font-light italic text-navy-900">{item.name}</h3>
+            <p className="mt-3 text-xs font-medium text-sky-600">{AIRCRAFT_CATEGORY_LABELS[item.category]}</p>
+            <h3 className="mt-1 font-display text-lg font-semibold text-navy-900">{item.name}</h3>
             <Button href={`/fleet/${item.slug}`} variant="outline" size="md" className="mt-3 w-full" icon={<ArrowRight className="h-3.5 w-3.5" />}>
               View
             </Button>
@@ -86,7 +84,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
             {aircraft.map((item) => (
               <div
                 key={`${row.label}-${item._id}`}
-                className={`spec-readout flex items-center border-l border-slate-100 px-5 py-3.5 text-sm font-medium text-navy-900 ${
+                className={`flex items-center border-l border-slate-100 px-5 py-3.5 text-sm font-medium text-navy-900 ${
                   rowIndex % 2 === 1 ? "bg-slate-50" : "bg-white"
                 }`}
               >

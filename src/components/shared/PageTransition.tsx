@@ -10,6 +10,16 @@ import { useEffect, useState } from "react";
  * (see tailwind.config.ts: ease-editorial, duration-900) so route changes
  * feel like part of the same visual language rather than a generic fade.
  * Skips the animation entirely under prefers-reduced-motion.
+ *
+ * IMPORTANT: once mounted, we deliberately apply NO translate class at
+ * all (not even `translate-y-0`) rather than animating down to it. Any
+ * transform value — including an identity translate(0,0) — makes this
+ * div a containing block for `position: fixed` descendants, which
+ * silently breaks full-viewport fixed elements rendered anywhere inside
+ * a page (modals, lightboxes, etc): they end up confined to this div's
+ * box instead of the viewport. Dropping the class entirely after the
+ * entrance animation completes returns the computed transform to `none`
+ * and avoids trapping them.
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -28,9 +38,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
     <div
       className={
         motionEnabled
-          ? `transition-all duration-700 ease-editorial ${
-              mounted ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
-            }`
+          ? `transition-all duration-700 ease-editorial ${mounted ? "opacity-100" : "translate-y-2 opacity-0"}`
           : ""
       }
     >

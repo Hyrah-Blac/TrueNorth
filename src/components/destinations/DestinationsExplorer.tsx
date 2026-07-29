@@ -37,41 +37,57 @@ export function DestinationsExplorer() {
 
   return (
     <div>
-      <div className="flex flex-col gap-5 border-b border-slate-200 pb-8 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
-          {REGION_TABS.map((tab) => (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => setRegion(tab.value)}
-              className={`rounded-md px-4 py-2 text-xs font-medium uppercase tracking-wide ${
-                region === tab.value ? "bg-navy-900 text-white" : "bg-slate-100 text-slate-600"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+      <div className="flex flex-col gap-6 border-b border-slate-200 pb-8 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="spec-readout mb-3 text-xs font-medium uppercase tracking-widest2 text-slate-400">
+            Region
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {REGION_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => setRegion(tab.value)}
+                className={`rounded-md px-4 py-2 text-xs font-medium uppercase tracking-wide transition-all duration-300 ${
+                  region === tab.value
+                    ? "bg-navy-900 text-white shadow-soft"
+                    : "bg-white text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {CATEGORY_CHIPS.map((chip) => (
-            <button
-              key={chip.value}
-              type="button"
-              onClick={() => setCategory(chip.value)}
-              className={`rounded-md border px-3 py-1.5 text-xs font-medium uppercase tracking-wide ${
-                category === chip.value
-                  ? "border-sky-500 bg-sky-100 text-sky-700"
-                  : "border-slate-200 text-slate-500"
-              }`}
-            >
-              {chip.label}
-            </button>
-          ))}
+        <div>
+          <p className="spec-readout mb-3 text-xs font-medium uppercase tracking-widest2 text-slate-400 sm:text-right">
+            Type
+          </p>
+          <div className="flex flex-wrap gap-2 sm:justify-end">
+            {CATEGORY_CHIPS.map((chip) => (
+              <button
+                key={chip.value}
+                type="button"
+                onClick={() => setCategory(chip.value)}
+                className={`rounded-md border px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-all duration-300 ${
+                  category === chip.value
+                    ? "border-sky-500 bg-sky-100 text-sky-700"
+                    : "border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-white"
+                }`}
+              >
+                {chip.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="mt-10">
+      <p className="spec-readout mt-8 text-xs uppercase tracking-widest2 text-slate-400">
+        {filtered.length} {filtered.length === 1 ? "Destination" : "Destinations"}
+      </p>
+
+      <div className="mt-6">
         {filtered.length === 0 ? (
           <EmptyState
             icon={<Globe className="h-5 w-5" weight="thin" aria-hidden="true" />}
@@ -79,9 +95,9 @@ export function DestinationsExplorer() {
             description="Flying somewhere not listed here? Submit a charter request and tell us the route directly."
           />
         ) : (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((destination) => (
-              <DestinationCard key={destination.slug} destination={destination} />
+          <div className="flex flex-col gap-6">
+            {filtered.map((destination, index) => (
+              <DestinationCard key={destination.slug} destination={destination} reversed={index % 2 !== 0} />
             ))}
           </div>
         )}

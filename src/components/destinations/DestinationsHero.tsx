@@ -3,12 +3,12 @@
 import Image from "next/image";
 import { Container } from "@/components/layout/container/Container";
 
-export function FleetHero() {
+export function DestinationsHero() {
   return (
     <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-navy-950 py-24 lg:py-0">
       <div className="absolute inset-0" aria-hidden="true">
         <Image
-          src="/images/aircraft/interiors/Interior.jpg"
+          src="/images/destinations/destinations-hero.jpg"
           alt=""
           fill
           priority
@@ -27,16 +27,16 @@ export function FleetHero() {
       <Container className="relative flex justify-center">
         <div className="max-w-2xl text-center lg:max-w-4xl">
           <h1 className="font-editorial text-[clamp(2.25rem,1.6rem+2.6vw,4rem)] font-light uppercase leading-[1.1] tracking-[0.005em] text-white">
-            Seven categories,
+            Domestic reach,
             <br />
-            matched to the <span className="text-sky-400">mission</span>
+            regional <span className="text-sky-400">range</span>
           </h1>
 
           <div className="mx-auto mt-8 h-px w-12 bg-white/20" />
 
           <p className="mx-auto mt-5 max-w-md text-[clamp(0.8125rem,0.8rem+0.15vw,0.9375rem)] leading-relaxed text-slate-200">
-            Filter by category or passenger count, or submit a charter request and we&apos;ll
-            recommend the right aircraft for your trip.
+            From bush airstrips near the Mara to cross-border routes into Rwanda and Tanzania —
+            if there&apos;s a runway, we can likely reach it.
           </p>
         </div>
       </Container>

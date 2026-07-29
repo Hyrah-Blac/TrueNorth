@@ -21,7 +21,7 @@ export function SpecStrip({ aircraft, size = "sm" }: SpecStripProps) {
         <div key={item.unit} className={`flex items-center gap-2 ${index === 0 ? "pr-4" : "px-4"}`}>
           <item.icon className="h-3.5 w-3.5 shrink-0 text-sky-500" aria-hidden="true" />
           <div>
-            <dd className={`spec-readout font-semibold text-navy-900 ${valueSize}`}>{item.value}</dd>
+            <dd className={`font-semibold text-navy-900 ${valueSize}`}>{item.value}</dd>
             <dt className="text-[10px] uppercase tracking-wide text-slate-500">{item.unit}</dt>
           </div>
         </div>

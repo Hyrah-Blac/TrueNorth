@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Users } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { CustomerSearchBox } from "@/components/admin/tables/CustomerSearchBox";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { ListToolbar } from "@/components/admin/layout/ListToolbar";
@@ -19,6 +20,13 @@ export default async function AdminCustomersPage({ searchParams }: AdminCustomer
 
   return (
     <div>
+      <PageHeader
+        variant="light"
+        eyebrow="Admin"
+        title="Customers"
+        description="Search and manage every account that has signed up on the site."
+      />
+
       <ListToolbar count={customers.length} noun="customer">
         <CustomerSearchBox />
       </ListToolbar>

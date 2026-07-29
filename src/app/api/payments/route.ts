@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import connectToDatabase from "@/database/connection";
 import Payment from "@/database/models/Payment";
 import User from "@/database/models/User";
-import { requireAuth, resolveDbUserId } from "@/middleware/auth";
+import { requireAuth, getCurrentUserOrThrow } from "@/middleware/auth";
 import { ROLES } from "@/database/constants/roles";
 import { successResponse, handleApiError } from "@/lib/api/response";
 import { checkRateLimit, getRequestKey, rateLimitResponse, RATE_LIMITS } from "@/middleware/rate-limit";
@@ -44,7 +44,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireAuth();
+    // getCurrentUserOrThrow (not requireAuth) — same reasoning as the
+    // initiatePayment server action: this is the route the client hits
+    // to push a real M-Pesa charge, and requireAuth alone doesn't
+    // check the isActive flag an admin sets via toggleUserActive.
+    const user = await getCurrentUserOrThrow();
 
     const rate = checkRateLimit(getRequestKey(req, "payments:initiate"), RATE_LIMITS.AUTHENTICATED_WRITE);
     if (!rate.allowed) return rateLimitResponse(rate);
@@ -52,13 +56,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = initiatePaymentSchema.parse(body);
 
-    const requesterDbId = await resolveDbUserId(session.clerkId);
-    const isAdmin = session.role === ROLES.ADMIN;
+    const isAdmin = user.role === ROLES.ADMIN;
 
     const { payment, stkResponse } = await initiateBookingPayment(
       data.bookingId,
       data.phoneNumber,
-      String(requesterDbId),
+      String(user._id),
       isAdmin
     );
 

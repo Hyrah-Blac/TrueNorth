@@ -50,3 +50,15 @@ export function isPositiveNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
+/**
+ * Escapes regex metacharacters so a raw user-supplied string can be
+ * safely dropped into a Mongo `$regex` filter (e.g. admin search
+ * boxes) without two problems: (1) a crafted pattern like `(a+)+$`
+ * causing catastrophic backtracking (ReDoS) against every document
+ * scanned, and (2) metacharacters like `.` or `|` matching more than
+ * the literal text the user typed. Always wrap search input with this
+ * before using it in `$regex` — never interpolate it raw.
+ */
+export function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}

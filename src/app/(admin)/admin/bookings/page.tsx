@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PlaneTakeoff } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { AdminBookingRow } from "@/components/admin/tables/AdminBookingRow";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { FilterTabs } from "@/components/admin/layout/FilterTabs";
@@ -23,6 +24,13 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
 
   return (
     <div>
+      <PageHeader
+        variant="light"
+        eyebrow="Admin"
+        title="Bookings"
+        description="Manage confirmed charters and track each one through to completion."
+      />
+
       <FilterTabs
         options={[
           { label: "All", href: "/admin/bookings", active: !status },

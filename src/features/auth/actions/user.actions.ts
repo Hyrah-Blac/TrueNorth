@@ -28,7 +28,7 @@ export async function updateOwnProfile(
   values: UpdateProfileFormValues
 ): Promise<ActionResult<IUser>> {
   try {
-    const session = await requireAuth();
+    const currentUser = await getCurrentUserOrThrow();
     const parsed = updateProfileSchema.safeParse(values);
 
     if (!parsed.success) {
@@ -38,7 +38,7 @@ export async function updateOwnProfile(
     await connectToDatabase();
 
     const user = await User.findOneAndUpdate(
-      { clerkId: session.clerkId },
+      { clerkId: currentUser.clerkId },
       {
         firstName: parsed.data.firstName,
         lastName: parsed.data.lastName,

@@ -3,6 +3,7 @@ import { z } from "zod";
 import connectToDatabase from "@/database/connection";
 import Payment from "@/database/models/Payment";
 import { applyMpesaResult } from "@/features/payment/lib/applyMpesaResult";
+import { queryStkPushStatus } from "@/lib/api/mpesa";
 import { logger } from "@/lib/logging/logger";
 
 const callbackItemSchema = z.object({
@@ -44,12 +45,18 @@ function getMetadataValue(items: { Name: string; Value?: string | number }[], na
 
 export async function POST(req: Request) {
   // Daraja does not sign callback payloads the way Clerk/Stripe do, so
-  // this endpoint relies on: (1) the callback URL being unguessable
-  // (configured only in the Daraja app, never exposed publicly), (2)
-  // strict payload shape validation below, and (3) applyMpesaResult's
-  // idempotency guard against duplicate/replayed callbacks. For extra
-  // hardening, restrict this route to Safaricom's published IP ranges
-  // at the Vercel/infra layer.
+  // the callback body alone is not trusted as proof of payment.
+  // Anyone who learns a CheckoutRequestID (visible client-side while a
+  // payment is pending) could otherwise POST a forged ResultCode: 0 to
+  // this endpoint and get a booking marked "paid" for free. Instead:
+  // (1) the callback body is used only to find *which* payment to
+  // check, never to decide its outcome, (2) the actual result is
+  // fetched fresh from Safaricom's Transaction Status Query API
+  // (queryStkPushStatus) and that response is what gets applied, and
+  // (3) applyMpesaResult's idempotency guard still protects against
+  // duplicate/replayed callbacks. For extra hardening, also restrict
+  // this route to Safaricom's published IP ranges at the Vercel/infra
+  // layer.
   let payload: unknown;
 
   try {
@@ -86,21 +93,53 @@ export async function POST(req: Request) {
       return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
     }
 
+    // Independently confirm the outcome with Safaricom rather than
+    // trusting the POST body — the body is only used to know which
+    // payment to look up. If this call fails or disagrees with what
+    // the callback claimed, the callback is not applied; it's logged
+    // loudly for manual review instead of silently trusted.
+    let verified: Awaited<ReturnType<typeof queryStkPushStatus>>;
+
+    try {
+      verified = await queryStkPushStatus(stkCallback.CheckoutRequestID);
+    } catch (verifyError) {
+      logger.error("M-Pesa callback could not be verified against Safaricom — not applied", {
+        checkoutRequestId: stkCallback.CheckoutRequestID,
+        error: String(verifyError),
+      });
+      return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
+    }
+
+    const verifiedResultCode = Number(verified.ResultCode);
+
+    if (
+      verified.MerchantRequestID !== stkCallback.MerchantRequestID ||
+      verified.CheckoutRequestID !== stkCallback.CheckoutRequestID ||
+      verifiedResultCode !== stkCallback.ResultCode
+    ) {
+      logger.error("M-Pesa callback result did not match Safaricom's own record — rejected", {
+        checkoutRequestId: stkCallback.CheckoutRequestID,
+        claimedResultCode: stkCallback.ResultCode,
+        verifiedResultCode,
+      });
+      return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
+    }
+
     const items = stkCallback.CallbackMetadata?.Item ?? [];
     const mpesaReceiptNumber = getMetadataValue(items, "MpesaReceiptNumber");
     const transactionDateRaw = getMetadataValue(items, "TransactionDate");
 
     await applyMpesaResult(payment, {
-      resultCode: stkCallback.ResultCode,
-      resultDescription: stkCallback.ResultDesc,
+      resultCode: verifiedResultCode,
+      resultDescription: verified.ResultDesc,
       mpesaReceiptNumber: mpesaReceiptNumber ? String(mpesaReceiptNumber) : undefined,
       transactionDate:
         typeof transactionDateRaw === "number" ? parseTransactionDate(transactionDateRaw) : undefined,
     });
 
-    logger.info("M-Pesa callback processed", {
+    logger.info("M-Pesa callback verified and processed", {
       checkoutRequestId: stkCallback.CheckoutRequestID,
-      resultCode: stkCallback.ResultCode,
+      resultCode: verifiedResultCode,
     });
   } catch (error) {
     // Log loudly but still acknowledge — Daraja will retry a failed

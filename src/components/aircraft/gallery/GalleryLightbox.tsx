@@ -46,10 +46,10 @@ export function GalleryLightbox({ images, activeIndex, onIndexChange, onClose, a
       role="dialog"
       aria-modal="true"
       aria-label={`${aircraftName} photo gallery, fullscreen`}
-      className="fixed inset-0 z-[100] flex flex-col bg-navy-950/97 backdrop-blur-md animate-fade-in-editorial"
+      className="fixed inset-0 z-[100] flex flex-col bg-navy-950/97 backdrop-blur-md"
     >
       <div className="flex items-center justify-between px-5 py-4 sm:px-8">
-        <p className="spec-readout text-xs uppercase tracking-widest2 text-white/60">
+        <p className="text-xs text-white/60">
           {activeIndex + 1} / {images.length}
         </p>
         <button
@@ -74,7 +74,7 @@ export function GalleryLightbox({ images, activeIndex, onIndexChange, onClose, a
           </button>
         ) : null}
 
-        <div key={activeIndex} className="relative h-full w-full max-w-5xl animate-fade-in-editorial">
+        <div key={activeIndex} className="relative h-full w-full max-w-5xl">
           {current ? (
             <Image
               src={current.url}

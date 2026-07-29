@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { FileText } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { AdminQuoteRow } from "@/components/admin/tables/AdminQuoteRow";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { FilterTabs } from "@/components/admin/layout/FilterTabs";
@@ -23,6 +24,13 @@ export default async function AdminQuotesPage({ searchParams }: AdminQuotesPageP
 
   return (
     <div>
+      <PageHeader
+        variant="light"
+        eyebrow="Admin"
+        title="Quotes"
+        description="Review and respond to charter requests submitted from the public site."
+      />
+
       <FilterTabs
         options={[
           { label: "All", href: "/admin/quotes", active: !status },

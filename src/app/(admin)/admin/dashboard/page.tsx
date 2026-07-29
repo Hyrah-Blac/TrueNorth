@@ -9,6 +9,7 @@ import {
   AirplaneTakeoff,
 } from "@phosphor-icons/react/dist/ssr";
 import { StatCard } from "@/components/dashboard/cards/StatCard";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { LazyTrendChart as TrendChart } from "@/components/admin/charts/LazyTrendChart";
 import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStatusBadge";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
@@ -35,6 +36,13 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
+      <PageHeader
+        variant="light"
+        eyebrow="Admin"
+        title="Overview"
+        description="A snapshot of revenue, bookings, and customer activity across the business."
+      />
+
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Total revenue" value={formatCurrency(revenue.totalRevenue)} icon={Wallet} />
         <StatCard label="Pending quotes" value={String(counts.pendingQuotes)} icon={FileText} />

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { FleetHero } from "@/components/fleet/hero/FleetHero";
 import { FleetFilters } from "@/components/fleet/filters/FleetFilters";
 import { FleetGrid } from "@/components/fleet/grid/FleetGrid";
-import { Section } from "@/components/layout/section/Section";
+import { Section, SectionGap } from "@/components/layout/section/Section";
+import { Button } from "@/components/shared/buttons/Button";
 import { Pagination } from "@/components/shared/Pagination";
 import { JsonLd } from "@/components/shared/JsonLd";
 import { CompareTray } from "@/components/aircraft/compare/CompareTray";
@@ -55,15 +57,52 @@ export default async function FleetPage({ searchParams }: FleetPageProps) {
           { name: "Fleet", url: `${siteConfig.url}/fleet` },
         ])}
       />
-      <FleetHero />
+      <FleetHero totalAircraft={total} />
+
       <Section tone="white" className="!pt-12">
         <h2 className="sr-only">Available Aircraft</h2>
         <FleetFilters activeCategory={category} />
-        <div className="mt-10">
+
+        <p className="spec-readout mt-10 text-xs uppercase tracking-widest2 text-slate-400">
+          {total} Aircraft Available
+        </p>
+
+        <div className="mt-6">
           <FleetGrid items={items} />
           <Pagination page={meta.page} totalPages={meta.totalPages} buildHref={buildHref} />
         </div>
       </Section>
+
+      <SectionGap size="lg" />
+
+      <Section tone="white" size="slim">
+        <div className="flex flex-col overflow-hidden rounded-2xl sm:min-h-[18rem] sm:flex-row">
+          <div className="flex w-full flex-col justify-center gap-5 bg-gradient-to-r from-white to-slate-100 p-8 sm:w-[45%] sm:shrink-0 md:p-10 lg:p-12">
+            <h3 className="font-display text-sm font-semibold text-navy-900 sm:text-base">
+              Not Sure Which Aircraft You Need?
+            </h3>
+            <p className="text-sm leading-relaxed text-slate-600">
+              Tell us the mission — passengers, distance, destination — and we&apos;ll match you
+              with the right aircraft from the fleet above.
+            </p>
+            <div>
+              <Button href="/request-charter" variant="blue" size="md">
+                Request a Charter
+              </Button>
+            </div>
+          </div>
+          <div className="relative h-56 w-full sm:h-auto sm:flex-1">
+            <Image
+              src="/images/aircraft/category.jpg"
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(min-width: 768px) 55vw, 100vw"
+            />
+          </div>
+        </div>
+      </Section>
+
       <CompareTray />
     </>
   );

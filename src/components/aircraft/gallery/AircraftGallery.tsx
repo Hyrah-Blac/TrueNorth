@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ImageOff, Maximize2 } from "lucide-react";
+import { ImageOff } from "lucide-react";
 import { Skeleton } from "@/components/shared/skeleton/Skeleton";
-import { GalleryLightbox } from "./GalleryLightbox";
 import type { IAircraftImage } from "@/types/aircraft";
 
 interface GalleryTab {
@@ -34,7 +33,6 @@ export function AircraftGallery({
 
   const [activeTab, setActiveTab] = useState<GalleryTab["key"]>(tabs[0]?.key ?? "exterior");
   const [activeImage, setActiveImage] = useState(0);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [loadedKeys, setLoadedKeys] = useState<Set<string>>(new Set());
 
   const currentTab = tabs.find((tab) => tab.key === activeTab);
@@ -71,7 +69,7 @@ export function AircraftGallery({
               src={image.url}
               alt={image.caption ?? `${aircraftName} photo`}
               fill
-              className="object-cover transition-transform duration-[1400ms] ease-editorial group-hover:scale-[1.03]"
+              className="object-cover"
               sizes="(min-width: 1024px) 60vw, 100vw"
               priority={index === 0}
               onLoad={() => markLoaded(image.publicId)}
@@ -81,19 +79,8 @@ export function AircraftGallery({
 
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy-950/30 via-transparent to-transparent" />
 
-        {currentImage ? (
-          <button
-            type="button"
-            onClick={() => setLightboxOpen(true)}
-            aria-label="View fullscreen gallery"
-            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-navy-900 opacity-0 backdrop-blur-sm transition-all duration-300 ease-editorial hover:bg-sky-500 hover:text-navy-950 group-hover:opacity-100"
-          >
-            <Maximize2 className="h-4 w-4" aria-hidden="true" />
-          </button>
-        ) : null}
-
         {currentTab && currentTab.images.length > 1 ? (
-          <p className="spec-readout absolute bottom-4 right-4 z-10 rounded-full bg-navy-950/60 px-3 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+          <p className="absolute bottom-4 right-4 z-10 rounded-full bg-navy-950/60 px-3 py-1 text-xs text-white/80 backdrop-blur-sm">
             {activeImage + 1} / {currentTab.images.length}
           </p>
         ) : null}
@@ -116,7 +103,7 @@ export function AircraftGallery({
               }`}
             >
               {tab.label}
-              <span className="spec-readout ml-1.5 text-[10px] opacity-60">{tab.images.length}</span>
+              <span className="ml-1.5 text-[10px] opacity-60">{tab.images.length}</span>
             </button>
           ))}
         </div>
@@ -141,16 +128,6 @@ export function AircraftGallery({
             </button>
           ))}
         </div>
-      ) : null}
-
-      {lightboxOpen && currentTab ? (
-        <GalleryLightbox
-          images={currentTab.images}
-          activeIndex={activeImage}
-          onIndexChange={setActiveImage}
-          onClose={() => setLightboxOpen(false)}
-          aircraftName={aircraftName}
-        />
       ) : null}
     </div>
   );

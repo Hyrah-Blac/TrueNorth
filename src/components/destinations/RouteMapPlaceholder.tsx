@@ -24,7 +24,7 @@ export function RouteMapPlaceholder() {
   return (
     <div className="relative aspect-[6/5] overflow-hidden rounded-xl border border-slate-200 bg-navy-950 p-6">
       <Image
-        src="/images/destinations/Nairobi.jpg"
+        src="/images/destinations/nairobi.jpg"
         alt=""
         fill
         className="object-cover opacity-30"

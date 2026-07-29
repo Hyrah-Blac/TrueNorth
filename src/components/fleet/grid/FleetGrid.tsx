@@ -21,15 +21,9 @@ export function FleetGrid({ items }: { items: IAircraft[] }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((aircraft, index) => (
-        <div
-          key={aircraft._id}
-          className="animate-fade-up-editorial"
-          style={{ animationDelay: `${Math.min(index, 8) * 70}ms` }}
-        >
-          <AircraftCard aircraft={aircraft} />
-        </div>
+        <AircraftCard key={aircraft._id} aircraft={aircraft} index={index} />
       ))}
     </div>
   );

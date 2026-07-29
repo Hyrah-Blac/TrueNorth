@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { cleanupExpiredQuotes } from "@/jobs/cleanup-expired-quotes";
 import { logger } from "@/lib/logging/logger";
+import { verifyCronSecret } from "@/lib/security/verifyCronSecret";
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization");
-
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!verifyCronSecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -14,11 +14,11 @@ export function CompareTray() {
 
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-40 animate-fade-up-editorial px-4 pb-4 sm:px-6 lg:px-10"
+      className="fixed inset-x-0 bottom-0 z-40 px-4 pb-4 sm:px-6 lg:px-10"
       role="region"
       aria-label="Aircraft comparison tray"
     >
-      <div className="mx-auto flex max-w-container flex-col gap-4 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-lifted backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-container flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 items-center gap-3 overflow-x-auto pb-1 sm:pb-0">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-900 text-white">
             <Scale className="h-4 w-4" aria-hidden="true" />
@@ -48,7 +48,7 @@ export function CompareTray() {
             {Array.from({ length: Math.max(0, MAX_COMPARE_ITEMS - items.length) }).map((_, index) => (
               <li
                 key={`empty-${index}`}
-                className="hidden h-14 w-20 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-200 text-[10px] uppercase tracking-wide text-slate-300 sm:flex"
+                className="hidden h-14 w-20 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-200 text-[10px] text-slate-300 sm:flex"
               >
                 Empty
               </li>
@@ -60,17 +60,15 @@ export function CompareTray() {
           <button
             type="button"
             onClick={clear}
-            className="text-xs font-medium uppercase tracking-wide text-slate-400 transition-colors hover:text-slate-600"
+            className="text-xs font-medium text-slate-400 transition-colors hover:text-slate-600"
           >
             Clear
           </button>
           <Link
             href={items.length >= 2 ? compareHref : "#"}
             aria-disabled={items.length < 2}
-            className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-500 bg-navy-900 px-6 py-3 text-xs font-medium uppercase tracking-[0.12em] text-white shadow-soft transition-all duration-500 ease-editorial ${
-              items.length >= 2
-                ? "hover:-translate-y-0.5 hover:bg-sky-500 hover:text-navy-950 hover:shadow-glow"
-                : "pointer-events-none opacity-40"
+            className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-500 bg-navy-900 px-6 py-3 text-sm font-medium text-white transition-colors duration-300 ${
+              items.length >= 2 ? "hover:bg-sky-500" : "pointer-events-none opacity-40"
             }`}
           >
             Compare {items.length > 1 ? `(${items.length})` : ""}

@@ -43,9 +43,7 @@ export function SpecificationsTable({ aircraft }: SpecificationsTableProps) {
     <div className="space-y-8">
       {groups.map((group) => (
         <div key={group.title}>
-          <p className="spec-readout mb-3 text-[11px] font-medium uppercase tracking-widest2 text-slate-400">
-            {group.title}
-          </p>
+          <p className="mb-3 text-xs font-medium uppercase tracking-wide text-slate-500">{group.title}</p>
           <dl className="overflow-hidden rounded-lg border border-slate-200">
             {group.rows.map((row, index) => (
               <div
@@ -61,7 +59,7 @@ export function SpecificationsTable({ aircraft }: SpecificationsTableProps) {
                   />
                   {row.label}
                 </dt>
-                <dd className="spec-readout text-sm font-medium text-navy-900">{row.value}</dd>
+                <dd className="text-sm font-medium text-navy-900">{row.value}</dd>
               </div>
             ))}
           </dl>

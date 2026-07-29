@@ -6,6 +6,7 @@ import Quote from "@/database/models/Quote";
 import { requireAdmin } from "@/middleware/admin";
 import { NotFoundError } from "@/lib/errors/AppError";
 import { ROLES } from "@/database/constants/roles";
+import { escapeRegExp } from "@/utils/validators";
 import type { IUser } from "@/types/user";
 import type { IBooking } from "@/types/booking";
 import type { IQuote } from "@/types/quote";
@@ -20,10 +21,14 @@ export async function getCustomersForAdmin(search?: string): Promise<IUser[]> {
 
   const filter: Record<string, unknown> = { role: ROLES.CUSTOMER };
   if (search) {
+    // Escaped before use — an unescaped search string here would let
+    // the admin search box double as a NoSQL ReDoS vector (a pattern
+    // like `(a+)+$` can hang the regex engine on every row scanned).
+    const pattern = escapeRegExp(search);
     filter.$or = [
-      { firstName: { $regex: search, $options: "i" } },
-      { lastName: { $regex: search, $options: "i" } },
-      { email: { $regex: search, $options: "i" } },
+      { firstName: { $regex: pattern, $options: "i" } },
+      { lastName: { $regex: pattern, $options: "i" } },
+      { email: { $regex: pattern, $options: "i" } },
     ];
   }
 

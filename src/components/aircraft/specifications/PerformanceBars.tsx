@@ -43,11 +43,11 @@ export function PerformanceBars({ rangeNm, cruisingSpeedKts }: PerformanceBarsPr
               <bar.icon className="h-4 w-4 text-sky-600" aria-hidden="true" />
               {bar.label}
             </div>
-            <span className="spec-readout text-sm font-semibold text-navy-900">{bar.value}</span>
+            <span className="text-sm font-semibold text-navy-900">{bar.value}</span>
           </div>
           <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full origin-left animate-fade-in-editorial rounded-full bg-gradient-to-r from-sky-600 via-sky-500 to-sky-400"
+              className="h-full origin-left rounded-full bg-gradient-to-r from-sky-600 via-sky-500 to-sky-400"
               style={{ width: `${bar.percent}%` }}
             />
           </div>

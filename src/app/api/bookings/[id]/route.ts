@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import connectToDatabase from "@/database/connection";
 import Booking from "@/database/models/Booking";
 import User from "@/database/models/User";
-import { requireAuth, resolveDbUserId } from "@/middleware/auth";
+import { requireAuth, resolveDbUserId, getCurrentUserOrThrow } from "@/middleware/auth";
 import { requireAdmin } from "@/middleware/admin";
 import { ROLES } from "@/database/constants/roles";
 import { successResponse, handleApiError } from "@/lib/api/response";
@@ -77,14 +77,17 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     // Customer path: verify ownership, then allow only modification
     // requests or a cancellation request (still admin-actioned).
-    const dbUser = await User.findOne({ clerkId: session.clerkId }).select("_id");
-    if (String(booking.customer) !== String(dbUser?._id)) {
+    // getCurrentUserOrThrow (not a bare User.findOne) so a deactivated
+    // account can't cancel/modify bookings either — same isActive gate
+    // as everywhere else this pattern appears.
+    const dbUser = await getCurrentUserOrThrow();
+    if (String(booking.customer) !== String(dbUser._id)) {
       throw new ForbiddenError("You do not have access to this booking");
     }
 
     if ("cancellationReason" in body) {
       const data = cancelBookingSchema.parse(body);
-      const updated = await cancelBooking(booking, data.cancellationReason, dbUser?._id);
+      const updated = await cancelBooking(booking, data.cancellationReason, dbUser._id);
       return successResponse(updated);
     }
 

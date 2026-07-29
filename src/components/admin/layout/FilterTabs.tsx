@@ -22,14 +22,16 @@ export function FilterTabs({ options }: { options: FilterTabOption[] }) {
           role="tab"
           aria-selected={option.active}
           className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-medium uppercase tracking-wide transition-all duration-300 ${
-            option.active ? "bg-sky-500 text-navy-950" : "bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]"
+            option.active
+              ? "bg-navy-900 text-white shadow-soft"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
           {option.label}
           {typeof option.count === "number" ? (
             <span
               className={`spec-readout rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
-                option.active ? "bg-navy-950/15 text-navy-950" : "bg-white/10 text-slate-300"
+                option.active ? "bg-white/15 text-white" : "bg-slate-200 text-slate-500"
               }`}
             >
               {option.count}

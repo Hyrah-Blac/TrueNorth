@@ -12,18 +12,18 @@ interface BaseProps {
   icon?: ReactNode;
 }
 
-// Primary: dark ground, gold hairline border, white text — fills gold on
-// hover. Secondary / outline-light: glass/white-text, for use over
-// photography or dark sections ONLY (white text is invisible on light
+// Primary: solid navy fill, white text — the main site CTA color, matching
+// the navy/sky palette used across the fleet components (filter pills,
+// compare tray, etc). Secondary / outline-light: glass/white-text, for use
+// over photography or dark sections ONLY (white text is invisible on light
 // backgrounds). Outline: the light-background equivalent of secondary —
 // dark text, a neutral border, for use on white/slate surfaces. Blue: a
-// flat, static CTA pill — solid blue, white text, no lift/shadow/color
-// shift on hover, just a quiet text fade. Used where the button needs to
-// stay visually still (e.g. sitting next to a photo) rather than "lift
-// off" like primary does.
+// flat, static CTA pill — solid blue, white text, no color shift on hover
+// besides a shade change. Used where the button needs to stay visually
+// still (e.g. sitting next to a photo) rather than "lift off" like
+// primary used to.
 const variantStyles: Record<ButtonVariant, string> = {
-  primary:
-    "border border-sky-500 bg-sky-500 text-navy-950 shadow-soft hover:bg-sky-600 hover:border-sky-600 hover:shadow-glow hover:-translate-y-0.5",
+  primary: "border border-blue-500 bg-blue-500 text-white transition-colors hover:bg-blue-700 hover:border-blue-700",
   secondary:
     "border border-glass-border bg-glass-surface text-white backdrop-blur-md hover:border-sky-400 hover:bg-white/[0.08] hover:-translate-y-0.5",
   outline:
@@ -39,7 +39,7 @@ const sizeStyles: Record<ButtonSize, string> = {
 };
 
 const baseClass =
-  "font-display inline-flex items-center justify-center gap-2 rounded-full font-medium uppercase tracking-[0.12em] transition-all duration-500 ease-editorial focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:opacity-50 disabled:pointer-events-none";
+  "font-display inline-flex items-center justify-center gap-2 rounded-full font-medium uppercase tracking-[0.12em] transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:opacity-50 disabled:pointer-events-none";
 
 export function Button({
   children,

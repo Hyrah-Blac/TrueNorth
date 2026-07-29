@@ -15,6 +15,7 @@ export interface UploadSignature {
   apiKey: string;
   cloudName: string;
   folder: string;
+  allowedFormats: string;
 }
 
 /**
@@ -23,8 +24,22 @@ export interface UploadSignature {
  * bytes through a Vercel serverless function, which has a request
  * body size limit well below what a full-resolution aircraft photo
  * can hit. Only the signature (not the file) touches our server.
+ *
+ * `allowedFormats` is included in the *signed* params (not just sent
+ * unsigned by the client), so Cloudinary itself rejects any file
+ * extension outside the list — a caller can't widen it by editing the
+ * upload request, since that would invalidate the signature. This
+ * matters most for /api/upload/documents, which is reachable without
+ * signing in: without a signed allow-list, anyone could use that
+ * signature to upload arbitrary file types/executables to our
+ * Cloudinary account.
+ *
+ * Cloudinary's per-request signed params don't include a file-size
+ * cap — that has to be set as a hard limit on the Cloudinary account
+ * or on an upload preset in the Cloudinary dashboard, since it can't
+ * be enforced purely from here.
  */
-export function createUploadSignature(folder: string): UploadSignature {
+function createUploadSignature(folder: string, allowedFormats: string[]): UploadSignature {
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -34,10 +49,24 @@ export function createUploadSignature(folder: string): UploadSignature {
   }
 
   const timestamp = Math.round(Date.now() / 1000);
+  const allowedFormatsStr = allowedFormats.join(",");
 
-  const signature = cloudinary.utils.api_sign_request({ folder, timestamp }, apiSecret);
+  const signature = cloudinary.utils.api_sign_request(
+    { folder, timestamp, allowed_formats: allowedFormatsStr },
+    apiSecret
+  );
 
-  return { signature, timestamp, apiKey, cloudName, folder };
+  return { signature, timestamp, apiKey, cloudName, folder, allowedFormats: allowedFormatsStr };
+}
+
+/** Admin-only: aircraft listing photos. Images only. */
+export function createAircraftImageUploadSignature(folder: string): UploadSignature {
+  return createUploadSignature(folder, ["jpg", "jpeg", "png", "webp"]);
+}
+
+/** Public: attachments on a charter quote request. Images or PDFs only. */
+export function createQuoteAttachmentUploadSignature(folder: string): UploadSignature {
+  return createUploadSignature(folder, ["jpg", "jpeg", "png", "pdf"]);
 }
 
 export async function deleteCloudinaryAsset(publicId: string, resourceType: "image" | "raw" = "image"): Promise<void> {

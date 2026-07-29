@@ -18,7 +18,7 @@ export const destinations: Destination[] = [
     category: "safari",
     description: "Kenya's most visited reserve, served by multiple bush airstrips across the conservancies.",
     flightTimeFromNairobi: "45 min",
-    image: "/images/destinations/Mara.jpg",
+    image: "/images/destinations/maasai-mara.jpg",
   },
   {
     slug: "amboseli",
@@ -28,7 +28,7 @@ export const destinations: Destination[] = [
     category: "safari",
     description: "Views of Kilimanjaro and reliable elephant sightings, a short hop from Nairobi.",
     flightTimeFromNairobi: "35 min",
-    image: "/images/destinations/Amboseli.jpg",
+    image: "/images/destinations/amboseli.jpg",
   },
   {
     slug: "diani",
@@ -38,7 +38,7 @@ export const destinations: Destination[] = [
     category: "coastal",
     description: "South coast beach access without the road transfer time from Mombasa.",
     flightTimeFromNairobi: "1 hr 10 min",
-    image: "/images/destinations/Diani.jpg",
+    image: "/images/destinations/diani.jpg",
   },
   {
     slug: "mount-kenya",
@@ -48,7 +48,7 @@ export const destinations: Destination[] = [
     category: "safari",
     description: "Highland lodges, forest conservancies, and Africa's second-highest peak, a short flight north of Nairobi.",
     flightTimeFromNairobi: "40 min",
-    image: "/images/destinations/Mt Kenya.jpg",
+    image: "/images/destinations/mt-kenya.jpg",
   },
   {
     slug: "lamu",
@@ -58,7 +58,7 @@ export const destinations: Destination[] = [
     category: "coastal",
     description: "Archipelago access to Lamu Old Town and the surrounding islands.",
     flightTimeFromNairobi: "1 hr 20 min",
-    image: "/images/destinations/Lamu.jpg",
+    image: "/images/destinations/lamu.jpg",
   },
   {
     slug: "lodwar",

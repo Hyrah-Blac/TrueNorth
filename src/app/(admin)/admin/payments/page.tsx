@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Receipt } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { AdminPaymentRow } from "@/components/admin/tables/AdminPaymentRow";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { FilterTabs } from "@/components/admin/layout/FilterTabs";
@@ -23,6 +24,13 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
 
   return (
     <div>
+      <PageHeader
+        variant="light"
+        eyebrow="Admin"
+        title="Payments"
+        description="Track deposits and balance payments across every booking."
+      />
+
       <FilterTabs
         options={[
           { label: "All", href: "/admin/payments", active: !status },

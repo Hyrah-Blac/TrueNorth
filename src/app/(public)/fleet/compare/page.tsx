@@ -71,7 +71,7 @@ function CompareContent() {
       <Container>
         <Link
           href="/fleet"
-          className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-sky-600"
+          className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-sky-600"
         >
           <ArrowLeft className="h-3.5 w-3.5" weight="thin" aria-hidden="true" />
           Back to fleet
@@ -81,12 +81,7 @@ function CompareContent() {
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy-900 text-white">
             <Scales className="h-4.5 w-4.5" weight="thin" aria-hidden="true" />
           </span>
-          <div>
-            <p className="spec-readout text-xs uppercase tracking-widest2 text-sky-600">Side by Side</p>
-            <h1 className="font-editorial text-4xl font-light tracking-tight text-navy-900 lg:text-5xl">
-              Compare aircraft
-            </h1>
-          </div>
+          <h1 className="font-display text-3xl font-semibold text-navy-900 lg:text-4xl">Compare aircraft</h1>
         </div>
 
         <div className="mt-10">
