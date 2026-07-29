@@ -57,7 +57,7 @@ export default async function FleetPage({ searchParams }: FleetPageProps) {
           { name: "Fleet", url: `${siteConfig.url}/fleet` },
         ])}
       />
-      <FleetHero totalAircraft={total} />
+      <FleetHero />
 
       <Section tone="white" className="!pt-12">
         <h2 className="sr-only">Available Aircraft</h2>
