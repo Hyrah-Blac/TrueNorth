@@ -13,12 +13,11 @@ export default async function PaymentsPage() {
 
   return (
     <div>
-      <PageHeader
-        eyebrow="Billing"
-        title="Payments"
-        description="Every payment made toward your bookings, with receipts where available."
-      />
-
+ <PageHeader
+  variant="light"
+  title="Payment History"
+  description="Every payment made toward your bookings, with receipts where available."
+/>
       {payments.length === 0 ? (
         <EmptyState
           icon={<Receipt className="h-5 w-5" aria-hidden="true" />}

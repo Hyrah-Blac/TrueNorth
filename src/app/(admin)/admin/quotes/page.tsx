@@ -24,12 +24,10 @@ export default async function AdminQuotesPage({ searchParams }: AdminQuotesPageP
 
   return (
     <div>
-      <PageHeader
-        variant="light"
-        eyebrow="Admin"
-        title="Quotes"
-        description="Review and respond to charter requests submitted from the public site."
-      />
+   <PageHeader
+  title="Quotes"
+  description="Review and respond to charter requests submitted from the public site."
+/>
 
       <FilterTabs
         options={[

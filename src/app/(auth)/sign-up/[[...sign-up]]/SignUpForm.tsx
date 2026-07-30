@@ -4,11 +4,20 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSignUp, useClerk } from "@clerk/nextjs";
 import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/layout/container/Container";
 import { Button } from "@/components/shared/buttons/Button";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 
 const RESEND_WAIT = 30; // seconds
+const OTP_LENGTH = 6;
+const VERIFIED_SUCCESS_DELAY = 400; // ms — brief "✓ Verified" beat before redirecting
+
+// Same background photo and logo as the sign-in screen, for visual parity
+// between the two auth pages. Swap either path if you want sign-up to use
+// a distinct asset.
+const BACKGROUND_IMAGE = "/images/aircraft/sign.jpg";
+const LOGO_IMAGE = "/logo/logo.png";
 
 // ── parse Clerk's non-enumerable error object ────────────────────────────────
 interface ClerkErrorDetail {
@@ -27,35 +36,34 @@ function parseClerkError(err: unknown): { code: string; message: string; longMes
   };
 }
 
-function friendlyError(code: string, message: string, longMessage: string): string {
-  if (code === "form_identifier_exists")
-    return "An account with this email already exists — try signing in instead.";
-  if (code === "form_password_pwned")
-    return "That password has appeared in a data breach. Please choose a different one.";
-  if (code === "form_password_length_too_short" || code === "form_password_not_strong_enough")
-    return "Please choose a stronger password (at least 8 characters).";
+// Generic, enumeration-safe error copy — mirrors the sign-in page's policy.
+// An existing account is treated the same way an unregistered email is
+// treated on sign-in: absorbed silently in handleSubmit rather than
+// surfaced here, so this page never confirms or denies that an email is
+// already registered. What's left are genuine input/rate-limit problems.
+function friendlyError(code: string, message: string): string {
   if (code === "too_many_requests") return "Too many attempts. Please wait and try again.";
   if (code.includes("captcha") || message.toLowerCase().includes("captcha"))
     return "Security check failed. Please refresh and try again.";
   if (code === "form_param_format_invalid" || message.toLowerCase().includes("email"))
     return "Please enter a valid email address.";
-  if (code === "form_code_incorrect") return "Incorrect code. Please try again.";
-  return longMessage || message || "Sign up failed. Please try again.";
+  return "Something went wrong. Please try again.";
+}
+
+// Masks an email for display (e.g. "jo••••••@gmail.com") — cosmetic only,
+// the underlying value used for Clerk calls is never altered.
+function maskEmail(value: string): string {
+  const atIndex = value.indexOf("@");
+  if (atIndex <= 0) return value;
+  const local = value.slice(0, atIndex);
+  const domain = value.slice(atIndex);
+  const visibleCount = Math.min(2, local.length);
+  const visible = local.slice(0, visibleCount);
+  const maskedLength = Math.max(local.length - visibleCount, 4);
+  return `${visible}${"•".repeat(maskedLength)}${domain}`;
 }
 
 // ── tiny inline icons (no extra dependency) ──────────────────────────────────
-function EyeIcon({ off }: { off: boolean }) {
-  return off ? (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-      <path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.5 5.3A10.4 10.4 0 0112 5c5 0 9 4 10.5 7-.6 1.2-1.5 2.5-2.7 3.6M6.2 6.6C4 8.1 2.4 10 1.5 12c1.5 3 5.5 7 10.5 7 1 0 2-.15 2.9-.42" />
-    </svg>
-  ) : (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-      <path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
 function AlertIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="mt-0.5 shrink-0">
@@ -71,9 +79,17 @@ function CheckIcon() {
     </svg>
   );
 }
+function MailIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="shrink-0">
+      <rect x="2.5" y="4.5" width="19" height="15" rx="2.5" />
+      <path d="M3 6l9 7 9-7" />
+    </svg>
+  );
+}
 function GoogleIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
@@ -90,14 +106,19 @@ export function SignUpForm() {
 
   const redirectedRef = useRef(false);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  // Ref-based locks so a second click that lands before React re-renders
+  // the disabled button still can't fire a duplicate submission.
+  const submitLockRef = useRef(false);
+  const verifyLockRef = useRef(false);
+  const resendLockRef = useRef(false);
+  const googleLockRef = useRef(false);
 
   const [stage, setStage] = useState<"form" | "verify">("form");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -105,6 +126,7 @@ export function SignUpForm() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [verifiedSuccess, setVerifiedSuccess] = useState(false);
 
   useEffect(() => () => { if (cooldownRef.current) clearInterval(cooldownRef.current); }, []);
 
@@ -114,6 +136,21 @@ export function SignUpForm() {
     redirectedRef.current = true;
     router.replace("/");
   }, [userLoaded, isSignedIn, router]);
+
+  // ── autofocus the OTP input the moment the verify screen mounts ─────────
+  useEffect(() => {
+    if (stage === "verify") {
+      otpRefs.current[0]?.focus();
+    }
+  }, [stage]);
+
+  // ── stop the resend timer the moment we're not on the verify screen ─────
+  useEffect(() => {
+    if (stage !== "verify" && cooldownRef.current) {
+      clearInterval(cooldownRef.current);
+      cooldownRef.current = null;
+    }
+  }, [stage]);
 
   const startCooldown = () => {
     setResendCooldown(RESEND_WAIT);
@@ -127,25 +164,26 @@ export function SignUpForm() {
   };
 
   // ── create account (form stage) ──────────────────────────────────────────
+  // Passwordless: signUp.create() takes name + email only, then
+  // prepareEmailAddressVerification sends the code.
+  //
+  // Enumeration safety mirrors the sign-in page: whether the email is
+  // already registered (Clerk would normally throw form_identifier_exists)
+  // or genuinely new, the UI ends up in the same place — the verify screen
+  // with the same generic copy. If the email already exists, no code goes
+  // out and any code entered on the next screen will simply fail with the
+  // same generic message a wrong code gets, never confirming the account
+  // was already there.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signUp) return;
+    if (!signUp || submitLockRef.current) return;
+    submitLockRef.current = true;
     setError("");
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (password.length < 8) {
-      setError("Please choose a password with at least 8 characters.");
-      return;
-    }
-
     setLoading(true);
     try {
+      const trimmedEmail = email.trim();
       const result = await signUp.create({
-        emailAddress: email,
-        password,
+        emailAddress: trimmedEmail,
         firstName,
         lastName,
       });
@@ -159,9 +197,17 @@ export function SignUpForm() {
       setStage("verify");
       startCooldown();
     } catch (err) {
-      const { code, message, longMessage } = parseClerkError(err);
-      setError(friendlyError(code, message, longMessage));
+      const { code, message } = parseClerkError(err);
+
+      if (code === "form_identifier_exists") {
+        // Same generic outcome as a brand-new signup — see note above.
+        setStage("verify");
+        startCooldown();
+      } else {
+        setError(friendlyError(code, message));
+      }
     } finally {
+      submitLockRef.current = false;
       setLoading(false);
     }
   };
@@ -169,28 +215,37 @@ export function SignUpForm() {
   // ── verify (OTP stage) ─────────────────────────────────────────────────────
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signUp) return;
+    if (!signUp || verifyLockRef.current) return;
+    verifyLockRef.current = true;
     setError("");
     setLoading(true);
     try {
       const result = await signUp.attemptEmailAddressVerification({ code });
 
       if (result.status === "complete") {
+        // Brief, deliberate success beat before the session goes active and
+        // the redirect effect fires.
+        setVerifiedSuccess(true);
+        await new Promise((resolve) => setTimeout(resolve, VERIFIED_SUCCESS_DELAY));
         await setActive({ session: result.createdSessionId });
       } else {
-        setError("Verification incomplete. Please try again.");
+        setError("That code didn't work. Please try again.");
       }
-    } catch (err) {
-      const { code, message, longMessage } = parseClerkError(err);
-      setError(friendlyError(code, message, longMessage));
+    } catch {
+      // Covers wrong code, expired code, and the case where no verification
+      // was ever sent (an email that already had an account) — one honest
+      // but non-revealing message for all of them.
+      setError("That code didn't work. Please try again.");
     } finally {
+      verifyLockRef.current = false;
       setLoading(false);
     }
   };
 
   // ── resend code ───────────────────────────────────────────────────────────
   const handleResend = async () => {
-    if (!signUp || resendLoading || resendCooldown > 0) return;
+    if (!signUp || resendLockRef.current || resendCooldown > 0) return;
+    resendLockRef.current = true;
     setResendLoading(true);
     setResendSuccess(false);
     setError("");
@@ -200,16 +255,22 @@ export function SignUpForm() {
       startCooldown();
       setTimeout(() => setResendSuccess(false), 4000);
     } catch (err) {
-      const { code, message, longMessage } = parseClerkError(err);
-      setError(friendlyError(code, message, longMessage));
+      const { code, message } = parseClerkError(err);
+      setError(friendlyError(code, message));
     } finally {
+      resendLockRef.current = false;
       setResendLoading(false);
     }
   };
 
   // ── google ────────────────────────────────────────────────────────────────
+  // Same account-linking note as sign-in: enable "Account linking by
+  // verified email" for Google in the Clerk Dashboard so someone who signs
+  // up here and later uses Google (or vice versa) with the same verified
+  // email lands in one account, not two.
   const handleGoogleSignUp = async () => {
-    if (!clerk.loaded || googleLoading) return;
+    if (!clerk.loaded || googleLockRef.current) return;
+    googleLockRef.current = true;
     setGoogleLoading(true);
 
     const appUrl =
@@ -217,7 +278,8 @@ export function SignUpForm() {
 
     const clerkSignUp = clerk.client?.signUp;
     if (!clerkSignUp) {
-      setError("Auth not ready. Please refresh the page and try again.");
+      setError("Something went wrong. Please refresh the page and try again.");
+      googleLockRef.current = false;
       setGoogleLoading(false);
       return;
     }
@@ -226,57 +288,160 @@ export function SignUpForm() {
       await clerkSignUp.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: `${appUrl}/sso-callback`,
-        // Land back on /sign-up (not the homepage directly) so this
-        // component's own isSignedIn effect is still mounted to run the
-        // redirect to home.
+        // Land back on /sign-up so this component's own isSignedIn effect
+        // is still mounted to run the redirect to home.
         redirectUrlComplete: `${appUrl}/sign-up`,
       });
-    } catch (err) {
-      const { message, longMessage } = parseClerkError(err);
-      setError(longMessage || message || "Google sign up failed. Please try again.");
+    } catch {
+      // Always release the button — a thrown redirect must never leave the
+      // UI stuck in a spinning state.
+      setError("Something went wrong. Please try again.");
+      googleLockRef.current = false;
       setGoogleLoading(false);
     }
+  };
+
+  // ── back to the form stage ────────────────────────────────────────────────
+  const handleBack = () => {
+    if (cooldownRef.current) {
+      clearInterval(cooldownRef.current);
+      cooldownRef.current = null;
+    }
+    setStage("form");
+    setError("");
+    setCode("");
+    setLoading(false);
+    setResendCooldown(0);
+    setResendSuccess(false);
+    setVerifiedSuccess(false);
+  };
+
+  // ── OTP box helpers ───────────────────────────────────────────────────────
+  const handleOtpChange = (index: number, rawValue: string) => {
+    const digitsOnly = rawValue.replace(/\D/g, "");
+
+    if (digitsOnly.length > 1) {
+      const combined = (code.slice(0, index) + digitsOnly).slice(0, OTP_LENGTH);
+      setCode(combined);
+      otpRefs.current[Math.min(combined.length, OTP_LENGTH - 1)]?.focus();
+      return;
+    }
+
+    const next = code.split("");
+    next[index] = digitsOnly;
+    setCode(next.join("").slice(0, OTP_LENGTH));
+
+    if (digitsOnly && index < OTP_LENGTH - 1) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
+    if (!pasted) return;
+    e.preventDefault();
+    setCode(pasted);
+    otpRefs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
   };
 
   if (!clerk.loaded) return null;
 
   if (isSignedIn) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 bg-navy-950">
-        <div className="h-9 w-9 animate-spin rounded-full border-2 border-white/15 border-t-sky-400" />
-        <p className="text-sm font-light text-white/50">Setting up your account…</p>
+      <div className="relative flex min-h-[60vh] flex-col items-center justify-center gap-5 overflow-hidden bg-navy-950">
+        <Image src={BACKGROUND_IMAGE} alt="" fill priority className="object-cover opacity-40" />
+        <div className="absolute inset-0 bg-navy-950/70" />
+        <div className="relative h-9 w-9 animate-spin rounded-full border-2 border-white/15 border-t-sky-400" />
+        <p className="relative text-sm font-light text-white/50">Setting up your account…</p>
       </div>
     );
   }
 
-  const labelClass = "mb-2 block text-[0.7rem] font-medium uppercase tracking-[0.15em] text-white/50";
+  const labelClass = "mb-2 block text-sm font-medium text-white/60";
   const inputClass =
-    "w-full rounded-lg border border-white/10 bg-navy-800/60 px-4 py-3 text-sm text-white placeholder-white/25 outline-none transition-colors duration-300 focus:border-sky-400 focus:bg-navy-800";
+    "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none backdrop-blur-sm transition-colors duration-300 focus:border-sky-400 focus:bg-white/10 focus:ring-2 focus:ring-sky-400/30";
+  const emailInputClass =
+    "w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-sm text-white placeholder-white/30 outline-none backdrop-blur-sm transition-colors duration-300 focus:border-sky-400 focus:bg-white/10 focus:ring-2 focus:ring-sky-400/30";
+  const otpBoxClass =
+    "h-12 w-10 rounded-lg border border-white/10 bg-white/5 text-center text-lg font-medium text-white outline-none backdrop-blur-sm transition-colors duration-300 focus:border-sky-400 focus:bg-white/10 focus:ring-2 focus:ring-sky-400/30 disabled:opacity-60 sm:h-14 sm:w-12 sm:text-xl";
   const errorBoxClass =
-    "mb-4 flex items-start gap-2 rounded-lg border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm leading-relaxed text-red-300";
+    "mb-4 flex items-start gap-2 rounded-lg border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm leading-relaxed text-red-200 backdrop-blur-sm";
+  // Fully opaque cover for the browser's autofill tint — see the sign-in
+  // page for why this needs to be fully opaque rather than semi-transparent.
+  const autofillFixClass =
+    "[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:[-webkit-box-shadow:inset_0_0_0px_1000px_rgb(15,15,20)] [&:-webkit-autofill]:[caret-color:white] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s]";
 
   return (
-    <div className="border-t border-navy-800 bg-navy-950 py-20 lg:py-28">
-      <Container className="flex flex-col items-center">
-        <p className="spec-readout mb-4 text-xs font-medium uppercase tracking-widest2 text-sky-400">
-          Client Portal
-        </p>
+    <div className="relative isolate flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12 sm:px-6 lg:py-20">
+      <Image
+        src={BACKGROUND_IMAGE}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="absolute inset-0 -z-20 scale-110 object-cover blur-[3px]"
+      />
+      <div className="absolute inset-0 -z-10 bg-black/50" />
 
-        <h1 className="font-editorial text-3xl font-light uppercase leading-tight tracking-[0.01em] text-white sm:text-4xl">
-          {stage === "form" ? "Create account" : "Check your email"}
-        </h1>
+      <Container className="flex w-full flex-col items-center">
+        <Link href="/" className="mb-8 inline-flex items-center sm:mb-10" aria-label="Go to homepage">
+          <Image
+            src={LOGO_IMAGE}
+            alt="True North Charters"
+            width={160}
+            height={40}
+            priority
+            className="h-8 w-auto sm:h-9"
+          />
+        </Link>
 
-        <div className="mt-6 h-px w-12 bg-white/20" />
+        <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-black/60 p-6 shadow-2xl shadow-black/60 backdrop-blur-xl sm:p-8 lg:p-10">
+          <div className="text-center">
+            <h1 className="font-display text-2xl font-semibold text-white sm:text-3xl">
+              {stage === "form" ? "Create Account" : "Verify Your Email"}
+            </h1>
+            <p className="mt-2 text-sm text-white/50">
+              {stage === "form" ? (
+                "Join True North Charters to request charters and track bookings"
+              ) : (
+                <>
+                  We sent a 6-digit code to{" "}
+                  <span className="font-medium text-white/80">{maskEmail(email.trim())}</span>
+                </>
+              )}
+            </p>
+          </div>
 
-        <p className="mt-6 max-w-sm text-center text-sm font-light leading-relaxed text-slate-300">
-          {stage === "form"
-            ? "Create a True North Charters account to request charters and track bookings."
-            : `We sent a verification code to ${email}`}
-        </p>
-
-        <div className="mt-10 w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-8 shadow-lifted sm:p-10">
           {stage === "form" && (
-            <form onSubmit={handleSubmit} noValidate>
+            <form onSubmit={handleSubmit} noValidate className="mt-6">
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleGoogleSignUp}
+                  disabled={googleLoading || loading}
+                  aria-label="Continue with Google"
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-colors duration-200 hover:bg-white/10 disabled:opacity-50"
+                >
+                  {googleLoading ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                  ) : (
+                    <GoogleIcon />
+                  )}
+                </button>
+              </div>
+
+              <div className="my-6 flex items-center gap-3">
+                <div className="h-px flex-1 bg-white/10" />
+                <span className="text-xs font-medium text-white/40">Or</span>
+                <div className="h-px flex-1 bg-white/10" />
+              </div>
+
               <div className="mb-5 grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="firstName" className={labelClass}>First name</label>
@@ -308,57 +473,21 @@ export function SignUpForm() {
 
               <div className="mb-5">
                 <label htmlFor="email" className={labelClass}>Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className={inputClass}
-                />
-              </div>
-
-              <div className="mb-5">
-                <label htmlFor="password" className={labelClass}>Password</label>
                 <div className="relative">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/40">
+                    <MailIcon />
+                  </span>
                   <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="new-password"
+                    id="email"
+                    type="email"
+                    autoComplete="email"
                     required
-                    minLength={8}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 8 characters"
-                    className={`${inputClass} pr-11`}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value.replace(/^\s+/, ""))}
+                    placeholder="name@example.com"
+                    className={`${emailInputClass} ${autofillFixClass}`}
                   />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center text-white/40 hover:text-white/70"
-                  >
-                    <EyeIcon off={showPassword} />
-                  </button>
                 </div>
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="confirmPassword" className={labelClass}>Confirm password</label>
-                <input
-                  id="confirmPassword"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="new-password"
-                  required
-                  minLength={8}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter your password"
-                  className={inputClass}
-                />
               </div>
 
               {error && (
@@ -370,61 +499,57 @@ export function SignUpForm() {
 
               <Button
                 type="submit"
-                variant="primary"
+                variant="blue"
                 size="lg"
                 disabled={loading || googleLoading}
-                className="w-full justify-center"
+                className="w-full justify-center !py-2.5 text-white"
               >
-                {loading ? "Creating account…" : "Create account"}
-              </Button>
-
-              <div className="my-7 flex items-center gap-3">
-                <div className="h-px flex-1 bg-white/10" />
-                <span className="text-[0.65rem] font-medium uppercase tracking-widest2 text-white/30">or</span>
-                <div className="h-px flex-1 bg-white/10" />
-              </div>
-
-              <Button
-                type="button"
-                variant="secondary"
-                size="lg"
-                disabled={googleLoading || loading}
-                onClick={handleGoogleSignUp}
-                icon={googleLoading ? undefined : <GoogleIcon />}
-                className="w-full justify-center gap-3"
-              >
-                {googleLoading ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                ) : (
-                  "Continue with Google"
-                )}
+                {loading ? "Creating account…" : "Create Account"}
               </Button>
 
               {/* Clerk's bot-protection widget mounts here automatically when
-                  Smart CAPTCHA is enabled for the instance — safe to leave
-                  even if it's off, Clerk simply renders nothing. */}
+                  Smart CAPTCHA is enabled for the instance. */}
               <div id="clerk-captcha" />
             </form>
           )}
 
           {stage === "verify" && (
-            <form onSubmit={handleVerify} noValidate>
-              <div className="mb-6">
-                <label htmlFor="code" className={labelClass}>Verification code</label>
-                <input
-                  id="code"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  required
-                  maxLength={6}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                  placeholder="123456"
-                  className={`${inputClass} text-center text-xl font-medium tracking-[0.4em]`}
-                />
+            <form onSubmit={handleVerify} noValidate className="mt-6">
+              <div aria-live="polite" className="sr-only">
+                {verifiedSuccess ? "Verification successful. Setting up your account." : ""}
+              </div>
 
-                <div className="mt-3 flex items-center justify-between gap-3">
+              <div className="mb-6">
+                <span className={`${labelClass} text-center`}>Verification code</span>
+                <div
+                  className="flex justify-center gap-2 sm:gap-3"
+                  role="group"
+                  aria-label="6-digit verification code"
+                >
+                  {Array.from({ length: OTP_LENGTH }).map((_, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => { otpRefs.current[i] = el; }}
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete={i === 0 ? "one-time-code" : "off"}
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      maxLength={1}
+                      required
+                      disabled={loading}
+                      value={code[i] ?? ""}
+                      onChange={(e) => handleOtpChange(i, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      onPaste={handleOtpPaste}
+                      aria-label={`Digit ${i + 1} of ${OTP_LENGTH}`}
+                      className={`${otpBoxClass} ${autofillFixClass}`}
+                    />
+                  ))}
+                </div>
+
+                <div className="mt-3 flex flex-col gap-2 xs:flex-row xs:items-center xs:justify-between">
                   <p className="text-xs font-light text-white/40">
                     Didn&apos;t receive it? Check your spam folder.
                   </p>
@@ -432,13 +557,19 @@ export function SignUpForm() {
                     type="button"
                     onClick={handleResend}
                     disabled={resendLoading || resendCooldown > 0}
-                    className={`whitespace-nowrap text-xs font-medium ${
+                    className={`whitespace-nowrap text-left text-xs font-medium xs:text-right ${
                       resendCooldown > 0 ? "text-white/30" : "text-sky-400 hover:text-sky-300"
                     }`}
                   >
                     {resendLoading ? "Sending…" : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
                   </button>
                 </div>
+
+                {resendCooldown > 0 && !resendSuccess && (
+                  <p className="mt-2 text-xs font-light text-white/30">
+                    You can request a new code once the timer finishes.
+                  </p>
+                )}
 
                 {resendSuccess && (
                  <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-green-400">
@@ -457,18 +588,28 @@ export function SignUpForm() {
 
               <Button
                 type="submit"
-                variant="primary"
+                variant="blue"
                 size="lg"
-                disabled={loading || code.length < 6}
-                className="w-full justify-center"
+                disabled={loading || code.length < OTP_LENGTH}
+                className="w-full justify-center !py-2.5"
               >
-                {loading ? "Verifying…" : "Verify email"}
+                {verifiedSuccess ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckIcon />
+                    Verified
+                  </span>
+                ) : loading ? (
+                  "Verifying…"
+                ) : (
+                  "Verify Email"
+                )}
               </Button>
 
               <button
                 type="button"
                 className="mt-3 w-full text-center text-xs font-medium uppercase tracking-[0.12em] text-white/40 hover:text-white/70"
-                onClick={() => { setStage("form"); setError(""); setCode(""); setResendCooldown(0); setResendSuccess(false); }}
+                onClick={handleBack}
+                disabled={loading}
               >
                 Back
               </button>
@@ -476,7 +617,7 @@ export function SignUpForm() {
           )}
         </div>
 
-        <p className="mt-6 text-center text-sm font-light text-slate-300">
+        <p className="mt-6 text-center text-sm font-light text-white/70">
           Already have an account?{" "}
           <Link href="/sign-in" className="font-medium text-sky-400 hover:text-sky-300">
             Sign in

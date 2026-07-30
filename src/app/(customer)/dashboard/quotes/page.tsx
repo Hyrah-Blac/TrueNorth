@@ -34,12 +34,11 @@ export default async function QuotesPage({ searchParams }: QuotesPageProps) {
 
   return (
     <div>
-      <PageHeader
-        eyebrow="Charter requests"
-        title="Quotes"
-        description="Track every charter request from submission to approval."
-      />
-
+   <PageHeader
+  variant="light"
+  title="Your Quotes"
+  description="Track every charter request from submission to approval."
+/>
       <StatusFilterTabs options={filterOptions} />
 
       <div className="mt-7">

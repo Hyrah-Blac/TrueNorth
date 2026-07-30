@@ -20,13 +20,10 @@ export default async function AdminCustomersPage({ searchParams }: AdminCustomer
 
   return (
     <div>
-      <PageHeader
-        variant="light"
-        eyebrow="Admin"
-        title="Customers"
-        description="Search and manage every account that has signed up on the site."
-      />
-
+    <PageHeader
+  title="Customers"
+  description="Search and manage every account that has signed up on the site."
+/>
       <ListToolbar count={customers.length} noun="customer">
         <CustomerSearchBox />
       </ListToolbar>

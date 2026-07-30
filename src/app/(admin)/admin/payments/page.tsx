@@ -24,12 +24,10 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
 
   return (
     <div>
-      <PageHeader
-        variant="light"
-        eyebrow="Admin"
-        title="Payments"
-        description="Track deposits and balance payments across every booking."
-      />
+    <PageHeader
+  title="Payments"
+  description="Track deposits and balance payments across every booking."
+/>
 
       <FilterTabs
         options={[

@@ -95,9 +95,17 @@ function CheckIcon() {
     </svg>
   );
 }
+function MailIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="shrink-0">
+      <rect x="2.5" y="4.5" width="19" height="15" rx="2.5" />
+      <path d="M3 6l9 7 9-7" />
+    </svg>
+  );
+}
 function GoogleIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
@@ -134,6 +142,10 @@ export function SignInForm() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [verifiedSuccess, setVerifiedSuccess] = useState(false);
+  // Purely cosmetic: drives the fade/scale transition when switching
+  // between the form and verify stages. Starts false on every stage change
+  // and flips true a frame later so the CSS transition actually animates.
+  const [stageEntered, setStageEntered] = useState(true);
 
   // clean up countdown on unmount
   useEffect(() => () => { if (cooldownRef.current) clearInterval(cooldownRef.current); }, []);
@@ -151,6 +163,13 @@ export function SignInForm() {
     if (stage === "verify") {
       otpRefs.current[0]?.focus();
     }
+  }, [stage]);
+
+  // ── fade/scale transition between stages ─────────────────────────────────
+  useEffect(() => {
+    setStageEntered(false);
+    const frame = requestAnimationFrame(() => setStageEntered(true));
+    return () => cancelAnimationFrame(frame);
   }, [stage]);
 
   // ── stop the resend timer the moment we're not on the verify screen ─────
@@ -401,13 +420,33 @@ export function SignInForm() {
     );
   }
 
-  const labelClass = "mb-2 block text-[0.7rem] font-medium uppercase tracking-[0.15em] text-white";
+  // Lighter, cleaner field labels — refined from the plain sentence-case
+  // caption for a touch more polish (smaller, lower-opacity, wide tracking).
+  const labelClass = "mb-2 block text-[13px] font-normal tracking-wide text-white/45";
+  // Depth comes from a soft inset shadow rather than raising the fill
+  // opacity, and focus uses a layered shadow (inset depth + soft outer
+  // glow) instead of a flat Tailwind ring, for a more refined feel.
   const inputClass =
-    "w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none backdrop-blur-sm transition-colors duration-300 focus:border-sky-400 focus:bg-white/10 focus:ring-2 focus:ring-sky-400/30";
+    "w-full rounded-xl border border-white/[0.08] bg-white/[0.05] py-3 pl-11 pr-4 text-sm text-white placeholder-white/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] outline-none backdrop-blur-sm transition-all duration-300 ease-out focus:border-sky-400/70 focus:bg-white/[0.07] focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25),0_0_0_3px_rgba(56,189,248,0.15)]";
   const otpBoxClass =
-    "h-12 w-10 rounded-lg border border-white/15 bg-white/5 text-center text-lg font-medium text-white outline-none backdrop-blur-sm transition-colors duration-300 focus:border-sky-400 focus:bg-white/10 focus:ring-2 focus:ring-sky-400/30 disabled:opacity-60 sm:h-14 sm:w-12 sm:text-xl";
+    "h-12 w-10 rounded-xl border border-white/[0.08] bg-white/[0.05] text-center text-lg font-medium text-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] outline-none backdrop-blur-sm transition-all duration-300 ease-out focus:scale-105 focus:border-sky-400/70 focus:bg-white/[0.07] focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25),0_0_0_3px_rgba(56,189,248,0.18)] disabled:opacity-60 disabled:hover:scale-100 sm:h-14 sm:w-12 sm:text-xl";
   const errorBoxClass =
-    "mb-4 flex items-start gap-2 rounded-lg border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm leading-relaxed text-red-200 backdrop-blur-sm";
+    "mb-4 flex items-start gap-2 rounded-xl border border-red-400/20 bg-red-400/[0.08] px-4 py-3 text-sm leading-relaxed text-red-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] backdrop-blur-sm";
+  // Fully opaque cover for the browser's built-in autofill tint (usually a
+  // yellow background/underline), plus the transition-delay trick as a
+  // second, belt-and-braces layer that stops the browser from ever
+  // painting the yellow in the first place.
+  const autofillFixClass =
+    "[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:[-webkit-box-shadow:inset_0_0_0px_1000px_rgb(15,15,20)] [&:-webkit-autofill]:[caret-color:white] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s]";
+  // Same blue accent as before (no new color), just layered depth: a soft
+  // colored shadow that lifts on hover, a light press-down on active, and
+  // smoother easing throughout instead of an instant color swap.
+  const primaryButtonClass =
+    "w-full justify-center !rounded-xl !py-2.5 text-white shadow-[0_4px_14px_-4px_rgba(56,189,248,0.3)] outline-none transition-all duration-300 ease-out hover:shadow-[0_6px_18px_-4px_rgba(56,189,248,0.4)] hover:brightness-105 focus-visible:!outline-none focus-visible:!ring-2 focus-visible:!ring-sky-300/50 focus-visible:!ring-offset-2 focus-visible:!ring-offset-black/60 active:scale-[0.98] active:brightness-95 disabled:opacity-60 disabled:hover:shadow-[0_4px_14px_-4px_rgba(56,189,248,0.3)] disabled:hover:brightness-100 disabled:active:scale-100";
+  // Fade/scale transition applied to whichever stage is currently mounted.
+  const stageTransitionClass = `transition-all duration-500 ease-out ${
+    stageEntered ? "translate-y-0 scale-100 opacity-100" : "translate-y-1 scale-[0.98] opacity-0"
+  }`;
 
   return (
     <div className="relative isolate flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12 sm:px-6 lg:py-20">
@@ -420,12 +459,24 @@ export function SignInForm() {
         fill
         priority
         sizes="100vw"
-        className="absolute inset-0 -z-20 scale-110 object-cover blur-[3px]"
+        className="absolute inset-0 -z-30 scale-110 object-cover blur-[3px]"
       />
+      {/* Cinematic vignette — darker at the edges, lighter at the center
+          where the card sits — instead of a flat overlay, for more depth
+          and separation between the card and the photo. */}
+      <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_center,rgba(8,10,14,0.4)_0%,rgba(5,6,9,0.78)_100%)]" />
+      {/* Soft ambient glow behind the card, using the same accent color
+          already in the palette, to lift the card off the background
+          without adding any new hues. */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-500/[0.08] blur-[110px]" />
 
       <Container className="flex w-full flex-col items-center">
         {/* Logo only — no site navbar on this page. */}
-        <Link href="/" className="mb-8 inline-flex items-center sm:mb-10" aria-label="Go to homepage">
+        <Link
+          href="/"
+          className="mb-8 inline-flex items-center transition-opacity duration-300 hover:opacity-80 sm:mb-10"
+          aria-label="Go to homepage"
+        >
           <Image
             src={LOGO_IMAGE}
             alt="True North Charters"
@@ -436,199 +487,207 @@ export function SignInForm() {
           />
         </Link>
 
-        <h1 className="text-center font-display text-3xl font-semibold leading-tight tracking-tight text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)] sm:text-4xl lg:text-5xl">
-          {stage === "form" ? "Welcome back" : "Verify your email"}
-        </h1>
-
-        <div className="mt-5 h-px w-12 bg-white/50 sm:mt-6" />
-
-        <p className="mt-5 max-w-sm text-center text-sm leading-relaxed text-white/90 drop-shadow-[0_1px_8px_rgba(0,0,0,0.6)] sm:mt-6 sm:text-base">
-          {stage === "form" ? (
-            "Sign in to manage your bookings, quotes, and account."
-          ) : (
-            <>
-              We sent a 6-digit verification code to
-              <br />
-              <span className="font-medium text-white">{maskEmail(email.trim())}</span>
-            </>
-          )}
-        </p>
-
-        {/* Glass card — transparent, blurred, and bordered so it sits on
-            top of the photo rather than hiding it. */}
-        <div className="mt-8 w-full max-w-md rounded-2xl border border-white/15 bg-white/[0.07] p-6 shadow-lifted backdrop-blur-xl sm:mt-10 sm:p-8 lg:p-10">
-          {stage === "form" && (
-            <form onSubmit={handleSubmit} noValidate>
-              <div className="mb-5">
-                <label htmlFor="email" className={labelClass}>Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value.replace(/^\s+/, ""))}
-                  placeholder="you@example.com"
-                  className={inputClass}
-                />
-              </div>
-
-              {error && (
-                <div className={errorBoxClass} role="alert">
-                  <AlertIcon />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                variant="blue"
-                size="lg"
-                disabled={loading || googleLoading}
-                className="w-full justify-center text-white"
-              >
-                {loading ? "Sending code…" : "Continue"}
-              </Button>
-
-              <div className="my-6 flex items-center gap-3 sm:my-7">
-                <div className="h-px flex-1 bg-white/10" />
-                <span className="text-[0.65rem] font-medium uppercase tracking-widest2 text-white/60">or</span>
-                <div className="h-px flex-1 bg-white/10" />
-              </div>
-
-              <Button
-                type="button"
-                variant="secondary"
-                size="lg"
-                disabled={googleLoading || loading}
-                onClick={handleGoogleSignIn}
-                icon={googleLoading ? undefined : <GoogleIcon />}
-                className="w-full justify-center gap-3 text-white"
-              >
-                {googleLoading ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+        {/* Gradient-border wrapper: a 1px ring of soft white gradient
+            (rather than a flat border) around the actual glass card, plus a
+            cleaner, wider-spread floating shadow instead of a heavy one. */}
+        <div className="w-full max-w-md rounded-[28px] bg-gradient-to-br from-white/25 via-white/[0.06] to-white/10 p-px shadow-[0_25px_70px_-20px_rgba(0,0,0,0.55)]">
+          <div className="relative overflow-hidden rounded-[27px] bg-black/55 p-6 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.07)] backdrop-blur-2xl backdrop-saturate-150 sm:p-8 lg:p-10">
+            <div className="text-center">
+              <h1 className="font-display text-[26px] font-semibold tracking-tight text-white sm:text-[32px]">
+                {stage === "form" ? "Hello Again" : "Verify Your Email"}
+              </h1>
+              <p className="mt-3 text-[13.5px] leading-relaxed text-white/45">
+                {stage === "form" ? (
+                  "Welcome back, you've been missed"
                 ) : (
-                  "Continue with Google"
+                  <>
+                    We sent a 6-digit code to{" "}
+                    <span className="font-medium text-white/80">{maskEmail(email.trim())}</span>
+                  </>
                 )}
-              </Button>
+              </p>
+            </div>
 
-              {/* Clerk's bot-protection widget mounts here automatically when
-                  Smart CAPTCHA is enabled for the instance — safe to leave
-                  even if it's off, Clerk simply renders nothing. */}
-              <div id="clerk-captcha" />
-            </form>
-          )}
-
-          {stage === "verify" && (
-            <form onSubmit={handleVerify} noValidate>
-              {/* Screen-reader-only announcement for the success transition —
-                  the visible cue lives in the submit button below. */}
-              <div aria-live="polite" className="sr-only">
-                {verifiedSuccess ? "Verification successful. Signing you in." : ""}
-              </div>
-
-              <div className="mb-6">
-                <span className={labelClass}>Verification code</span>
-                <div
-                  className="flex justify-center gap-2 sm:gap-3"
-                  role="group"
-                  aria-label="6-digit verification code"
-                >
-                  {Array.from({ length: OTP_LENGTH }).map((_, i) => (
-                    <input
-                      key={i}
-                      ref={(el) => { otpRefs.current[i] = el; }}
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete={i === 0 ? "one-time-code" : "off"}
-                      autoCorrect="off"
-                      autoCapitalize="none"
-                      spellCheck={false}
-                      maxLength={1}
-                      required
-                      disabled={loading}
-                      value={code[i] ?? ""}
-                      onChange={(e) => handleOtpChange(i, e.target.value)}
-                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                      onPaste={handleOtpPaste}
-                      aria-label={`Digit ${i + 1} of ${OTP_LENGTH}`}
-                      className={otpBoxClass}
-                    />
-                  ))}
-                </div>
-
-                <div className="mt-3 flex flex-col gap-2 xs:flex-row xs:items-center xs:justify-between">
-                  <p className="text-xs font-light text-white/40">
-                    Didn&apos;t receive it? Check your spam folder.
-                  </p>
+            {stage === "form" && (
+              <form onSubmit={handleSubmit} noValidate className={`mt-6 ${stageTransitionClass}`}>
+                {/* Google — icon only, matching the reference's circular
+                    provider button row. */}
+                <div className="flex justify-center">
                   <button
                     type="button"
-                    onClick={handleResend}
-                    disabled={resendLoading || resendCooldown > 0}
-                    className={`whitespace-nowrap text-left text-xs font-medium xs:text-right ${
-                      resendCooldown > 0 ? "text-white/30" : "text-sky-400 hover:text-sky-300"
-                    }`}
+                    onClick={handleGoogleSignIn}
+                    disabled={googleLoading || loading}
+                    aria-label="Continue with Google"
+                    className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.05] text-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] outline-none transition-all duration-300 ease-out hover:scale-105 hover:border-white/20 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-sky-400/30 disabled:opacity-50 disabled:hover:scale-100"
                   >
-                    {resendLoading ? "Sending…" : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                    {googleLoading ? (
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                    ) : (
+                      <GoogleIcon />
+                    )}
                   </button>
                 </div>
 
-                {resendCooldown > 0 && !resendSuccess && (
-                  <p className="mt-2 text-xs font-light text-white/30">
-                    You can request a new code once the timer finishes.
-                  </p>
-                )}
-
-                {resendSuccess && (
-                 <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-green-400">
-                    <CheckIcon />
-                    New code sent — check your inbox.
-                  </p>
-                )}
-              </div>
-
-              {error && (
-                <div className={errorBoxClass} role="alert">
-                  <AlertIcon />
-                  <span>{error}</span>
+                <div className="my-6 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-white/10" />
+                  <span className="text-xs font-medium text-white/35">Or</span>
+                  <div className="h-px flex-1 bg-white/10" />
                 </div>
-              )}
 
-              <Button
-                type="submit"
-                variant="blue"
-                size="lg"
-                disabled={loading || code.length < OTP_LENGTH}
-                className="w-full justify-center"
-              >
-                {verifiedSuccess ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <CheckIcon />
-                    Verified
-                  </span>
-                ) : loading ? (
-                  "Verifying…"
-                ) : (
-                  "Sign In"
+                <div className="mb-6">
+                  <label htmlFor="email" className={labelClass}>Email</label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/40">
+                      <MailIcon />
+                    </span>
+                    <input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value.replace(/^\s+/, ""))}
+                      placeholder="name@example.com"
+                      className={`${inputClass} ${autofillFixClass}`}
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className={errorBoxClass} role="alert">
+                    <AlertIcon />
+                    <span>{error}</span>
+                  </div>
                 )}
-              </Button>
 
-              <button
-                type="button"
-                className="mt-3 w-full text-center text-xs font-medium uppercase tracking-[0.12em] text-white/40 hover:text-white/70"
-                onClick={handleBack}
-                disabled={loading}
-              >
-                Back
-              </button>
-            </form>
-          )}
+                <Button
+                  type="submit"
+                  variant="blue"
+                  size="lg"
+                  disabled={loading || googleLoading}
+                  className={primaryButtonClass}
+                >
+                  {loading ? "Logging in…" : "Login"}
+                </Button>
+
+                {/* Clerk's bot-protection widget mounts here automatically when
+                    Smart CAPTCHA is enabled for the instance — safe to leave
+                    even if it's off, Clerk simply renders nothing. */}
+                <div id="clerk-captcha" />
+              </form>
+            )}
+
+            {stage === "verify" && (
+              <form onSubmit={handleVerify} noValidate className={`mt-6 ${stageTransitionClass}`}>
+                {/* Screen-reader-only announcement for the success transition —
+                    the visible cue lives in the submit button below. */}
+                <div aria-live="polite" className="sr-only">
+                  {verifiedSuccess ? "Verification successful. Signing you in." : ""}
+                </div>
+
+                <div className="mb-6">
+                  <span className={`${labelClass} text-center`}>Verification code</span>
+                  <div
+                    className="flex justify-center gap-2.5 sm:gap-3.5"
+                    role="group"
+                    aria-label="6-digit verification code"
+                  >
+                    {Array.from({ length: OTP_LENGTH }).map((_, i) => (
+                      <input
+                        key={i}
+                        ref={(el) => { otpRefs.current[i] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete={i === 0 ? "one-time-code" : "off"}
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        spellCheck={false}
+                        maxLength={1}
+                        required
+                        disabled={loading}
+                        value={code[i] ?? ""}
+                        onChange={(e) => handleOtpChange(i, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                        onPaste={handleOtpPaste}
+                        aria-label={`Digit ${i + 1} of ${OTP_LENGTH}`}
+                        className={`${otpBoxClass} ${autofillFixClass}`}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="mt-3 flex flex-col gap-2 xs:flex-row xs:items-center xs:justify-between">
+                    <p className="text-xs font-light text-white/40">
+                      Didn&apos;t receive it? Check your spam folder.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resendLoading || resendCooldown > 0}
+                      className={`whitespace-nowrap rounded text-left text-xs font-medium outline-none transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:ring-sky-400/40 xs:text-right ${
+                        resendCooldown > 0 ? "text-white/30" : "text-sky-400 hover:text-sky-300"
+                      }`}
+                    >
+                      {resendLoading ? "Sending…" : resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                    </button>
+                  </div>
+
+                  {resendCooldown > 0 && !resendSuccess && (
+                    <p className="mt-2 text-xs font-light text-white/30">
+                      You can request a new code once the timer finishes.
+                    </p>
+                  )}
+
+                  {resendSuccess && (
+                   <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-green-400">
+                      <CheckIcon />
+                      New code sent — check your inbox.
+                    </p>
+                  )}
+                </div>
+
+                {error && (
+                  <div className={errorBoxClass} role="alert">
+                    <AlertIcon />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="blue"
+                  size="lg"
+                  disabled={loading || code.length < OTP_LENGTH}
+                  className={primaryButtonClass}
+                >
+                  {verifiedSuccess ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <CheckIcon />
+                      Verified
+                    </span>
+                  ) : loading ? (
+                    "Verifying…"
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+
+                <button
+                  type="button"
+                  className="mt-3 w-full rounded text-center text-xs font-medium uppercase tracking-[0.12em] text-white/40 outline-none transition-colors duration-200 ease-out hover:text-white/70 focus-visible:ring-2 focus-visible:ring-sky-400/40"
+                  onClick={handleBack}
+                  disabled={loading}
+                >
+                  Back
+                </button>
+              </form>
+            )}
+          </div>
         </div>
 
-        <p className="mt-6 text-center text-sm font-light text-white/90 drop-shadow-[0_1px_8px_rgba(0,0,0,0.6)]">
+        <p className="mt-6 text-center text-sm font-light text-white/70">
           Don&apos;t have an account?{" "}
-          <Link href="/sign-up" className="font-medium text-sky-400 hover:text-sky-300">
-            Create one
+          <Link href="/sign-up" className="font-medium text-sky-400 transition-colors duration-200 hover:text-sky-300">
+            Sign Up
           </Link>
         </p>
       </Container>

@@ -12,7 +12,7 @@ export default async function AdminSettingsPage() {
 
   return (
     <div>
-      <PageHeader variant="light" eyebrow="Admin" title="Settings" />
+  <PageHeader title="Settings" />
 
       <div className="max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-soft">
         <p className="mb-7 text-sm text-slate-600">

@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import Image from "next/image";
-import { ImageOff, Check, Minus, ArrowRight } from "lucide-react";
+import { ImageOff, Check, Minus } from "lucide-react";
 import { AIRCRAFT_CATEGORY_LABELS } from "@/database/constants/aircraft";
 import { MISSION_TYPE_LABELS } from "@/database/constants/mission-type";
 import type { IAircraft } from "@/types/aircraft";
@@ -65,7 +65,12 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
             </div>
             <p className="mt-3 text-xs font-medium text-sky-600">{AIRCRAFT_CATEGORY_LABELS[item.category]}</p>
             <h3 className="mt-1 font-display text-lg font-semibold text-navy-900">{item.name}</h3>
-            <Button href={`/fleet/${item.slug}`} variant="outline" size="md" className="mt-3 w-full" icon={<ArrowRight className="h-3.5 w-3.5" />}>
+            <Button
+              href={`/fleet/${item.slug}`}
+              variant="outline"
+              size="md"
+              className="mt-3 w-full hover:!-translate-y-0 hover:!border-slate-300 hover:!text-navy-900"
+            >
               View
             </Button>
           </div>

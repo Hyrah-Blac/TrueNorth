@@ -24,7 +24,11 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div className="space-y-10">
-      <PageHeader eyebrow="Overview" title="Welcome back" description="Here's where things stand across your account." />
+    <PageHeader
+  variant="light"
+  title="Welcome Back"
+  description="Here's where things stand across your account."
+/>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <StatCard
@@ -53,10 +57,10 @@ export default async function DashboardOverviewPage() {
 
       <div>
         <div className="flex items-center justify-between">
-          <h2 className="font-editorial text-2xl font-light text-white">Recent bookings</h2>
+          <h2 className="font-editorial text-2xl font-light text-navy-900">Recent bookings</h2>
           <Link
             href="/dashboard/bookings"
-            className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-sky-400 transition-colors hover:text-sky-300"
+            className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-sky-600 transition-colors hover:text-sky-700"
           >
             View all <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -83,10 +87,10 @@ export default async function DashboardOverviewPage() {
 
       <div>
         <div className="flex items-center justify-between">
-          <h2 className="font-editorial text-2xl font-light text-white">Recent quotes</h2>
+          <h2 className="font-editorial text-2xl font-light text-navy-900">Recent quotes</h2>
           <Link
             href="/dashboard/quotes"
-            className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-sky-400 transition-colors hover:text-sky-300"
+            className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-sky-600 transition-colors hover:text-sky-700"
           >
             View all <ArrowRight className="h-3.5 w-3.5" />
           </Link>

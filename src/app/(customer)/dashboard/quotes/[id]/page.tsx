@@ -1,15 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  Calendar,
-  Users,
-  MapPin,
-  CaretLeft,
-  Airplane,
-  Paperclip,
-  Warning,
-} from "@phosphor-icons/react/dist/ssr";
+import { Calendar, Users, MapPin, Airplane, Paperclip, Warning } from "@phosphor-icons/react/dist/ssr";
+import { DetailHeader } from "@/components/admin/layout/DetailHeader";
 import { QuoteStatusBadge } from "@/components/quote/QuoteStatusBadge";
 import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { Button } from "@/components/shared/buttons/Button";
@@ -42,10 +34,6 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
     ? quote.aircraftPreference.name
     : undefined;
 
-  // Each of these is a boolean flag with an optional free-text detail field
-  // on the schema — collapse them into one list so the "Special
-  // requirements" card only renders the ones actually flagged, instead of
-  // five near-identical conditional blocks.
   const requirements = [
     { flagged: quote.hasMedicalEquipment, label: "Medical equipment", detail: quote.medicalEquipmentDetails },
     { flagged: quote.hasVipRequirements, label: "VIP requirements", detail: quote.vipRequirementsDetails },
@@ -58,53 +46,44 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
 
   return (
     <div>
-      <Link
-        href="/dashboard/quotes"
-        className="mb-5 inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-slate-400 transition-colors hover:text-white"
-      >
-        <CaretLeft className="h-3.5 w-3.5" aria-hidden="true" />
-        Back to quotes
-      </Link>
+      <DetailHeader
+        variant="light"
+        backHref="/dashboard/quotes"
+        backLabel="Quotes"
+        eyebrow={quote.quoteNumber}
+        title={`${quote.departureAirportCode} → ${quote.destinationAirportCode}`}
+        status={<QuoteStatusBadge status={quote.status} />}
+      />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr,1fr]">
         <div className="space-y-6">
-          <div className="glass-panel rounded-xl p-7">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="spec-readout text-sm text-slate-400">{quote.quoteNumber}</p>
-                <h2 className="mt-1 font-editorial text-2xl font-light text-white">
-                  {quote.departureAirportCode} → {quote.destinationAirportCode}
-                </h2>
-              </div>
-              <QuoteStatusBadge status={quote.status} />
-            </div>
-
-            <div className="mt-6 grid grid-cols-1 gap-4 border-t border-white/10 pt-6 sm:grid-cols-3">
-              <div className="flex items-center gap-2 text-sm text-slate-300">
-                <Calendar className="h-4 w-4 shrink-0 text-sky-400" aria-hidden="true" />
+          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <Calendar className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
                 {formatDate(quote.departureDate)}
                 {quote.isRoundTrip && quote.returnDate ? ` – ${formatDate(quote.returnDate)}` : null}
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-300">
-                <Users className="h-4 w-4 shrink-0 text-sky-400" aria-hidden="true" />
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <Users className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
                 {quote.passengerCount} passengers
               </div>
               {aircraftName ? (
-                <div className="flex items-center gap-2 text-sm text-slate-300">
-                  <MapPin className="h-4 w-4 shrink-0 text-sky-400" aria-hidden="true" />
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <MapPin className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
                   {aircraftName}
                 </div>
               ) : null}
-              <div className="flex items-center gap-2 text-sm text-slate-300">
-                <Airplane className="h-4 w-4 shrink-0 text-sky-400" aria-hidden="true" />
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <Airplane className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
                 {quote.missionType.replace(/_/g, " ")}
                 {quote.isRoundTrip ? " · Round trip" : " · One way"}
               </div>
             </div>
 
             {hasBudgetRange ? (
-              <div className="mt-6 border-t border-white/10 pt-6 text-sm text-slate-300">
-                <span className="font-medium text-white">Budget range: </span>
+              <div className="mt-6 border-t border-slate-100 pt-6 text-sm text-slate-600">
+                <span className="font-medium text-navy-900">Budget range: </span>
                 {quote.budgetRangeMin != null ? formatCurrency(quote.budgetRangeMin, quote.currency) : "—"}
                 {" – "}
                 {quote.budgetRangeMax != null ? formatCurrency(quote.budgetRangeMax, quote.currency) : "—"}
@@ -112,23 +91,23 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
             ) : null}
 
             {quote.specialRequests ? (
-              <div className="mt-6 rounded-md bg-white/5 p-4 text-sm text-slate-300">
-                <span className="font-medium text-white">Special requests: </span>
+              <div className="mt-6 rounded-md bg-slate-50 p-4 text-sm text-slate-600">
+                <span className="font-medium text-navy-900">Special requests: </span>
                 {quote.specialRequests}
               </div>
             ) : null}
           </div>
 
           {requirements.length > 0 ? (
-            <div className="glass-panel rounded-xl p-7">
-              <h3 className="font-display text-base font-semibold text-white">Special requirements</h3>
+            <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+              <h3 className="font-display text-base font-semibold text-navy-900">Special requirements</h3>
               <ul className="mt-5 space-y-4">
                 {requirements.map((item) => (
-                  <li key={item.label} className="flex gap-3 text-sm text-slate-300">
+                  <li key={item.label} className="flex gap-3 text-sm text-slate-600">
                     <Warning className="mt-0.5 h-4 w-4 shrink-0 text-gold-500" aria-hidden="true" />
                     <div>
-                      <span className="font-medium text-white">{item.label}</span>
-                      {item.detail ? <p className="mt-0.5 text-slate-400">{item.detail}</p> : null}
+                      <span className="font-medium text-navy-900">{item.label}</span>
+                      {item.detail ? <p className="mt-0.5 text-slate-500">{item.detail}</p> : null}
                     </div>
                   </li>
                 ))}
@@ -137,16 +116,16 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.attachments.length > 0 ? (
-            <div className="glass-panel rounded-xl p-7">
-              <h3 className="font-display text-base font-semibold text-white">Attachments</h3>
+            <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+              <h3 className="font-display text-base font-semibold text-navy-900">Attachments</h3>
               <ul className="mt-5 space-y-2.5">
                 {quote.attachments.map((attachment) => (
                   <li key={attachment.publicId}>
-                    <a
+                    
                       href={attachment.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-sky-400 transition-colors hover:text-sky-300"
+                      className="flex items-center gap-2 text-sm text-sky-600 transition-colors hover:text-sky-700"
                     >
                       <Paperclip className="h-4 w-4 shrink-0" aria-hidden="true" />
                       {attachment.fileName}
@@ -158,8 +137,8 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
         </div>
 
-        <aside className="glass-panel h-fit rounded-xl p-7 lg:sticky lg:top-8">
-          <h3 className="font-display text-base font-semibold text-white">Our response</h3>
+        <aside className="h-fit rounded-xl border border-slate-200 bg-white p-7 shadow-soft lg:sticky lg:top-28">
+          <h3 className="font-display text-base font-semibold text-navy-900">Our response</h3>
 
           {quote.status === QUOTE_STATUSES.PENDING || quote.status === QUOTE_STATUSES.REVIEWING ? (
             <div className="mt-4">
@@ -170,19 +149,19 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.status === QUOTE_STATUSES.APPROVED || quote.status === QUOTE_STATUSES.CONVERTED ? (
-            <dl className="mt-4 space-y-2.5 border-b border-white/10 pb-4 text-sm">
+            <dl className="mt-4 space-y-2.5 border-b border-slate-100 pb-4 text-sm">
               {quote.quotedAmount != null ? (
                 <div className="flex justify-between">
-                  <dt className="text-slate-400">Quoted amount</dt>
-                  <dd className="spec-readout font-semibold text-white">
+                  <dt className="text-slate-500">Quoted amount</dt>
+                  <dd className="spec-readout font-semibold text-navy-900">
                     {formatCurrency(quote.quotedAmount, quote.quotedCurrency ?? quote.currency)}
                   </dd>
                 </div>
               ) : null}
               {quote.validUntil ? (
                 <div className="flex justify-between">
-                  <dt className="text-slate-400">Valid until</dt>
-                  <dd className="spec-readout font-medium text-white">{formatDate(quote.validUntil)}</dd>
+                  <dt className="text-slate-500">Valid until</dt>
+                  <dd className="spec-readout font-medium text-navy-900">{formatDate(quote.validUntil)}</dd>
                 </div>
               ) : null}
             </dl>

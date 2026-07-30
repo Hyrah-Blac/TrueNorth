@@ -34,12 +34,11 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
 
   return (
     <div>
-      <PageHeader
-        eyebrow="Charter history"
-        title="Bookings"
-        description="Every confirmed charter, from first departure to final invoice."
-      />
-
+   <PageHeader
+  variant="light"
+  title="Your Bookings"
+  description="Every confirmed charter, from first departure to final invoice."
+/>
       <StatusFilterTabs options={filterOptions} />
 
       <div className="mt-7">

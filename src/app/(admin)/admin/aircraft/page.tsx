@@ -11,8 +11,6 @@ export default async function AdminAircraftPage() {
   return (
     <div>
       <PageHeader
-        variant="light"
-        eyebrow="Admin"
         title="Fleet Management"
         description="Add, edit, and retire the aircraft listed on the public site."
       />

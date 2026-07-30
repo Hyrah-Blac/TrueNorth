@@ -21,8 +21,8 @@ export function DashboardSidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-white/10 bg-navy-950">
-      <nav className="flex-1 space-y-1 p-5">
+    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-white/10 bg-black">
+      <nav className="flex-1 space-y-1 overflow-y-auto p-5">
         {items.map((item) => {
           const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
@@ -51,7 +51,8 @@ export function DashboardSidebar({
           );
         })}
       </nav>
-      {footer ? <div className="border-t border-white/10 p-5">{footer}</div> : null}
+
+      {footer ? <div className="shrink-0 border-t border-white/10 p-4">{footer}</div> : null}
     </aside>
   );
 }

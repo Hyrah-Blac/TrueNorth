@@ -31,22 +31,21 @@ export default async function AdminCustomerDetailPage({ params }: AdminCustomerD
 
   return (
     <div>
-      <DetailHeader
-        backHref="/admin/customers"
-        backLabel="Customers"
-        eyebrow="Customer"
-        title={`${user.firstName} ${user.lastName}`}
-        subtitle={`Joined ${formatDate(user.createdAt)}`}
-        status={
-          <span
-            className={`inline-flex rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide ${
-              user.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-            }`}
-          >
-            {user.isActive ? "Active" : "Deactivated"}
-          </span>
-        }
-      />
+    <DetailHeader
+  backHref="/admin/customers"
+  backLabel="Customers"
+  title={`${user.firstName} ${user.lastName}`}
+  subtitle={`Joined ${formatDate(user.createdAt)}`}
+  status={
+    <span
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide ${
+        user.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+      }`}
+    >
+      {user.isActive ? "Active" : "Deactivated"}
+    </span>
+  }
+/>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr,1.4fr]">
         <div className="space-y-6">

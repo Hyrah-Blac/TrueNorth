@@ -32,16 +32,17 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // ---------------------------------------------------------------------------
 // Navbar
 //
-// Completely transparent at the very top of every page — not just
-// home — then smoothly gains a solid white background once the page
-// scrolls (or the mobile menu opens). Nav link/logo colors flip from
-// white to dark navy at the same moment (see the `solid` prop threaded
-// through TopLink/NavbarLogo) so text stays legible against whichever
-// background is showing. Fixed positioning is used everywhere (not
-// just home) so the transparent state can actually overlay page
-// content instead of just sitting inline above it; pages need top
-// padding/margin equal to the bar's height (h-24) to avoid their
-// content being tucked underneath it. The transition is a plain
+// Transparent only at the very top of hero routes (see HERO_ROUTES below);
+// everywhere else it opens already solid, since those pages have no dark
+// hero for white text to sit on. It then gains a shadow/border once the
+// page scrolls (or the mobile menu opens), so it visually lifts off the
+// content beneath it. Nav link/logo colors flip from white to dark navy at
+// the same moment (see the `solid` prop threaded through TopLink/NavbarLogo)
+// so text stays legible against whichever background is showing. Fixed
+// positioning is used everywhere (not just home) so the transparent state
+// can actually overlay page content instead of just sitting inline above
+// it; pages need top padding/margin equal to the bar's height (h-24) to
+// avoid their content being tucked underneath it. The transition is a plain
 // background-color fade (see TRANSITION), not a layout shift — height
 // stays constant so nothing jumps.
 //
@@ -54,8 +55,16 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // this menu instead of a sidebar.
 // ---------------------------------------------------------------------------
 
+// Routes whose top section is a full-bleed dark/image hero — these are the
+// only pages where a transparent, white-text bar over that hero makes
+// sense. Every other route (contact, about, etc.) opens straight into a
+// white page background, so the bar needs to start solid there or its
+// white text and logo disappear against the page underneath it.
+const HERO_ROUTES = ["/"];
+
 export function Navbar({ phone }: { phone: string }) {
   const pathname = usePathname();
+  const isHeroRoute = HERO_ROUTES.includes(pathname);
 
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -114,7 +123,14 @@ export function Navbar({ phone }: { phone: string }) {
     };
   }, [menuOpen]);
 
-  const showSolid = scrolled || menuOpen;
+  // On hero routes, stay transparent until the page scrolls (or the menu
+  // opens). On every other route there's no hero to be transparent over,
+  // so the bar is solid from the first paint — it just won't show the
+  // scrolled elevation (border/shadow) until the page actually scrolls,
+  // which is what makes it read as merged with the page rather than a
+  // floating card sitting on top of it.
+  const showSolid = !isHeroRoute || scrolled || menuOpen;
+  const elevated = scrolled || menuOpen;
 
   // --- render ----------------------------------------------------------------
 
@@ -122,10 +138,10 @@ export function Navbar({ phone }: { phone: string }) {
     <header
       className={`fixed inset-x-0 top-0 z-50 w-full ${TRANSITION} ${
         hidden && !menuOpen ? "-translate-y-full" : "translate-y-0"
-      } ${
-        showSolid
-          ? "border-b border-slate-200 bg-white shadow-[0_8px_30px_-12px_rgba(0,0,0,0.15)]"
-          : "border-b border-transparent bg-transparent"
+      } ${showSolid ? "bg-white" : "bg-transparent"} ${
+        elevated
+          ? "border-b border-slate-200 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.15)]"
+          : "border-b border-transparent"
       }`}
     >
       <Container>

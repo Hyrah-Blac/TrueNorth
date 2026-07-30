@@ -24,12 +24,10 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
 
   return (
     <div>
-      <PageHeader
-        variant="light"
-        eyebrow="Admin"
-        title="Bookings"
-        description="Manage confirmed charters and track each one through to completion."
-      />
+     <PageHeader
+  title="Bookings"
+  description="Manage confirmed charters and track each one through to completion."
+/>
 
       <FilterTabs
         options={[
