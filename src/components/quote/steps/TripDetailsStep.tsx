@@ -17,7 +17,7 @@ export function TripDetailsStep({ register, errors, watch }: TripDetailsStepProp
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <FormField label="Passenger count" htmlFor="passengerCount" required error={errors.passengerCount?.message}>
         <TextInput
           id="passengerCount"
@@ -29,7 +29,7 @@ export function TripDetailsStep({ register, errors, watch }: TripDetailsStepProp
         />
       </FormField>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
         <FormField
           label="Departure airport"
           htmlFor="departureAirportCode"
@@ -77,7 +77,7 @@ export function TripDetailsStep({ register, errors, watch }: TripDetailsStepProp
         </FormField>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
         <FormField
           label="Departure date"
           htmlFor="departureDate"

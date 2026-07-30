@@ -14,19 +14,19 @@
   --color-navy-800: 26 36 51; /* #1a2433 */
   --color-navy-700: 37 48 68; /* #253044 */
 
-  /* Sky — the single accent role: champagne gold. sky-600/700 are the
-     "gold text on a light/white background" shades — measured well
-     above WCAG AA (4.5:1) against white; on dark backgrounds use
-     sky-400/300, which pass comfortably at their original, brighter
-     values (10.6:1+). */
-  --color-sky-700: 85 64 27; /* #55401b */
-  --color-sky-600: 107 84 35; /* #6b5423 */
-  --color-sky-500: 200 169 91; /* #c8a95b — Champagne Gold */
-  --color-sky-400: 217 196 137; /* #d9c489 */
-  --color-sky-300: 226 205 160; /* #e2cda0 */
-  --color-sky-200: 236 223 192; /* #ecdfc0 */
-  --color-sky-100: 245 237 218; /* #f5edda */
-  --color-sky-50: 250 246 236; /* #faf6ec */
+  /* Sky — the single accent role: was champagne gold, now Sapphire Blue.
+     sky-600/700 are the "blue text on a light/white background" shades —
+     measured well above WCAG AA (4.5:1) against white; on dark
+     backgrounds use sky-400/300, which pass comfortably at their
+     original, brighter values. */
+  --color-sky-700: 20 40 92; /* #16285c */
+  --color-sky-600: 30 58 128; /* #1e3a80 — AA on white */
+  --color-sky-500: 43 91 191; /* #2b5bbf — Sapphire Blue */
+  --color-sky-400: 108 148 227; /* #6c94e3 — AA on navy-950 */
+  --color-sky-300: 150 178 235; /* #96b2eb */
+  --color-sky-200: 189 205 241; /* #bdcdf1 */
+  --color-sky-100: 219 229 247; /* #dbe5f7 */
+  --color-sky-50: 237 242 251; /* #edf2fb */
 
   /* Slate / gray — neutral text and light-mode surfaces.
      slate-400 stays a light gray (6.86:1 against navy-950) for muted text
@@ -44,20 +44,21 @@
   --color-slate-100: 241 240 237; /* #f1f0ed */
   --color-slate-50: 250 249 246; /* #faf9f6 — warm off-white, never pure white */
 
-  /* Gold — same champagne family, for hairline rings, dividers, small
-     premium badges. Same AA fix as sky-600: darkened for use as
-     text/icon color on light badge backgrounds. */
-  --color-gold-600: 107 84 35; /* #6b5423 */
-  --color-gold-500: 200 169 91; /* #c8a95b */
-  --color-gold-200: 236 224 196; /* #ece0c4 */
+  /* Gold — was the same champagne family as sky, for hairline rings,
+     dividers, small premium badges. Now the same sapphire blue family,
+     same AA fix as sky-600: darkened for use as text/icon color on
+     light badge backgrounds. */
+  --color-gold-600: 30 58 128; /* #1e3a80 */
+  --color-gold-500: 43 91 191; /* #2b5bbf */
+  --color-gold-200: 200 217 245; /* #c8d9f5 */
 
-  /* Blue — a genuine, separate blue accent (distinct from "sky," which
-     despite its name renders champagne gold). A rich sapphire/cobalt,
-     not Tailwind's stock saturated blue, so it still feels like it
-     belongs next to navy and gold rather than looking like a generic
+  /* Blue — the same sapphire accent as sky/gold above (kept as its own
+     token since components may reference it directly). A rich
+     sapphire/cobalt, not Tailwind's stock saturated blue, so it still
+     feels intentional next to navy rather than looking like a generic
      Bootstrap-blue button. 700/600 are the "on light background" AA-safe
      text/border shades; 400 is the "on dark background" AA-safe shade,
-     same convention as the green/red ramps above.  */
+     same convention as the green/red ramps below. */
   --color-blue-700: 22 40 92; /* #16285c */
   --color-blue-600: 30 58 128; /* #1e3a80 — AA on white */
   --color-blue-500: 43 91 191; /* #2b5bbf — Sapphire Blue */
@@ -66,12 +67,11 @@
   --color-white: 248 248 246; /* #f8f8f6 — off-white, never pure #ffffff */
 
   /* Success / danger — muted forest green and brick red, tuned to sit
-     next to champagne gold and navy instead of Tailwind's stock
-     saturated green/red, which clash with the rest of this palette.
-     400 shades are the "on dark background" variant (SignIn/SignUp form
-     validation on the navy gradient); 600 is the "on light background"
-     variant (StatusBadge pills, light-surface alerts), same convention
-     as sky-400 vs sky-600 above. */
+     next to the sapphire accent and navy instead of Tailwind's stock
+     saturated green/red. 400 shades are the "on dark background" variant
+     (SignIn/SignUp form validation on the navy gradient); 600 is the
+     "on light background" variant (StatusBadge pills, light-surface
+     alerts), same convention as sky-400 vs sky-600 above. */
   --color-green-700: 47 79 53; /* #2f4f35 */
   --color-green-600: 60 100 66; /* #3c6442 — AA on white */
   --color-green-500: 74 122 82; /* #4a7a52 */
@@ -92,13 +92,20 @@
      color/opacity system), so no triplet conversion needed here. */
   --color-glass-border: rgba(255, 255, 255, 0.08);
   --color-glass-surface: rgba(255, 255, 255, 0.04);
-
+/* Champagne — editorial accent reserved for heading highlight words
+     (e.g. "RANGE" in hero headings). Kept separate from sky/gold/blue,
+     which are now the sapphire UI accent, so headings can stay gold
+     without affecting buttons, links, or focus states. */
+  --color-champagne-400: 217 196 137; /* #d9c489 — on dark backgrounds */
+  --color-champagne-500: 200 169 91;  /* #c8a95b — Champagne Gold */
+  --color-champagne-600: 107 84 35;   /* #6b5423 — on light backgrounds */
   /* Elevation — shadows tuned to a near-black-navy ground, softer and
-     more diffuse than a typical UI shadow. */
+     more diffuse than a typical UI shadow. Glow now keyed to the
+     sapphire accent instead of champagne gold. */
   --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.08), 0 12px 32px -10px rgba(0, 0, 0, 0.25);
   --shadow-lifted: 0 6px 12px rgba(0, 0, 0, 0.12), 0 32px 64px -16px rgba(0, 0, 0, 0.4);
   --shadow-crisp: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 10px -4px rgba(0, 0, 0, 0.18);
-  --shadow-glow: 0 0 0 1px rgba(200, 169, 91, 0.25), 0 12px 32px -8px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 0 1px rgba(43, 91, 191, 0.25), 0 12px 32px -8px rgba(0, 0, 0, 0.45);
 
   /* Radii — restrained, never pill-shaped. Elegant rectangles with a
      subtle softening rather than fully rounded corners. */

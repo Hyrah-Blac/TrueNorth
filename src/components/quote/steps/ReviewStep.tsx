@@ -47,27 +47,27 @@ export function ReviewStep({
 
   return (
     <div>
-      <p className="text-sm text-slate-600">
+      <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">
         Review your charter request before submitting. Our operations team will follow up with
         aircraft recommendations and pricing.
       </p>
 
-      <dl className="mt-6 overflow-hidden rounded-xl border border-slate-200">
+      <dl className="mt-5 overflow-hidden rounded-xl border border-slate-200 sm:mt-6">
         {rows.map((row, index) => (
           <div
             key={row.label}
-            className={`flex flex-col gap-1 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between ${
+            className={`flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-3.5 ${
               index % 2 === 1 ? "bg-slate-50" : "bg-white"
             }`}
           >
-            <dt className="text-sm text-slate-500">{row.label}</dt>
-            <dd className="spec-readout text-sm font-medium text-navy-900 sm:text-right">{row.value}</dd>
+            <dt className="text-xs text-slate-500 sm:text-sm">{row.label}</dt>
+            <dd className="spec-readout text-xs font-medium text-navy-900 sm:text-right sm:text-sm">{row.value}</dd>
           </div>
         ))}
       </dl>
 
       {values.specialRequests ? (
-        <div className="mt-4 rounded-md bg-slate-50 p-4 text-sm text-slate-600">
+        <div className="mt-4 rounded-md bg-slate-50 p-3.5 text-xs leading-relaxed text-slate-600 sm:p-4 sm:text-sm">
           <span className="font-medium text-navy-900">Notes: </span>
           {values.specialRequests}
         </div>

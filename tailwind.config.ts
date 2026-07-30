@@ -23,6 +23,12 @@ const config: Config = {
           800: withOpacity("--color-navy-800"),
           700: withOpacity("--color-navy-700"),
         },
+      
+      champagne: {
+          600: withOpacity("--color-champagne-600"),
+          500: withOpacity("--color-champagne-500"),
+          400: withOpacity("--color-champagne-400"),
+        },
         sky: {
           700: withOpacity("--color-sky-700"),
           600: withOpacity("--color-sky-600"),
@@ -78,6 +84,7 @@ const config: Config = {
           100: withOpacity("--color-red-100"),
           50: withOpacity("--color-red-50"),
         },
+        
         // Repointed so `text-white` / `bg-white` / `border-white` resolve to
         // an off-white, never pure #fff — alpha modifiers (bg-white/95,
         // text-white/90) now work correctly via the withOpacity() pattern.

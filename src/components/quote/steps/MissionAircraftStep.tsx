@@ -20,7 +20,7 @@ interface MissionAircraftStepProps {
 
 export function MissionAircraftStep({ register, errors, aircraftOptions }: MissionAircraftStepProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <FormField label="Mission type" htmlFor="missionType" required error={errors.missionType?.message}>
         <Select id="missionType" hasError={Boolean(errors.missionType)} defaultValue="" {...register("missionType")}>
           <option value="" disabled>
@@ -56,7 +56,7 @@ export function MissionAircraftStep({ register, errors, aircraftOptions }: Missi
         </Select>
       </FormField>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
         <FormField
           label="Budget minimum (KES)"
           htmlFor="budgetRangeMin"

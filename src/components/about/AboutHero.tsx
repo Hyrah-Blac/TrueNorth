@@ -29,7 +29,7 @@ export function AboutHero() {
           <h1 className="font-editorial text-[clamp(2.25rem,1.6rem+2.6vw,4rem)] font-light uppercase leading-[1.1] tracking-[0.005em] text-white">
             Built around the mission,
             <br />
-            not just the <span className="text-sky-400">aircraft</span>
+            not just the <span className="text-champagne-400">aircraft</span>
           </h1>
 
           <div className="mx-auto mt-8 h-px w-12 bg-white/20" />

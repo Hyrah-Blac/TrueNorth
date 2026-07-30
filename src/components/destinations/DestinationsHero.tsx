@@ -29,7 +29,7 @@ export function DestinationsHero() {
           <h1 className="font-editorial text-[clamp(2.25rem,1.6rem+2.6vw,4rem)] font-light uppercase leading-[1.1] tracking-[0.005em] text-white">
             Domestic reach,
             <br />
-            regional <span className="text-sky-400">range</span>
+            regional <span className="text-champagne-400">range</span>
           </h1>
 
           <div className="mx-auto mt-8 h-px w-12 bg-white/20" />

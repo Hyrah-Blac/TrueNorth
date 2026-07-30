@@ -70,10 +70,10 @@ export function Hero() {
             True North Charters
           </p>
 
-          <h1 className="font-editorial text-[clamp(2.5rem,1.7rem+3vw,4.75rem)] font-light uppercase leading-[1.1] tracking-[0.005em] text-white">
+         <h1 className="font-editorial text-[clamp(2.5rem,1.7rem+3vw,4.75rem)] font-light uppercase leading-[1.1] tracking-[0.005em] text-white">
             Adventure,
             <br />
-            above &amp; <span className="text-sky-400">beyond</span>
+            above &amp; <span className="text-champagne-400">beyond</span>
           </h1>
 
           <div className="mx-auto mt-8 h-px w-12 bg-white/20" />

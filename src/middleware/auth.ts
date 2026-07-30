@@ -124,12 +124,27 @@ async function syncUserFromClerk(clerkId: string): Promise<UserDocument> {
  * but it removes the biggest source of same-request collisions.
  */
 export const getCurrentDbUser = cache(async (): Promise<UserDocument | null> => {
-  const { userId } = await auth();
+  const { userId, sessionClaims } = await auth();
   if (!userId) return null;
 
   await connectToDatabase();
   const existing = await User.findOne({ clerkId: userId });
-  if (existing) return existing;
+
+  if (existing) {
+    // Clerk's session claim is the real source of truth for access
+    // control — requireAdmin() reads it, not this field. If someone was
+    // promoted to admin directly in the Clerk Dashboard rather than
+    // through the in-app "Grant Admin Access" action (which updates
+    // both), this document's role can drift out of sync: they pass every
+    // admin check yet still show up in /admin/customers as a customer.
+    // Reconcile on every read so that gap can't persist past this call.
+    const sessionRole = getRoleFromSessionClaims(sessionClaims);
+    if (existing.role !== sessionRole) {
+      existing.role = sessionRole;
+      await existing.save();
+    }
+    return existing;
+  }
 
   try {
     return await syncUserFromClerk(userId);

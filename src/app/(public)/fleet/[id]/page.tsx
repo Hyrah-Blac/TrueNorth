@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ArrowRight, CalendarCheck } from "lucide-react";
+import { CalendarCheck } from "lucide-react";
 import { Section } from "@/components/layout/section/Section";
 import { Container } from "@/components/layout/container/Container";
 import { Button } from "@/components/shared/buttons/Button";
@@ -18,7 +18,6 @@ import { getAircraftByIdOrSlug, getRelatedAircraft } from "@/features/aircraft/l
 import { AIRCRAFT_CATEGORY_LABELS } from "@/database/constants/aircraft";
 import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
 import { siteConfig } from "@/lib/config/site";
-
 export const revalidate = 300;
 
 interface AircraftDetailPageProps {
@@ -127,15 +126,14 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
             </div>
 
             <div className="mt-6 space-y-4">
-              <Button
-                href={`/request-charter?aircraft=${aircraft.slug}`}
-                variant="primary"
-                size="lg"
-                className="w-full"
-                icon={<ArrowRight className="h-4 w-4" />}
-              >
-                Request Charter
-              </Button>
+           <Button
+  href={`/request-charter?aircraft=${aircraft.slug}`}
+  variant="primary"
+  size="md"
+  className="w-full"
+>
+  Request Charter
+</Button>
               <CompareButton
                 slug={aircraft.slug}
                 name={aircraft.name}

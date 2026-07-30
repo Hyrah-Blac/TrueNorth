@@ -119,7 +119,7 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="mt-12 rounded-xl border border-slate-200 p-8 shadow-soft sm:p-10"
+        className="mt-8 rounded-xl border border-slate-200 p-5 shadow-soft sm:mt-10 sm:p-8 lg:p-10"
       >
         <div key={step} className="animate-fade-up-editorial">
           {step === 1 ? <TripDetailsStep register={register} errors={errors} watch={watch} /> : null}
@@ -139,7 +139,7 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
           </p>
         ) : null}
 
-        <div className="mt-10 flex items-center justify-between border-t border-slate-100 pt-8">
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-6 sm:mt-10 sm:pt-8">
           <Button
             type="button"
             variant="ghost"
@@ -151,7 +151,7 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
           </Button>
 
           {step < STEPS.length ? (
-            <Button type="button" variant="primary" onClick={goNext} icon={<ArrowRight className="h-4 w-4" />}>
+            <Button type="button" variant="primary" onClick={goNext}>
               Continue
             </Button>
           ) : (

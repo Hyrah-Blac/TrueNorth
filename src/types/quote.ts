@@ -9,6 +9,21 @@ export interface IQuoteContactInfo {
   company?: string;
 }
 
+export interface IQuoteReviewer {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export interface IQuoteCustomer {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+}
+
 export interface IQuoteAttachment {
   url: string;
   publicId: string;
@@ -19,7 +34,7 @@ export interface IQuoteAttachment {
 export interface IQuote {
   _id: string;
   quoteNumber: string;
-  customer?: string;
+  customer?: string | IQuoteCustomer;
   contactInfo: IQuoteContactInfo;
 
   passengerCount: number;
@@ -55,6 +70,8 @@ export interface IQuote {
   quotedCurrency?: string;
   validUntil?: string;
   rejectionReason?: string;
+  reviewedBy?: string | IQuoteReviewer;
+  reviewedAt?: string;
   convertedBooking?: string;
 
   createdAt: string;

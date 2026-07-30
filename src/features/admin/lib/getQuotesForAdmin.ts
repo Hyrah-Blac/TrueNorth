@@ -31,7 +31,8 @@ export async function getQuoteForAdmin(quoteId: string): Promise<IQuote> {
 
   const quote = await Quote.findById(quoteId)
     .populate("aircraftPreference")
-    .populate("customer", "firstName lastName email phone");
+    .populate("customer", "firstName lastName email phone")
+    .populate("reviewedBy", "firstName lastName email");
 
   if (!quote) throw new NotFoundError("Quote not found");
 

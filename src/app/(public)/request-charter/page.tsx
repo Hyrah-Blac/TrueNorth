@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Section } from "@/components/layout/section/Section";
+import { Container } from "@/components/layout/container/Container";
 import { CharterRequestForm } from "@/components/quote/CharterRequestForm";
 import { getAircraftOptions, getAircraftByIdOrSlug } from "@/features/aircraft/lib/getAircraft";
 import type { CreateQuoteInput } from "@/features/quote/schemas/quote.schema";
@@ -35,22 +36,24 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
 
   return (
     <>
-      <div className="border-b border-slate-200 bg-slate-50 py-20 lg:py-28">
-        <div className="mx-auto max-w-container px-6 lg:px-10">
-          <p className="spec-readout mb-4 text-xs font-medium uppercase tracking-widest2 text-sky-600">
-            Charter Request
-          </p>
-          <h1 className="font-editorial max-w-2xl text-5xl font-light italic tracking-tight text-navy-900 lg:text-6xl">
+      <div className="relative overflow-hidden bg-slate-50 py-14 sm:py-20 lg:py-28">
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_0%,rgba(15,42,67,0.05),transparent)]"
+          aria-hidden="true"
+        />
+
+        <Container className="relative">
+          <h1 className="font-editorial max-w-2xl text-[1.75rem] font-light leading-[1.15] tracking-tight text-navy-900 sm:text-4xl lg:text-5xl">
             {prefillAircraft ? `Request the ${prefillAircraft.name}` : "Tell us about your mission"}
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-600">
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600 sm:mt-5 sm:text-base">
             Fill in your route, dates, and requirements. Our operations team typically responds
             with aircraft recommendations and pricing within a few hours.
           </p>
-        </div>
+        </Container>
       </div>
 
-      <Section tone="white" className="!pt-12">
+      <Section tone="white" className="!pt-8 sm:!pt-12">
         <div className="mx-auto max-w-2xl">
           <CharterRequestForm aircraftOptions={aircraftOptions} defaultValues={defaultValues} />
         </div>
