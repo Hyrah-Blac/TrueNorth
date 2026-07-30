@@ -122,7 +122,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
                 {quote.attachments.map((attachment) => (
                   <li key={attachment.publicId}>
                     
-                      href={attachment.url}
+                     <a href={attachment.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-sm text-sky-600 transition-colors hover:text-sky-700"
