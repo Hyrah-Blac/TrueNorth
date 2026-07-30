@@ -3,11 +3,28 @@ import connectToDatabase from "@/database/connection";
 import Quote from "@/database/models/Quote";
 import { requireAdmin } from "@/middleware/admin";
 import { NotFoundError } from "@/lib/errors/AppError";
+import { getSignedAttachmentUrl } from "@/lib/api/cloudinary";
 import type { IQuote } from "@/types/quote";
 import type { QuoteStatus } from "@/database/constants/quote-status";
 
 function serialize<T>(doc: unknown): T {
   return JSON.parse(JSON.stringify(doc)) as T;
+}
+
+/**
+ * Mints a fresh signed Cloudinary URL for each attachment. Must only be
+ * called after the caller's admin/ownership check has already passed —
+ * this function performs no authorization of its own, it just produces
+ * short-lived URLs for whoever already has the right to see them.
+ */
+function withSignedAttachments(quote: IQuote): IQuote {
+  return {
+    ...quote,
+    attachments: quote.attachments.map((attachment) => ({
+      ...attachment,
+      viewUrl: getSignedAttachmentUrl(attachment.publicId, attachment.resourceType),
+    })),
+  };
 }
 
 export async function getQuotesForAdmin(status?: QuoteStatus): Promise<IQuote[]> {
@@ -36,5 +53,5 @@ export async function getQuoteForAdmin(quoteId: string): Promise<IQuote> {
 
   if (!quote) throw new NotFoundError("Quote not found");
 
-  return serialize<IQuote>(quote);
+  return withSignedAttachments(serialize<IQuote>(quote));
 }

@@ -151,7 +151,7 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
               {quote.attachments.map((file) => (
                 <a
                   key={file.publicId}
-                  href={file.url}
+                  href={file.viewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 text-sm text-slate-600 transition-colors duration-300 hover:border-sky-300 hover:bg-sky-50/40 hover:text-sky-700"

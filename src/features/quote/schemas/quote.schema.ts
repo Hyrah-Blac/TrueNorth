@@ -20,8 +20,8 @@ const phoneField = z
   .pipe(z.string().regex(GENERAL_PHONE_REGEX, "Enter a valid phone number"));
 
 const attachmentSchema = z.object({
-  url: z.string().url(),
   publicId: z.string().min(1),
+  resourceType: z.enum(["image", "raw"]),
   fileName: z.string().min(1),
   fileType: z.string().min(1),
 });

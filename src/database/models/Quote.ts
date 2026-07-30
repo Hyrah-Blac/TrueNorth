@@ -5,8 +5,11 @@ import { softDeletePlugin, type SoftDeleteFields, type SoftDeleteMethods } from 
 import { getNextSequence } from "./Counter";
 
 export interface QuoteAttachment {
-  url: string;
   publicId: string;
+  // Cloudinary resource type the file was stored under ("image" for
+  // jpg/png/pdf, "raw" for other allowed formats). Needed to mint a
+  // signed viewing URL later — see getSignedAttachmentUrl.
+  resourceType: "image" | "raw";
   fileName: string;
   fileType: string;
 }
@@ -90,8 +93,8 @@ const QuoteContactInfoSchema = new Schema<QuoteContactInfo>(
 
 const QuoteAttachmentSchema = new Schema<QuoteAttachment>(
   {
-    url: { type: String, required: true, trim: true },
     publicId: { type: String, required: true, trim: true },
+    resourceType: { type: String, enum: ["image", "raw"], required: true, default: "image" },
     fileName: { type: String, required: true, trim: true },
     fileType: { type: String, required: true, trim: true },
   },

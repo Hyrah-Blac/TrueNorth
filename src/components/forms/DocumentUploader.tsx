@@ -6,8 +6,8 @@ import { uploadToCloudinary, type UploadSignatureResponse } from "@/lib/api/clou
 import { formatFileSize } from "@/utils/format";
 
 export interface UploadedAttachment {
-  url: string;
   publicId: string;
+  resourceType: "image" | "raw";
   fileName: string;
   fileType: string;
 }
@@ -67,8 +67,11 @@ export function DocumentUploader({ attachments, onChange, maxFiles = 10 }: Docum
         onChange([
           ...attachments,
           {
-            url: result.secure_url,
             publicId: result.public_id,
+            // result.resource_type is "image" or "raw" depending on what
+            // Cloudinary auto-detected; not "video", so this cast is safe
+            // given the allowed_formats we sign (jpg/jpeg/png/pdf).
+            resourceType: result.resource_type as "image" | "raw",
             fileName: file.name,
             fileType: file.type || result.format,
           },

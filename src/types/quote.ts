@@ -25,10 +25,13 @@ export interface IQuoteCustomer {
 }
 
 export interface IQuoteAttachment {
-  url: string;
   publicId: string;
+  resourceType: "image" | "raw";
   fileName: string;
   fileType: string;
+  // Signed, short-lived Cloudinary URL generated server-side at
+  // request time (see getSignedAttachmentUrl). Never persisted.
+  viewUrl: string;
 }
 
 export interface IQuote {

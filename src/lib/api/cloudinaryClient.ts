@@ -13,6 +13,7 @@ export interface UploadSignatureResponse {
   cloudName: string;
   folder: string;
   allowedFormats: string;
+  type: "upload" | "authenticated";
 }
 
 /**
@@ -20,12 +21,17 @@ export interface UploadSignatureResponse {
  * pre-signed payload. Reports progress via onProgress (0-100) using
  * XMLHttpRequest, since fetch() has no built-in upload progress event.
  *
- * allowed_formats must be sent here exactly as the server signed it —
- * it's part of the signed parameter set, so Cloudinary recomputes the
- * signature over whatever this request actually sends and rejects the
- * upload if it doesn't match. That's what makes the allow-list
+ * allowed_formats and type must be sent here exactly as the server
+ * signed them — they're part of the signed parameter set, so
+ * Cloudinary recomputes the signature over whatever this request
+ * actually sends and rejects the upload if it doesn't match. That's
+ * what makes the allow-list (and the authenticated delivery type)
  * tamper-proof: this isn't a client-side check being trusted, it's
- * reproducing a value the server already committed to.
+ * reproducing values the server already committed to.
+ *
+ * type=authenticated means the uploaded asset is not publicly
+ * fetchable by URL — viewing it later requires a freshly-signed URL
+ * generated server-side (see getSignedAttachmentUrl in cloudinary.ts).
  */
 export function uploadToCloudinary(
   file: File,
@@ -40,6 +46,7 @@ export function uploadToCloudinary(
     formData.append("signature", signatureData.signature);
     formData.append("folder", signatureData.folder);
     formData.append("allowed_formats", signatureData.allowedFormats);
+    formData.append("type", signatureData.type);
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/auto/upload`);

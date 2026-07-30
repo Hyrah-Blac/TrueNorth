@@ -16,6 +16,7 @@ export interface UploadSignature {
   cloudName: string;
   folder: string;
   allowedFormats: string;
+  type: "upload" | "authenticated";
 }
 
 /**
@@ -38,8 +39,21 @@ export interface UploadSignature {
  * cap — that has to be set as a hard limit on the Cloudinary account
  * or on an upload preset in the Cloudinary dashboard, since it can't
  * be enforced purely from here.
+ *
+ * `type` is also part of the signed params. Aircraft photos stay
+ * `"upload"` (public — they're meant to be shown on the public fleet
+ * pages). Quote attachments use `"authenticated"`, so delivery
+ * requires a signed URL (see getSignedAttachmentUrl below). This
+ * keeps attachments private without depending on the account-wide
+ * "Allow delivery of PDF and ZIP files" security setting, which would
+ * otherwise make every PDF/ZIP in the whole Cloudinary account
+ * publicly fetchable — not just quote attachments.
  */
-function createUploadSignature(folder: string, allowedFormats: string[]): UploadSignature {
+function createUploadSignature(
+  folder: string,
+  allowedFormats: string[],
+  type: "upload" | "authenticated" = "upload"
+): UploadSignature {
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -52,21 +66,58 @@ function createUploadSignature(folder: string, allowedFormats: string[]): Upload
   const allowedFormatsStr = allowedFormats.join(",");
 
   const signature = cloudinary.utils.api_sign_request(
-    { folder, timestamp, allowed_formats: allowedFormatsStr },
+    { folder, timestamp, allowed_formats: allowedFormatsStr, type },
     apiSecret
   );
 
-  return { signature, timestamp, apiKey, cloudName, folder, allowedFormats: allowedFormatsStr };
+  return {
+    signature,
+    timestamp,
+    apiKey,
+    cloudName,
+    folder,
+    allowedFormats: allowedFormatsStr,
+    type,
+  };
 }
 
-/** Admin-only: aircraft listing photos. Images only. */
+/** Admin-only: aircraft listing photos. Images only. Publicly deliverable
+ *  by design — these are shown on the public fleet pages. */
 export function createAircraftImageUploadSignature(folder: string): UploadSignature {
   return createUploadSignature(folder, ["jpg", "jpeg", "png", "webp"]);
 }
 
-/** Public: attachments on a charter quote request. Images or PDFs only. */
+/** Public: attachments on a charter quote request. Images or PDFs only.
+ *  Uploaded as `authenticated` — never publicly deliverable by URL. */
 export function createQuoteAttachmentUploadSignature(folder: string): UploadSignature {
-  return createUploadSignature(folder, ["jpg", "jpeg", "png", "pdf"]);
+  return createUploadSignature(folder, ["jpg", "jpeg", "png", "pdf"], "authenticated");
+}
+
+/**
+ * Mints a short-lived signed URL for viewing an `authenticated`-type
+ * attachment (e.g. a quote's uploaded PDF/image).
+ *
+ * IMPORTANT: only call this after the caller has already passed an
+ * auth/ownership check for the underlying resource (requireAdmin(),
+ * a quote-ownership check, etc.). This function itself does no
+ * authorization — it just produces a URL that expires, it doesn't
+ * decide who's allowed to have that URL. Never store the returned
+ * URL; generate it fresh on every render/request instead, since it
+ * expires.
+ */
+export function getSignedAttachmentUrl(
+  publicId: string,
+  resourceType: "image" | "raw" = "image",
+  expiresInSeconds = 300
+): string {
+  // format "" means "use whatever format the asset was stored as" — the
+  // type signature requires a string here even though Cloudinary treats
+  // an empty one as unspecified.
+  return cloudinary.utils.private_download_url(publicId, "", {
+    resource_type: resourceType,
+    type: "authenticated",
+    expires_at: Math.floor(Date.now() / 1000) + expiresInSeconds,
+  });
 }
 
 export async function deleteCloudinaryAsset(publicId: string, resourceType: "image" | "raw" = "image"): Promise<void> {
