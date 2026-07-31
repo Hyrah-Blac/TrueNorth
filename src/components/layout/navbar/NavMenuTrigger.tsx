@@ -21,14 +21,14 @@ export function NavMenuTrigger({
   return (
     <button
       type="button"
-      className={`flex h-9 w-9 items-center justify-center transition-colors duration-300 ${
-        solid ? "text-blue-500 hover:text-blue-700" : "text-[#F7F6F2]/90 hover:text-[#4EA8DE]"
+      className={`flex h-10 w-10 items-center justify-center transition-colors duration-300 ${
+        solid ? "text-navy-900 hover:text-blue-600" : "text-white hover:text-[#6EC5F2]"
       }`}
       onClick={onToggle}
       aria-label={open ? "Close menu" : "Open menu"}
       aria-expanded={open}
     >
-      {open ? <X className="h-5 w-5" weight="thin" /> : <List className="h-5 w-5" weight="thin" />}
+      {open ? <X className="h-6 w-6" weight="regular" /> : <List className="h-6 w-6" weight="regular" />}
     </button>
   );
 }

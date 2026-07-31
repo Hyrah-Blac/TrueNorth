@@ -88,7 +88,7 @@ function CompassMark() {
   return (
     <svg
       viewBox="0 0 240 240"
-      className="pointer-events-none absolute -right-10 -top-6 h-56 w-56 text-navy-900/[0.06] sm:h-64 sm:w-64 lg:-right-16 lg:-top-10 lg:h-72 lg:w-72"
+      className="pointer-events-none absolute -right-10 -top-6 hidden h-56 w-56 text-navy-900/[0.06] sm:block sm:h-64 sm:w-64 lg:-right-16 lg:-top-10 lg:h-72 lg:w-72"
       aria-hidden="true"
     >
       <circle cx="120" cy="120" r="118" fill="none" stroke="currentColor" strokeWidth="1" />
@@ -120,24 +120,21 @@ export default async function ContactPage() {
         }
       `}</style>
 
-      <Container className="relative py-20 lg:py-32">
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-12 lg:gap-x-20">
+      <Container className="relative pb-16 pt-32 sm:pb-20 sm:pt-36 lg:pb-32 lg:pt-40">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-x-20">
           {/* Left — editorial hero */}
           <div className="contact-fade relative lg:col-span-5">
             <CompassMark />
-            <h1 className="font-display relative max-w-md text-3xl font-extrabold uppercase leading-[1.1] tracking-tight text-navy-900 lg:text-4xl">
+            <h1 className="font-display relative max-w-md text-2xl font-extrabold uppercase leading-[1.15] tracking-tight text-navy-900 sm:text-3xl lg:text-4xl">
               Speak With Our Charter Team
             </h1>
-            <p className="relative mt-5 max-w-sm text-xs leading-relaxed text-slate-600 sm:text-sm">
+            <p className="relative mt-4 max-w-sm text-xs leading-relaxed text-slate-600 sm:mt-5 sm:text-sm">
               Our concierge is available around the clock to arrange your
               flight, answer fleet questions, or handle any request directly —
               no forms, no waiting for a callback.
             </p>
 
-            <div
-              className="contact-fade relative mt-14 hidden lg:block"
-              style={{ animationDelay: "0.25s" }}
-            >
+            <div className="contact-fade relative mt-10 lg:mt-14" style={{ animationDelay: "0.25s" }}>
               <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-400">
                 Office
               </p>
@@ -198,17 +195,6 @@ export default async function ContactPage() {
             >
               {settings.email}
             </ContactRow>
-
-            {/* Office / Hours repeat here, visible only below the lg
-                breakpoint where the hero-column version is hidden. */}
-            <div className="lg:hidden">
-              <ContactRow label="Office">
-                <span className="block">{settings.addressLine1}</span>
-                {settings.addressLine2 ? <span className="block">{settings.addressLine2}</span> : null}
-                <span className="block">{settings.city}</span>
-              </ContactRow>
-              <ContactRow label="Operating Hours">{settings.operatingHours}</ContactRow>
-            </div>
           </div>
         </div>
       </Container>

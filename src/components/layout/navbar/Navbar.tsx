@@ -60,7 +60,7 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // sense. Every other route (contact, about, etc.) opens straight into a
 // white page background, so the bar needs to start solid there or its
 // white text and logo disappear against the page underneath it.
-const HERO_ROUTES = ["/"];
+const HERO_ROUTES = ["/", "/fleet", "/destinations", "/about"];
 
 export function Navbar({ phone }: { phone: string }) {
   const pathname = usePathname();
@@ -238,9 +238,9 @@ function NavbarLogo({
 }
 
 // ---------------------------------------------------------------------------
-// Shared top-level nav link: small tracked caps. Hover only brightens the
-// text to a glowing blue — no underline sweep on hover. The hairline
-// yellow underline is reserved solely for marking the current page.
+// Shared top-level nav link: small tracked caps. Hover brightens the text
+// to a glowing blue; the active page is marked by color alone (no
+// underline).
 // ---------------------------------------------------------------------------
 
 function TopLink({
@@ -273,12 +273,6 @@ function TopLink({
       {...rest}
     >
       {children}
-      <span
-        aria-hidden="true"
-        className={`pointer-events-none absolute -bottom-2 left-0 h-px bg-[#F0C24B] transition-all duration-300 ease-out ${
-          active ? "w-full opacity-100" : "w-0 opacity-0"
-        }`}
-      />
     </Link>
   );
 }

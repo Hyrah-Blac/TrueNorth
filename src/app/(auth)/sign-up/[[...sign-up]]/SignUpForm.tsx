@@ -376,20 +376,30 @@ export function SignUpForm() {
   // Lighter, cleaner field labels — refined from the plain sentence-case
   // caption for a touch more polish (smaller, lower-opacity, wide tracking).
   const labelClass = "mb-2 block text-[13px] font-normal tracking-wide text-white/45";
+  // Depth comes from a soft inset shadow rather than raising the fill
+  // opacity, and focus uses an inset depth shadow instead of a flat
+  // Tailwind ring, for a more refined feel. Focus border uses the real
+  // "blue" token — the "sky" token in this palette is champagne gold, not
+  // blue — and opts out of the site-wide gold :focus-visible outline.
   const inputClass =
-    "w-full rounded-xl border border-white/[0.08] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder-white/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] outline-none backdrop-blur-sm transition-all duration-300 ease-out focus:border-sky-400/70 focus:bg-white/[0.07] focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25),0_0_0_3px_rgba(56,189,248,0.15)]";
+    "w-full rounded-xl border border-white/[0.08] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder-white/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] outline-none focus-visible:outline-none backdrop-blur-sm transition-all duration-300 ease-out focus:border-blue-400/70 focus:bg-white/[0.07] focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]";
   const emailInputClass =
-    "w-full rounded-xl border border-white/[0.08] bg-white/[0.05] py-3 pl-11 pr-4 text-sm text-white placeholder-white/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] outline-none backdrop-blur-sm transition-all duration-300 ease-out focus:border-sky-400/70 focus:bg-white/[0.07] focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25),0_0_0_3px_rgba(56,189,248,0.15)]";
+    "w-full rounded-xl border border-white/[0.08] bg-white/[0.05] py-3 pl-11 pr-4 text-sm text-white placeholder-white/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] outline-none focus-visible:outline-none backdrop-blur-sm transition-all duration-300 ease-out focus:border-blue-400/70 focus:bg-white/[0.07] focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]";
   const otpBoxClass =
-    "h-12 w-10 rounded-xl border border-white/[0.08] bg-white/[0.05] text-center text-lg font-medium text-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] outline-none backdrop-blur-sm transition-all duration-300 ease-out focus:scale-105 focus:border-sky-400/70 focus:bg-white/[0.07] focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25),0_0_0_3px_rgba(56,189,248,0.18)] disabled:opacity-60 disabled:hover:scale-100 sm:h-14 sm:w-12 sm:text-xl";
+    "h-12 w-10 rounded-xl border border-white/[0.08] bg-white/[0.05] text-center text-lg font-medium text-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] outline-none focus-visible:outline-none backdrop-blur-sm transition-all duration-300 ease-out focus:scale-105 focus:border-blue-400/70 focus:bg-white/[0.07] focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] disabled:opacity-60 disabled:hover:scale-100 sm:h-14 sm:w-12 sm:text-xl";
   const errorBoxClass =
     "mb-4 flex items-start gap-2 rounded-xl border border-red-400/20 bg-red-400/[0.08] px-4 py-3 text-sm leading-relaxed text-red-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] backdrop-blur-sm";
   // Fully opaque cover for the browser's autofill tint — see the sign-in
   // page for why this needs to be fully opaque rather than semi-transparent.
+  // Also makes the native autofill border transparent and paints a fake
+  // blue border on top via box-shadow, since the browser's own autofill
+  // border color can't reliably be overridden with border-color alone.
   const autofillFixClass =
-    "[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:[-webkit-box-shadow:inset_0_0_0px_1000px_rgb(15,15,20)] [&:-webkit-autofill]:[caret-color:white] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s]";
+    "[&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:[-webkit-box-shadow:inset_0_0_0px_1000px_rgb(15,15,20)] [&:-webkit-autofill]:[caret-color:white] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s] [&:-webkit-autofill]:!border-blue-400/70 [&:-webkit-autofill]:[box-shadow:inset_0_0_0_1px_rgb(108_148_227_/_0.7),inset_0_0_0px_1000px_rgb(15,15,20)]";
+  // Same blue accent as before (no new color), just a light press-down on
+  // active and smoother easing throughout instead of an instant color swap.
   const primaryButtonClass =
-    "w-full justify-center !rounded-xl !py-2.5 text-white shadow-[0_4px_14px_-4px_rgba(56,189,248,0.3)] outline-none transition-all duration-300 ease-out hover:shadow-[0_6px_18px_-4px_rgba(56,189,248,0.4)] hover:brightness-105 focus-visible:!outline-none focus-visible:!ring-2 focus-visible:!ring-sky-300/50 focus-visible:!ring-offset-2 focus-visible:!ring-offset-black/60 active:scale-[0.98] active:brightness-95 disabled:opacity-60 disabled:hover:shadow-[0_4px_14px_-4px_rgba(56,189,248,0.3)] disabled:hover:brightness-100 disabled:active:scale-100";
+    "w-full justify-center !rounded-xl !py-2.5 text-white outline-none transition-all duration-300 ease-out hover:brightness-105 focus-visible:!outline-none focus-visible:!ring-2 focus-visible:!ring-sky-300/50 focus-visible:!ring-offset-2 focus-visible:!ring-offset-black/60 active:scale-[0.98] active:brightness-95 disabled:opacity-60 disabled:hover:brightness-100 disabled:active:scale-100";
   const stageTransitionClass = `transition-all duration-500 ease-out ${
     stageEntered ? "translate-y-0 scale-100 opacity-100" : "translate-y-1 scale-[0.98] opacity-0"
   }`;
@@ -407,9 +417,6 @@ export function SignUpForm() {
       {/* Cinematic vignette — darker at the edges, lighter at the center
           where the card sits — instead of a flat overlay. */}
       <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_center,rgba(8,10,14,0.4)_0%,rgba(5,6,9,0.78)_100%)]" />
-      {/* Soft ambient glow behind the card, using the same accent color
-          already in the palette. */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-500/[0.08] blur-[110px]" />
 
       <Container className="flex w-full flex-col items-center">
         <Link
@@ -657,4 +664,4 @@ export function SignUpForm() {
       </Container>
     </div>
   );
-} 
+}
