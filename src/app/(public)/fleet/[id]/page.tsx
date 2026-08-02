@@ -17,7 +17,9 @@ import { JsonLd } from "@/components/shared/JsonLd";
 import { getAircraftByIdOrSlug, getRelatedAircraft } from "@/features/aircraft/lib/getAircraft";
 import { AIRCRAFT_CATEGORY_LABELS } from "@/database/constants/aircraft";
 import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 import { siteConfig } from "@/lib/config/site";
+
 export const revalidate = 300;
 
 interface AircraftDetailPageProps {
@@ -26,7 +28,7 @@ interface AircraftDetailPageProps {
 
 export async function generateMetadata({ params }: AircraftDetailPageProps): Promise<Metadata> {
   const { id } = await params;
-  const aircraft = await getAircraftByIdOrSlug(id);
+  const [aircraft, settings] = await Promise.all([getAircraftByIdOrSlug(id), getSiteSettings()]);
 
   if (!aircraft) return { title: "Aircraft Not Found" };
 
@@ -37,12 +39,12 @@ export async function generateMetadata({ params }: AircraftDetailPageProps): Pro
     description,
     alternates: { canonical: `${siteConfig.url}/fleet/${aircraft.slug}` },
     openGraph: {
-      title: `${aircraft.name} | True North Charters`,
+      title: `${aircraft.name} | ${settings.companyName}`,
       description,
       images: aircraft.heroImage ? [{ url: aircraft.heroImage.url }] : undefined,
     },
     twitter: {
-      title: `${aircraft.name} | True North Charters`,
+      title: `${aircraft.name} | ${settings.companyName}`,
       description,
       images: aircraft.heroImage ? [aircraft.heroImage.url] : undefined,
     },
@@ -126,14 +128,14 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
             </div>
 
             <div className="mt-6 space-y-4">
-           <Button
-  href={`/request-charter?aircraft=${aircraft.slug}`}
-  variant="primary"
-  size="md"
-  className="w-full"
->
-  Request Charter
-</Button>
+              <Button
+                href={`/request-charter?aircraft=${aircraft.slug}`}
+                variant="primary"
+                size="md"
+                className="w-full"
+              >
+                Request Charter
+              </Button>
               <CompareButton
                 slug={aircraft.slug}
                 name={aircraft.name}

@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 type PageHeaderVariant = "dark" | "light";
 
@@ -21,18 +23,32 @@ export function PageHeader({
   description,
   actions,
   variant = "dark",
+  backHref,
+  backLabel,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   actions?: ReactNode;
   variant?: PageHeaderVariant;
+  /** If provided, renders a back link above the title. */
+  backHref?: string;
+  backLabel?: string;
 }) {
   const styles = VARIANT_STYLES[variant];
 
   return (
     <div className="flex flex-col gap-4 pb-7 sm:flex-row sm:items-end sm:justify-between">
       <div>
+        {backHref ? (
+          <Link
+            href={backHref}
+            className="mb-3 inline-flex items-center gap-1 text-xs font-medium text-slate-400 transition-colors hover:text-slate-600"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            {backLabel ?? "Back"}
+          </Link>
+        ) : null}
         {eyebrow ? (
           <p className={`spec-readout text-xs uppercase tracking-widest2 ${styles.eyebrow}`}>{eyebrow}</p>
         ) : null}

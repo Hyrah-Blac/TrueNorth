@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 import { SignUpForm } from "./SignUpForm";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 
-export const metadata: Metadata = {
-  title: "Create Account",
-  description: "Create a True North Charters account to request charters and track bookings.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
 
-// Metadata must come from a server component, so the interactive form
-// lives in SignUpForm.tsx ('use client') and is rendered here.
-export default function SignUpPage() {
-  return <SignUpForm />;
+  return {
+    title: "Create Account",
+    description: `Create a ${settings.companyName} account to request charters and track bookings.`,
+  };
+}
+
+export default async function SignUpPage() {
+  const settings = await getSiteSettings();
+  return <SignUpForm companyName={settings.companyName} />;
 }

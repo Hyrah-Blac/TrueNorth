@@ -2,16 +2,20 @@ import type { Metadata } from "next";
 import { Section } from "@/components/layout/section/Section";
 import { StorySection } from "@/components/about/StorySection";
 import { AboutHero } from "@/components/about/AboutHero";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 
-const description =
-  "True North is a KCAA-certified charter operator based at Wilson Airport, Nairobi, flying business, government, NGO, safari, and medical evacuation missions across Kenya and East Africa.";
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
 
-export const metadata: Metadata = {
-  title: "About",
-  description,
-  openGraph: { title: "About | True North Charters", description },
-  twitter: { title: "About | True North Charters", description },
-};
+  const description = `${settings.companyName} is a KCAA-certified charter operator based at ${settings.addressLine1}, ${settings.city}, flying business, government, NGO, safari, and medical evacuation missions across Kenya and East Africa.`;
+
+  return {
+    title: "About",
+    description,
+    openGraph: { title: `About | ${settings.companyName}`, description },
+    twitter: { title: `About | ${settings.companyName}`, description },
+  };
+}
 
 export default function AboutPage() {
   return (

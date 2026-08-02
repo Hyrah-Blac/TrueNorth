@@ -12,17 +12,20 @@ import { getAircraftList } from "@/features/aircraft/lib/getAircraft";
 import { AIRCRAFT_CATEGORY_VALUES, type AircraftCategory } from "@/database/constants/aircraft";
 import { buildPaginationMeta } from "@/utils/pagination";
 import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 import { siteConfig } from "@/lib/config/site";
 
-const description =
-  "Browse True North's fleet of helicopters, turboprops, light jets, utility, medevac, safari, and cargo aircraft available for charter across Kenya and East Africa.";
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const description = `Browse ${settings.companyName}'s fleet of helicopters, turboprops, light jets, utility, medevac, safari, and cargo aircraft available for charter across Kenya and East Africa.`;
 
-export const metadata: Metadata = {
-  title: "Fleet",
-  description,
-  openGraph: { title: "Fleet | True North Charters", description },
-  twitter: { title: "Fleet | True North Charters", description },
-};
+  return {
+    title: "Fleet",
+    description,
+    openGraph: { title: `Fleet | ${settings.companyName}`, description },
+    twitter: { title: `Fleet | ${settings.companyName}`, description },
+  };
+}
 
 interface FleetPageProps {
   searchParams: Promise<{ category?: string; minPassengers?: string; page?: string }>;

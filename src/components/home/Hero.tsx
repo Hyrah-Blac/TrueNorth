@@ -5,14 +5,12 @@ import Image from "next/image";
 import { Container } from "@/components/layout/container/Container";
 import { Button } from "@/components/shared/buttons/Button";
 
-// Brand accent (see /components/navbar/Navbar.tsx for the full palette
-// note) — champagne gold (--color-sky-500 / --color-sky-400, see
-// variables.css) is used sparingly below, only for the "beyond"
-// highlight. Kept deliberately minimal: one background photo, one
-// gradient scrim, no particles/grain/decorative overlays — the goal is
-// a clean, uncluttered first impression rather than a layered effect.
+interface HeroProps {
+  companyName: string;
+  tagline: string;
+}
 
-export function Hero() {
+export function Hero({ companyName, tagline }: HeroProps) {
   const parallaxRef = useRef<HTMLDivElement>(null);
   const frameRequested = useRef(false);
   const [motionEnabled, setMotionEnabled] = useState(false);
@@ -67,10 +65,10 @@ export function Hero() {
       <Container className="relative flex justify-center">
         <div className="max-w-2xl text-center lg:max-w-4xl xl:max-w-5xl">
           <p className="spec-readout mb-3 font-mono text-[clamp(0.625rem,0.6rem+0.1vw,0.6875rem)] font-medium uppercase tracking-widest2 text-white/50">
-            True North Charters
+            {companyName}
           </p>
 
-         <h1 className="font-editorial text-[clamp(2.5rem,1.7rem+3vw,4.75rem)] font-light uppercase leading-[1.1] tracking-[0.005em] text-white">
+          <h1 className="font-editorial text-[clamp(2.5rem,1.7rem+3vw,4.75rem)] font-light uppercase leading-[1.1] tracking-[0.005em] text-white">
             Adventure,
             <br />
             above &amp; <span className="text-champagne-400">beyond</span>
@@ -79,8 +77,7 @@ export function Hero() {
           <div className="mx-auto mt-8 h-px w-12 bg-white/20" />
 
           <p className="mx-auto mt-5 max-w-md text-[clamp(0.8125rem,0.8rem+0.15vw,0.9375rem)] leading-relaxed text-slate-200">
-            Helicopters, turboprops, light jets, and medevac aircraft — dispatched across
-            Kenya and East Africa.
+            {tagline}
           </p>
 
           <div className="mt-12 flex flex-wrap items-center justify-center gap-4">

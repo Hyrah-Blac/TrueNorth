@@ -1,12 +1,25 @@
 import connectToDatabase from "../connection";
 import User from "../models/User";
 import Aircraft from "../models/Aircraft";
+import Airport from "../models/Airport";
+import KnowledgeBase from "../models/KnowledgeBase";
+import { Conversation, Message } from "../models/Conversation";
 import Quote from "../models/Quote";
 import Booking from "../models/Booking";
 import Payment from "../models/Payment";
 import { logger } from "@/lib/logging/logger";
 
-const MODELS = [User, Aircraft, Quote, Booking, Payment];
+const MODELS = [
+  User,
+  Aircraft,
+  Airport,
+  KnowledgeBase,
+  Conversation,
+  Message,
+  Quote,
+  Booking,
+  Payment,
+];
 
 /**
  * Explicitly syncs indexes for every model with what's defined in the

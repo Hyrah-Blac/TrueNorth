@@ -3,17 +3,20 @@ import { Section } from "@/components/layout/section/Section";
 import { Container } from "@/components/layout/container/Container";
 import { CharterRequestForm } from "@/components/quote/CharterRequestForm";
 import { getAircraftOptions, getAircraftByIdOrSlug } from "@/features/aircraft/lib/getAircraft";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 import type { CreateQuoteInput } from "@/features/quote/schemas/quote.schema";
 
-const description =
-  "Tell us your route, dates, and mission and True North's operations team will follow up with aircraft recommendations and pricing.";
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const description = `Tell us your route, dates, and mission and ${settings.companyShortName || settings.companyName}'s operations team will follow up with aircraft recommendations and pricing.`;
 
-export const metadata: Metadata = {
-  title: "Request a Charter",
-  description,
-  openGraph: { title: "Request a Charter | True North Charters", description },
-  twitter: { title: "Request a Charter | True North Charters", description },
-};
+  return {
+    title: "Request a Charter",
+    description,
+    openGraph: { title: `Request a Charter | ${settings.companyName}`, description },
+    twitter: { title: `Request a Charter | ${settings.companyName}`, description },
+  };
+}
 
 interface RequestCharterPageProps {
   searchParams: Promise<{ aircraft?: string; destination?: string }>;

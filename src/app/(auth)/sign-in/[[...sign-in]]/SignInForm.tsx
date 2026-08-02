@@ -114,7 +114,7 @@ function GoogleIcon() {
   );
 }
 
-export function SignInForm() {
+export function SignInForm({ companyName }: { companyName: string }) {
   const { signIn, setActive } = useSignIn();
   const clerk = useClerk();
   const router = useRouter();
@@ -474,7 +474,7 @@ export function SignInForm() {
         >
           <Image
             src={LOGO_IMAGE}
-            alt="True North Charters"
+            alt={companyName}
             width={160}
             height={40}
             priority

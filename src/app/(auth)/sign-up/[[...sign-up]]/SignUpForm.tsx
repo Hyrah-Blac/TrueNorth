@@ -98,7 +98,7 @@ function GoogleIcon() {
   );
 }
 
-export function SignUpForm() {
+export function SignUpForm({ companyName }: { companyName: string }) {
   const { signUp, setActive } = useSignUp();
   const clerk = useClerk();
   const router = useRouter();
@@ -426,7 +426,7 @@ export function SignUpForm() {
         >
           <Image
             src={LOGO_IMAGE}
-            alt="True North Charters"
+            alt={companyName}
             width={160}
             height={40}
             priority
@@ -445,7 +445,7 @@ export function SignUpForm() {
               </h1>
               <p className="mt-3 text-[13.5px] leading-relaxed text-white/45">
                 {stage === "form" ? (
-                  "Join True North Charters to request charters and track bookings"
+                  `Join ${companyName} to request charters and track bookings`
                 ) : (
                   <>
                     We sent a 6-digit code to{" "}

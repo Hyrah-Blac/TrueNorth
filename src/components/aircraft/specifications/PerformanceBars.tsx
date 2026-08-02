@@ -68,7 +68,7 @@ export function PerformanceBars({ rangeNm, cruisingSpeedKts }: PerformanceBarsPr
         );
       })}
       <p className="text-[11px] leading-relaxed text-slate-400">
-        Shown relative to True North&apos;s full fleet range, helicopter to light jet.
+        Shown relative to our full fleet range, helicopter to light jet.
       </p>
     </div>
   );

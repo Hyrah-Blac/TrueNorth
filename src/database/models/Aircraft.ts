@@ -47,6 +47,22 @@ export interface AircraftDocument
   createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+  // ── AI Concierge fields ──────────────────────────────────────────────────
+  minimumRunwayLength?: number;
+  preferredRunwaySurface?: string;
+  luxuryLevel?: number;
+  executiveRating?: number;
+  petFriendly?: boolean;
+  wifiAvailable?: boolean;
+  baggageFlexibility?: string;
+  shortRunwayCapable?: boolean;
+  aiStrengths: string[];
+  aiLimitations: string[];
+  aiNotes?: string;
+  recommendedMissionTypes: MissionType[];
+  recommendedPassengerRange?: { min: number; max: number };
+  recommendedFlightRange?: { minNm: number; maxNm: number };
+  operatingRegions: string[];
 }
 
 const AircraftImageSchema = new Schema<AircraftImage>(
@@ -54,6 +70,22 @@ const AircraftImageSchema = new Schema<AircraftImage>(
     url: { type: String, required: true, trim: true },
     publicId: { type: String, required: true, trim: true },
     caption: { type: String, trim: true, maxlength: 150 },
+  },
+  { _id: false }
+);
+
+const PassengerRangeSchema = new Schema(
+  {
+    min: { type: Number, min: 1 },
+    max: { type: Number, min: 1 },
+  },
+  { _id: false }
+);
+
+const FlightRangeSchema = new Schema(
+  {
+    minNm: { type: Number, min: 0 },
+    maxNm: { type: Number, min: 0 },
   },
   { _id: false }
 );
@@ -133,6 +165,23 @@ const AircraftSchema = new Schema<AircraftDocument>(
     },
     isFeatured: { type: Boolean, default: false, index: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+
+    // ── AI Concierge fields ────────────────────────────────────────────────
+    minimumRunwayLength: { type: Number, min: 0 },
+    preferredRunwaySurface: { type: String, trim: true, maxlength: 50 },
+    luxuryLevel: { type: Number, min: 1, max: 5 },
+    executiveRating: { type: Number, min: 1, max: 5 },
+    petFriendly: { type: Boolean },
+    wifiAvailable: { type: Boolean },
+    baggageFlexibility: { type: String, trim: true, maxlength: 200 },
+    shortRunwayCapable: { type: Boolean },
+    aiStrengths: { type: [String], default: [], validate: { validator: (v: string[]) => v.length <= 20, message: "Maximum 20 AI strengths" } },
+    aiLimitations: { type: [String], default: [], validate: { validator: (v: string[]) => v.length <= 20, message: "Maximum 20 AI limitations" } },
+    aiNotes: { type: String, trim: true, maxlength: 2000 },
+    recommendedMissionTypes: { type: [String], enum: MISSION_TYPE_VALUES, default: [] },
+    recommendedPassengerRange: { type: PassengerRangeSchema, default: undefined },
+    recommendedFlightRange: { type: FlightRangeSchema, default: undefined },
+    operatingRegions: { type: [String], default: [] },
   },
   { timestamps: true }
 );

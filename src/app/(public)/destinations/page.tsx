@@ -7,19 +7,26 @@ import { DestinationsExplorer } from "@/components/destinations/DestinationsExpl
 import { RouteMapPlaceholder } from "@/components/destinations/RouteMapPlaceholder";
 import { JsonLd } from "@/components/shared/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 import { siteConfig } from "@/lib/config/site";
 
 const description =
   "Charter routes across Kenya's safari, coastal, and urban destinations, plus regional East Africa routes to Tanzania, Rwanda, Uganda, and South Sudan.";
 
-export const metadata: Metadata = {
-  title: "Destinations",
-  description,
-  openGraph: { title: "Destinations | True North Charters", description },
-  twitter: { title: "Destinations | True North Charters", description },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
 
-export default function DestinationsPage() {
+  return {
+    title: "Destinations",
+    description,
+    openGraph: { title: `Destinations | ${settings.companyName}`, description },
+    twitter: { title: `Destinations | ${settings.companyName}`, description },
+  };
+}
+
+export default async function DestinationsPage() {
+  const settings = await getSiteSettings();
+
   return (
     <>
       <JsonLd
@@ -35,8 +42,8 @@ export default function DestinationsPage() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr,1.3fr] lg:items-center">
           <SectionHeading
             eyebrow="Route Network"
-            title="Flown from Wilson Airport, Nairobi"
-            description="Every route below is flown from our Nairobi base. Flight times are approximate and vary by aircraft type."
+            title={`Flown from ${settings.addressLine1}, ${settings.city}`}
+            description={`Every route below is flown from our ${settings.city} base. Flight times are approximate and vary by aircraft type.`}
           />
           <RouteMapPlaceholder />
         </div>

@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 import { SignInForm } from "./SignInForm";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 
-export const metadata: Metadata = {
-  title: "Sign In",
-  description: "Sign in to manage your True North Charters bookings, quotes, and account.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
 
-// Metadata must come from a server component, so the interactive form
-// lives in SignInForm.tsx ('use client') and is rendered here.
-export default function SignInPage() {
-  return <SignInForm />;
+  return {
+    title: "Sign In",
+    description: `Sign in to manage your ${settings.companyName} bookings, quotes, and account.`,
+  };
+}
+
+export default async function SignInPage() {
+  const settings = await getSiteSettings();
+  return <SignInForm companyName={settings.companyName} />;
 }

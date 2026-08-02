@@ -25,6 +25,7 @@ const colors = {
 // getSiteSettings() so the footer reflects whatever's set in
 // /admin/settings rather than this hardcoded default.
 const DEFAULT_CONTACT: EmailContact = {
+  companyName: "True North Charters",
   email: "operations@truenorthcharters.co.ke",
   addressLine1: "Wilson Airport",
   city: "Nairobi",
@@ -32,6 +33,7 @@ const DEFAULT_CONTACT: EmailContact = {
 };
 
 export interface EmailContact {
+  companyName?: string;
   email: string;
   addressLine1: string;
   addressLine2?: string;
@@ -51,6 +53,7 @@ export function EmailLayout({
   contact?: EmailContact;
 }) {
   const addressParts = [contact.addressLine1, contact.addressLine2, contact.city, contact.country].filter(Boolean);
+  const name = contact.companyName ?? "True North Charters";
 
   return (
     <Html>
@@ -68,7 +71,7 @@ export function EmailLayout({
                 margin: 0,
               }}
             >
-              True North Charters
+              {name}
             </Text>
           </Section>
 
@@ -89,7 +92,7 @@ export function EmailLayout({
           <Section style={{ marginTop: 24 }}>
             <Hr style={{ borderColor: colors.border, margin: "0 0 16px" }} />
             <Text style={{ fontSize: 12, color: colors.slateLight, margin: 0, lineHeight: "18px" }}>
-              True North Charters · {addressParts.join(", ")}
+              {name} · {addressParts.join(", ")}
               <br />
               <Link href={`mailto:${contact.email}`} style={{ color: colors.sky }}>
                 {contact.email}

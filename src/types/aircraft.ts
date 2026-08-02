@@ -7,6 +7,16 @@ export interface IAircraftImage {
   caption?: string;
 }
 
+export interface IPassengerRange {
+  min: number;
+  max: number;
+}
+
+export interface IFlightRange {
+  minNm: number;
+  maxNm: number;
+}
+
 export interface IAircraft {
   _id: string;
   name: string;
@@ -36,6 +46,22 @@ export interface IAircraft {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+  // ── AI Concierge fields ──────────────────────────────────────────────────
+  minimumRunwayLength?: number;
+  preferredRunwaySurface?: string;
+  luxuryLevel?: number;
+  executiveRating?: number;
+  petFriendly?: boolean;
+  wifiAvailable?: boolean;
+  baggageFlexibility?: string;
+  shortRunwayCapable?: boolean;
+  aiStrengths: string[];
+  aiLimitations: string[];
+  aiNotes?: string;
+  recommendedMissionTypes: MissionType[];
+  recommendedPassengerRange?: IPassengerRange;
+  recommendedFlightRange?: IFlightRange;
+  operatingRegions: string[];
 }
 
 export interface AircraftFilters {

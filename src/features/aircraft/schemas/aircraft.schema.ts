@@ -14,6 +14,16 @@ const imageSchema = z.object({
   caption: z.string().max(150).optional(),
 });
 
+const passengerRangeSchema = z.object({
+  min: z.number().int().min(1),
+  max: z.number().int().min(1),
+}).refine((v) => v.max >= v.min, { message: "Max must be ≥ min" }).optional();
+
+const flightRangeSchema = z.object({
+  minNm: z.number().min(0),
+  maxNm: z.number().min(0),
+}).refine((v) => v.maxNm >= v.minNm, { message: "Max must be ≥ min" }).optional();
+
 export const createAircraftSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
   category: categoryEnum,
@@ -38,6 +48,22 @@ export const createAircraftSchema = z.object({
   cabinImages: z.array(imageSchema).default([]),
   status: statusEnum.default("active"),
   isFeatured: z.boolean().default(false),
+  // ── AI Concierge fields ──────────────────────────────────────────────────
+  minimumRunwayLength: z.number().min(0).optional(),
+  preferredRunwaySurface: z.string().trim().max(50).optional(),
+  luxuryLevel: z.number().int().min(1).max(5).optional(),
+  executiveRating: z.number().int().min(1).max(5).optional(),
+  petFriendly: z.boolean().optional(),
+  wifiAvailable: z.boolean().optional(),
+  baggageFlexibility: z.string().trim().max(200).optional(),
+  shortRunwayCapable: z.boolean().optional(),
+  aiStrengths: z.array(z.string().trim().max(150)).max(20).default([]),
+  aiLimitations: z.array(z.string().trim().max(150)).max(20).default([]),
+  aiNotes: z.string().trim().max(2000).optional(),
+  recommendedMissionTypes: z.array(missionEnum).default([]),
+  recommendedPassengerRange: passengerRangeSchema,
+  recommendedFlightRange: flightRangeSchema,
+  operatingRegions: z.array(z.string().trim().max(100)).default([]),
 });
 
 export const updateAircraftSchema = createAircraftSchema.partial();

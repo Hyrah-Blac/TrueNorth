@@ -5,6 +5,7 @@ import { getCurrentDbUser } from "@/middleware/auth";
 import { sanitizePlainText } from "@/utils/validators";
 import { sendEmail, getAdminNotificationEmail } from "@/lib/api/resend";
 import { siteConfig } from "@/lib/config/site";
+import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
 import { MISSION_TYPE_LABELS } from "@/database/constants/mission-type";
 import AdminNewQuote from "@/emails/AdminNewQuote";
 import type { CreateQuoteInput } from "../schemas/quote.schema";
@@ -37,6 +38,11 @@ export async function createQuoteFromInput(data: CreateQuoteInput): Promise<Quot
     customer: dbUser?._id,
   });
 
+  // Fetch settings so the admin notification email footer reflects
+  // whatever is configured in /admin/settings rather than falling back
+  // to the hardcoded DEFAULT_CONTACT in EmailLayout.
+  const settings = await getSiteSettings();
+
   await sendEmail({
     to: getAdminNotificationEmail(),
     subject: `New charter request: ${quote.quoteNumber}`,
@@ -49,6 +55,7 @@ export async function createQuoteFromInput(data: CreateQuoteInput): Promise<Quot
       destinationAirportCode: quote.destinationAirportCode,
       departureDate: quote.departureDate.toDateString(),
       adminUrl: `${siteConfig.url}/admin/quotes/${quote._id}`,
+      contact: toEmailContact(settings),
     }),
   });
 

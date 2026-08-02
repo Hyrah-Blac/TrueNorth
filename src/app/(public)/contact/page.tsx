@@ -5,15 +5,17 @@ import { Phone, WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react/dist/
 import { Container } from "@/components/layout/container/Container";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 
-const description =
-  "Get in touch with True North Charters via WhatsApp or phone for charter requests, fleet questions, or general inquiries.";
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const description = `Get in touch with ${settings.companyName} via WhatsApp or phone for charter requests, fleet questions, or general inquiries.`;
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description,
-  openGraph: { title: "Contact | True North Charters", description },
-  twitter: { title: "Contact | True North Charters", description },
-};
+  return {
+    title: "Contact",
+    description,
+    openGraph: { title: `Contact | ${settings.companyName}`, description },
+    twitter: { title: `Contact | ${settings.companyName}`, description },
+  };
+}
 
 // WhatsApp deep link needs digits only (country code + number, no spaces,
 // no "+"). The admin-configured number is formatted for display elsewhere,
@@ -23,10 +25,6 @@ function getWhatsAppHref(whatsapp: string) {
   return `https://wa.me/${digitsOnly}`;
 }
 
-// Elegant text link with a small leading icon and an animated underline
-// sweep — the editorial replacement for the old filled Button component. No
-// fill, no border, no shadow: the interaction lives entirely in the
-// underline and the icon's subtle color shift on hover.
 function TextLink({
   href,
   icon: IconComponent,
@@ -58,10 +56,6 @@ interface ContactRowProps {
   emphasize?: boolean;
 }
 
-// One editorial row: uppercase tracked label, a large serif value, an optional
-// caption, and an optional action link. Primary rows (call / whatsapp / email)
-// render the value larger to read as the page's real hierarchy — the ways to
-// reach a human — while office/hours sit quieter beneath.
 function ContactRow({ label, children, caption, action, emphasize }: ContactRowProps) {
   return (
     <div className="border-b border-slate-200 py-6 first:pt-0 last:border-b-0">
@@ -79,11 +73,6 @@ function ContactRow({ label, children, caption, action, emphasize }: ContactRowP
   );
 }
 
-// A quiet compass rose — the one signature element on the page. It renders
-// the brand's name literally ("True North") without spelling it out again in
-// copy, sits at low opacity so it never competes with the type, and doubles
-// as the thing that keeps this layout from reading as a generic two-column
-// contact template.
 function CompassMark() {
   return (
     <svg
@@ -107,8 +96,6 @@ export default async function ContactPage() {
 
   return (
     <div className="overflow-hidden bg-white">
-      {/* Subtle, orchestrated fade-in on load — no scroll-triggered effects,
-          no motion beyond this single settle. */}
       <style>{`
         @keyframes contactFadeIn {
           from { opacity: 0; transform: translateY(8px); }
@@ -122,7 +109,6 @@ export default async function ContactPage() {
 
       <Container className="relative pb-16 pt-32 sm:pb-20 sm:pt-36 lg:pb-32 lg:pt-40">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-x-20">
-          {/* Left — editorial hero */}
           <div className="contact-fade relative lg:col-span-5">
             <CompassMark />
             <h1 className="font-display relative max-w-md text-2xl font-extrabold uppercase leading-[1.15] tracking-tight text-navy-900 sm:text-3xl lg:text-4xl">
@@ -149,10 +135,19 @@ export default async function ContactPage() {
               <p className="font-editorial mt-2 text-sm font-light text-navy-900">
                 {settings.operatingHours}
               </p>
+              {settings.emergencyContact ? (
+                <>
+                  <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.2em] text-slate-400">
+                    Emergency
+                  </p>
+                  <p className="font-editorial mt-2 text-sm font-light text-navy-900">
+                    {settings.emergencyContact}
+                  </p>
+                </>
+              ) : null}
             </div>
           </div>
 
-          {/* Right — the ways to actually reach someone, given the weight */}
           <div
             className="contact-fade lg:col-span-6 lg:col-start-7 lg:border-l lg:border-slate-200 lg:pl-16"
             style={{ animationDelay: "0.1s" }}

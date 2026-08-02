@@ -12,23 +12,28 @@ export default async function AdminSettingsPage() {
 
   return (
     <div>
-  <PageHeader title="Settings" />
+      <PageHeader
+        title="Settings"
+        description="All public-facing company information is sourced from here. Changes are live immediately."
+      />
 
       <div className="max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-soft">
-        <p className="mb-7 text-sm text-slate-600">
-          This contact information feeds the public site footer and contact page directly —
-          changes here go live immediately.
-        </p>
         <SettingsForm
           defaultValues={{
+            companyName: settings.companyName,
+            companyShortName: settings.companyShortName ?? "",
+            companyDescription: settings.companyDescription ?? "",
+            companyTagline: settings.companyTagline ?? "",
             phone: settings.phone,
             email: settings.email,
             whatsapp: settings.whatsapp ?? "",
+            emergencyContact: settings.emergencyContact ?? "",
             addressLine1: settings.addressLine1,
             addressLine2: settings.addressLine2 ?? "",
             city: settings.city,
             country: settings.country,
             operatingHours: settings.operatingHours,
+            socialLinks: settings.socialLinks ?? [],
           }}
         />
       </div>

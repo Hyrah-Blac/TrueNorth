@@ -1,9 +1,10 @@
-"use client";
-
 import Image from "next/image";
 import { Container } from "@/components/layout/container/Container";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 
-export function AboutHero() {
+export async function AboutHero() {
+  const settings = await getSiteSettings();
+
   return (
     <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-navy-950 py-24 lg:py-0">
       <div className="absolute inset-0" aria-hidden="true">
@@ -35,8 +36,7 @@ export function AboutHero() {
           <div className="mx-auto mt-8 h-px w-12 bg-white/20" />
 
           <p className="mx-auto mt-5 max-w-md text-[clamp(0.8125rem,0.8rem+0.15vw,0.9375rem)] leading-relaxed text-slate-200">
-            A KCAA-certified charter operator based at Wilson Airport, flying business,
-            government, NGO, safari, and medical evacuation missions across Kenya and East Africa.
+            {settings.companyDescription}
           </p>
         </div>
       </Container>

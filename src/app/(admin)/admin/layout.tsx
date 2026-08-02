@@ -6,6 +6,8 @@ import {
   Receipt,
   Users,
   Gear,
+  MapPin,
+  BookOpen,
 } from "@phosphor-icons/react/dist/ssr";
 import { requireAdmin } from "@/middleware/admin";
 import { DashboardShell } from "@/components/layout/sidebar/DashboardShell";
@@ -14,6 +16,8 @@ import type { SidebarNavItem } from "@/components/layout/sidebar/DashboardSideba
 const navItems: SidebarNavItem[] = [
   { label: "Overview", href: "/admin/dashboard", icon: <SquaresFour aria-hidden="true" />, exact: true },
   { label: "Aircraft", href: "/admin/aircraft", icon: <AirplaneTakeoff aria-hidden="true" /> },
+  { label: "Airports", href: "/admin/airports", icon: <MapPin aria-hidden="true" /> },
+  { label: "Knowledge Base", href: "/admin/knowledge-base", icon: <BookOpen aria-hidden="true" /> },
   { label: "Bookings", href: "/admin/bookings", icon: <CalendarCheck aria-hidden="true" /> },
   { label: "Quotes", href: "/admin/quotes", icon: <FileText aria-hidden="true" /> },
   { label: "Payments", href: "/admin/payments", icon: <Receipt aria-hidden="true" /> },

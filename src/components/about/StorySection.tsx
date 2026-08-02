@@ -1,7 +1,10 @@
 import Image from "next/image";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 import { companyFacts } from "@/content/company";
 
-export function StorySection() {
+export async function StorySection() {
+  const settings = await getSiteSettings();
+
   return (
     <div className="grid grid-cols-1 overflow-hidden rounded-xl lg:grid-cols-2">
       <div className="flex flex-col justify-center bg-slate-50 px-6 py-12 sm:px-8 sm:py-14 lg:px-16 lg:py-20">
@@ -10,7 +13,7 @@ export function StorySection() {
         </h2>
 
         <p className="mt-5 max-w-xl text-sm leading-relaxed text-slate-600 lg:text-[0.9375rem]">
-          True North operates from Wilson Airport with a fleet spanning
+          {settings.companyName} operates from {settings.addressLine1} with a fleet spanning
           helicopters to cargo aircraft, because the country&apos;s charter
           demand doesn&apos;t fit one aircraft type. A mining site visit, a
           medevac transfer, and a safari transfer are three different
@@ -18,7 +21,7 @@ export function StorySection() {
         </p>
         <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-600 lg:text-[0.9375rem]">
           {companyFacts.foundedContext} Every flight is dispatched from our
-          base at {companyFacts.baseAirport}, with crews and aircraft matched
+          base at {settings.addressLine1}, {settings.city}, with crews and aircraft matched
           to the mission rather than offered as a one-size-fits-all charter
           package.
         </p>
@@ -27,7 +30,7 @@ export function StorySection() {
       <div className="relative min-h-[260px] sm:min-h-[320px] lg:min-h-full">
         <Image
           src="/images/destinations/mt-kenya.jpg"
-          alt="True North aircraft over the Kenyan landscape"
+          alt={`${settings.companyName} aircraft over the Kenyan landscape`}
           fill
           className="object-cover"
           sizes="(min-width: 1024px) 50vw, 100vw"

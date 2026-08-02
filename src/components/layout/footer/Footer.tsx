@@ -1,10 +1,8 @@
 import { Twitter, Facebook, Linkedin, Instagram, type LucideIcon } from "lucide-react";
-import { siteConfig } from "@/lib/config/site";
-import { socialLinks } from "@/content/social-links";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 
-// Maps each social platform to its icon. Falls back gracefully if a new
-// platform is added to content/social-links.ts without a matching icon
-// here yet — better to skip rendering than to throw.
+// Maps each social platform slug to its icon. Gracefully skips platforms
+// whose slug we don't have an icon for yet — better to omit than throw.
 const iconMap: Record<string, LucideIcon> = {
   twitter: Twitter,
   x: Twitter,
@@ -13,39 +11,37 @@ const iconMap: Record<string, LucideIcon> = {
   instagram: Instagram,
 };
 
-export function Footer() {
+export async function Footer() {
+  const settings = await getSiteSettings();
+
   return (
     <footer className="relative bg-blue-500">
-
       <div className="mx-auto flex max-w-container flex-col items-center gap-8 px-6 py-16 text-center lg:py-20">
-        <div className="flex items-center gap-5">
-          {socialLinks.map((social) => {
-            const Icon = iconMap[social.platform.toLowerCase()];
-            if (!Icon) return null;
+        {settings.socialLinks.length > 0 ? (
+          <div className="flex items-center gap-5">
+            {settings.socialLinks.map((social) => {
+              const Icon = iconMap[social.platform.toLowerCase()];
+              if (!Icon) return null;
 
-            return (
-              <a
-                key={social.platform}
-                href={social.href}
-                target="_blank"
-                rel="noreferrer noopener"
-                aria-label={social.label}
-                // Brightened from white/50 + slate icon tones, which were
-                // tuned for a near-black navy-950 background — against
-                // the lighter Sapphire blue-500 they read as washed out.
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 text-white/85 transition-all duration-300 ease-out hover:scale-110 hover:border-sky-300 hover:text-sky-300 hover:shadow-[0_0_20px_rgba(78,168,222,0.35)]"
-              >
-                <Icon className="h-4 w-4" aria-hidden="true" />
-              </a>
-            );
-          })}
-        </div>
+              return (
+                <a
+                  key={social.platform}
+                  href={social.href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  aria-label={social.label}
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 text-white/85 transition-all duration-300 ease-out hover:scale-110 hover:border-sky-300 hover:text-sky-300 hover:shadow-[0_0_20px_rgba(78,168,222,0.35)]"
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </a>
+              );
+            })}
+          </div>
+        ) : null}
 
         <p className="text-xs text-white/80">
-          © {new Date().getFullYear()} {siteConfig.name} — All Rights Reserved{" "}
+          © {new Date().getFullYear()} {settings.companyName} — All Rights Reserved{" "}
           <span className="text-white/60">|</span>{" "}
-          {/* Plain text, not a link — no privacy-policy page to send
-              people to. */}
           <span>Privacy Policy</span>
         </p>
       </div>
