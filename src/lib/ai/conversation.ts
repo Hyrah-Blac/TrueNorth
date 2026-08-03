@@ -4,7 +4,7 @@ import { Conversation, Message } from "@/database/models/Conversation";
 import { MESSAGE_ROLES } from "@/database/constants/ai";
 import { logger } from "@/lib/logging/logger";
 import type { ConversationDocument, MessageDocument } from "@/database/models/Conversation";
-import type { AiModel } from "@/database/constants/ai";
+import type { AiModel, MessageRole } from "@/database/constants/ai";
 import type { ITokenUsage, IToolCall } from "@/types/ai";
 
 // ── Conversation ──────────────────────────────────────────────────────────────
@@ -13,7 +13,7 @@ export async function findOrCreateConversation(params: {
   conversationId?: string;
   sessionId: string;
   clerkUserId?: string;
-  model: AiModel;
+  aiModel: AiModel;
 }): Promise<ConversationDocument> {
   await connectToDatabase();
 
@@ -39,7 +39,7 @@ export async function findOrCreateConversation(params: {
   return Conversation.create({
     sessionId: params.sessionId,
     clerkUserId: params.clerkUserId,
-    model: params.model,
+    aiModel: params.aiModel,
   });
 }
 
@@ -158,7 +158,7 @@ export async function saveAssistantMessage(
  */
 export function formatHistoryForPrompt(
   messages: MessageDocument[]
-): Array<{ role: string; content: string }> {
+): Array<{ role: MessageRole; content: string }> {
   return messages
     .filter((m) => m.role !== MESSAGE_ROLES.SYSTEM)
     .map((m) => ({ role: m.role, content: m.content }));

@@ -73,7 +73,7 @@ export async function runChat(params: RunChatParams): Promise<ChatResponse> {
     conversationId: params.conversationId,
     sessionId: params.sessionId,
     clerkUserId: params.clerkUserId,
-    model,
+    aiModel: model,
   });
 
   const conversationId = String(conversation._id);

@@ -91,7 +91,7 @@ export interface ConversationDocument extends Document {
   clerkUserId?: string;
   /** Browser-generated session ID for anonymous continuity across requests. */
   sessionId: string;
-  model: AiModel;
+  aiModel: AiModel;
   status: ConversationStatus;
   totalTokenUsage: {
     promptTokens: number;
@@ -120,7 +120,7 @@ const ConversationSchema = new Schema<ConversationDocument>(
       index: true,
       maxlength: 128,
     },
-    model: {
+    aiModel: {
       type: String,
       enum: AI_MODEL_VALUES,
       default: AI_MODELS.DEFAULT,

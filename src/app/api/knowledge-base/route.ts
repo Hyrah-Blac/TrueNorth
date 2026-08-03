@@ -4,72 +4,56 @@ import KnowledgeBase from "@/database/models/KnowledgeBase";
 import { requireAdmin } from "@/middleware/admin";
 import { successResponse, handleApiError } from "@/lib/api/response";
 import { checkRateLimit, getRequestKey, rateLimitResponse, RATE_LIMITS } from "@/middleware/rate-limit";
-import { updateKnowledgeBaseSchema } from "@/features/knowledge-base/schemas/knowledge-base.schema";
-import { NotFoundError } from "@/lib/errors/AppError";
-import { OBJECT_ID_REGEX } from "@/utils/validators";
+import { buildPaginatedResult } from "@/utils/pagination";
+import { knowledgeBaseQuerySchema, createKnowledgeBaseSchema } from "@/features/knowledge-base/schemas/knowledge-base.schema";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
-
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(req: NextRequest) {
   try {
-    const rate = checkRateLimit(getRequestKey(req, "kb:detail"), RATE_LIMITS.PUBLIC_READ);
+    const rate = checkRateLimit(getRequestKey(req, "kb:list"), RATE_LIMITS.PUBLIC_READ);
     if (!rate.allowed) return rateLimitResponse(rate);
 
-    const { id } = await params;
+    const query = knowledgeBaseQuerySchema.parse(Object.fromEntries(req.nextUrl.searchParams));
     await connectToDatabase();
 
-    const filter = OBJECT_ID_REGEX.test(id) ? { _id: id } : { slug: id };
-    const entry = await KnowledgeBase.findOne({
-      ...filter,
+    // Public endpoint only exposes published + public entries
+    const filter: Record<string, unknown> = {
       status: "published",
       visibility: "public",
-    });
-    if (!entry) throw new NotFoundError("Knowledge base entry not found");
+    };
+    if (query.category) filter.category = query.category;
+    if (query.search) filter.$text = { $search: query.search };
 
-    return successResponse(entry);
+    const skip = (query.page - 1) * query.limit;
+
+    const [items, total] = await Promise.all([
+      KnowledgeBase.find(filter)
+        .sort({ priority: -1, updatedAt: -1 })
+        .skip(skip)
+        .limit(query.limit)
+        .select("-content"),  // exclude heavy content from list view
+      KnowledgeBase.countDocuments(filter),
+    ]);
+
+    return successResponse(buildPaginatedResult(items, total, query.page, query.limit));
   } catch (error) {
-    return handleApiError(error, "GET /api/knowledge-base/[id]");
+    return handleApiError(error, "GET /api/knowledge-base");
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: RouteParams) {
+export async function POST(req: NextRequest) {
   try {
     await requireAdmin();
-    const { id } = await params;
     const body = await req.json();
-    const data = updateKnowledgeBaseSchema.parse(body);
+    const data = createKnowledgeBaseSchema.parse(body);
 
     await connectToDatabase();
-
-    const entry = await KnowledgeBase.findById(id);
-    if (!entry) throw new NotFoundError("Entry not found");
-
-    Object.assign(entry, {
+    const entry = await KnowledgeBase.create({
       ...data,
-      lastReviewedAt: data.lastReviewedAt ? new Date(data.lastReviewedAt) : entry.lastReviewedAt,
+      lastReviewedAt: data.lastReviewedAt ? new Date(data.lastReviewedAt) : undefined,
     });
-    await entry.save();
 
-    return successResponse(entry);
+    return successResponse(entry, 201);
   } catch (error) {
-    return handleApiError(error, "PATCH /api/knowledge-base/[id]");
-  }
-}
-
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  try {
-    await requireAdmin();
-    const { id } = await params;
-
-    await connectToDatabase();
-
-    const entry = await KnowledgeBase.findByIdAndDelete(id);
-    if (!entry) throw new NotFoundError("Entry not found");
-
-    return successResponse({ id: String(entry._id), deleted: true });
-  } catch (error) {
-    return handleApiError(error, "DELETE /api/knowledge-base/[id]");
+    return handleApiError(error, "POST /api/knowledge-base");
   }
 }

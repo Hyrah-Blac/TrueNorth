@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { StepIndicator } from "./StepIndicator";
 import { TripDetailsStep } from "./steps/TripDetailsStep";
 import { MissionAircraftStep, type AircraftOption } from "./steps/MissionAircraftStep";

@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createQuoteAttachmentUploadSignature } from "@/lib/api/cloudinary";
 import { handleApiError } from "@/lib/api/response";
-import { checkRateLimit, getRequestKey, rateLimitResponse, RATE_LIMITS } from "@/middleware/rate-limit";
+import { checkRateLimit, getRequestKey, rateLimitResponse } from "@/middleware/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
