@@ -19,7 +19,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 interface RequestCharterPageProps {
-  searchParams: Promise<{ aircraft?: string; destination?: string }>;
+  searchParams: Promise<{
+    aircraft?: string;
+    destination?: string;
+    departure?: string;
+    passengers?: string;
+  }>;
 }
 
 export default async function RequestCharterPage({ searchParams }: RequestCharterPageProps) {
@@ -29,11 +34,17 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
     params.aircraft ? getAircraftByIdOrSlug(params.aircraft) : Promise.resolve(null),
   ]);
 
+  const passengerCount = params.passengers ? Number.parseInt(params.passengers, 10) : undefined;
+
   const defaultValues: Partial<CreateQuoteInput> | undefined =
-    prefillAircraft || params.destination
+    prefillAircraft || params.destination || params.departure || passengerCount
       ? {
           ...(prefillAircraft ? { aircraftPreference: prefillAircraft._id } : {}),
           ...(params.destination ? { destinationAirportCode: params.destination.toUpperCase() } : {}),
+          ...(params.departure ? { departureAirportCode: params.departure.toUpperCase() } : {}),
+          ...(passengerCount && passengerCount > 0 && passengerCount <= 100
+            ? { passengerCount }
+            : {}),
         }
       : undefined;
 

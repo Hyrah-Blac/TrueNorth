@@ -11,7 +11,9 @@ import {
   type ReactNode,
 } from "react";
 import { sendConciergeMessage, toConciergeError } from "../lib/api";
+import { usePageContext } from "../lib/pageContext";
 import { generateSessionId } from "../lib/session";
+import { extractPassengerCount, type TripDraft } from "../lib/tripDraft";
 import {
   clearStoredConversation,
   getStoredConversationId,
@@ -35,6 +37,8 @@ interface ConciergeContextValue {
   dismissError: () => void;
   startNewConversation: () => void;
   maxMessageLength: number;
+  tripDraft: TripDraft;
+  setTripDraftAirport: (role: "departure" | "destination", code: string, name: string) => void;
 }
 
 const ConciergeContext = createContext<ConciergeContextValue | null>(null);
@@ -56,6 +60,17 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<ConciergeMessage[]>(() => getStoredMessages());
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<ConciergeError | null>(null);
+  const [tripDraft, setTripDraft] = useState<TripDraft>({});
+
+  // Session-scoped only (not persisted to localStorage) — a trip draft
+  // reflects the visitor's current planning session, not something that
+  // should silently resurface stale departure/destination picks on a
+  // return visit days later.
+  const pageContext = usePageContext();
+  const pageContextRef = useRef<string | undefined>(pageContext);
+  useEffect(() => {
+    pageContextRef.current = pageContext;
+  }, [pageContext]);
 
   const sessionIdRef = useRef<string | null>(null);
   if (sessionIdRef.current === null) {
@@ -108,6 +123,11 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
 
       persistMessages((prev) => [...prev, optimisticUserMessage]);
 
+      const extractedPassengers = extractPassengerCount(trimmed);
+      if (extractedPassengers) {
+        setTripDraft((prev) => ({ ...prev, passengerCount: extractedPassengers }));
+      }
+
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -117,6 +137,7 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
             message: trimmed,
             conversationId: conversationIdRef.current,
             sessionId: sessionIdRef.current ?? undefined,
+            pageContext: pageContextRef.current,
           },
           controller.signal
         );
@@ -164,12 +185,21 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
 
   const dismissError = useCallback(() => setError(null), []);
 
+  const setTripDraftAirport = useCallback((role: "departure" | "destination", code: string, name: string) => {
+    setTripDraft((prev) =>
+      role === "departure"
+        ? { ...prev, departureAirportCode: code, departureAirportName: name }
+        : { ...prev, destinationAirportCode: code, destinationAirportName: name }
+    );
+  }, []);
+
   const startNewConversation = useCallback(() => {
     conversationIdRef.current = undefined;
     lastFailedTextRef.current = null;
     clearStoredConversation();
     setMessages([]);
     setError(null);
+    setTripDraft({});
   }, []);
 
   // Cancel any in-flight request when the provider unmounts (i.e. the
@@ -190,8 +220,20 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
       dismissError,
       startNewConversation,
       maxMessageLength: MAX_MESSAGE_LENGTH,
+      tripDraft,
+      setTripDraftAirport,
     }),
-    [messages, isSending, error, sendMessage, retryLastMessage, dismissError, startNewConversation]
+    [
+      messages,
+      isSending,
+      error,
+      sendMessage,
+      retryLastMessage,
+      dismissError,
+      startNewConversation,
+      tripDraft,
+      setTripDraftAirport,
+    ]
   );
 
   return <ConciergeContext.Provider value={value}>{children}</ConciergeContext.Provider>;

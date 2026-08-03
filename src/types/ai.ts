@@ -109,6 +109,7 @@ export interface ChatRequest {
   conversationId?: string;
   sessionId?: string;
   model?: AiModel;
+  pageContext?: string;
 }
 
 export interface ChatResponse {

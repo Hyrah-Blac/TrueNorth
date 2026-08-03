@@ -27,6 +27,7 @@ const AI_RATE_LIMIT = { windowMs: 60_000, max: 20 } as const;
  *     conversationId: string   MongoDB ObjectId — continues an existing conversation
  *     sessionId:      string   client-generated identifier — anonymous continuity
  *     model:          string   AI model override
+ *     pageContext:    string   short description of the page the visitor is on
  *   }
  *
  * Success response 200:
@@ -92,6 +93,7 @@ export async function POST(req: NextRequest) {
       sessionId,
       clerkUserId: clerkUserId ?? undefined,
       model: input.model,
+      pageContext: input.pageContext,
     });
 
     return successResponse(result);

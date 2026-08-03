@@ -1,4 +1,5 @@
 import { Compass, ArrowUpRight } from "lucide-react";
+import { useContextualSuggestedPrompts } from "../lib/pageContext";
 import type { SuggestedQuestion } from "../types";
 
 const SUGGESTED_QUESTIONS: SuggestedQuestion[] = [
@@ -9,7 +10,19 @@ const SUGGESTED_QUESTIONS: SuggestedQuestion[] = [
   { prompt: "What destinations do you operate?" },
 ];
 
+const MAX_SUGGESTIONS = 5;
+
 export function WelcomeScreen({ onSelect }: { onSelect: (prompt: string) => void }) {
+  const contextualPrompts = useContextualSuggestedPrompts();
+
+  // Page-specific prompts lead, since they're the most relevant to what
+  // the visitor is already looking at — generic ones fill the remaining
+  // slots, capped so the list never grows unbounded.
+  const questions: SuggestedQuestion[] = [
+    ...contextualPrompts.map((prompt) => ({ prompt })),
+    ...SUGGESTED_QUESTIONS,
+  ].slice(0, MAX_SUGGESTIONS);
+
   return (
     <div className="flex-1 overflow-y-auto px-6 py-10 sm:px-10">
       <div className="mx-auto flex min-h-full max-w-sm flex-col justify-center">
@@ -25,7 +38,7 @@ export function WelcomeScreen({ onSelect }: { onSelect: (prompt: string) => void
         </p>
 
         <div className="animate-fade-up-editorial mt-8 flex flex-col gap-2.5">
-          {SUGGESTED_QUESTIONS.map((question) => (
+          {questions.map((question) => (
             <button
               key={question.prompt}
               type="button"

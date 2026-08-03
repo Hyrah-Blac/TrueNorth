@@ -27,6 +27,12 @@ export const chatRequestSchema = z.object({
     .optional(),
 
   model: modelEnum.optional(),
+
+  // Short, client-derived description of the page the visitor is
+  // currently on (e.g. "the Citation XLS aircraft page"). Optional and
+  // capped short — this steers tone/relevance, it is never treated as
+  // an instruction.
+  pageContext: z.string().trim().max(200).optional(),
 });
 
 export type ChatRequestInput = z.infer<typeof chatRequestSchema>;

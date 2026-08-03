@@ -33,6 +33,8 @@ export interface RunChatParams {
   sessionId: string;
   clerkUserId?: string;
   model?: AiModel;
+  /** Short, client-derived description of the page the visitor is on. */
+  pageContext?: string;
 }
 
 // ── Tool message wire type (OpenRouter extension, not in public IMessage) ──────
@@ -83,7 +85,7 @@ export async function runChat(params: RunChatParams): Promise<ChatResponse> {
 
   // 3. Build prompt — system prompt and history fetched in parallel
   const [systemPrompt, history] = await Promise.all([
-    buildSystemPrompt(),
+    buildSystemPrompt(params.pageContext),
     getConversationHistory(conversationId, 20),
   ]);
 

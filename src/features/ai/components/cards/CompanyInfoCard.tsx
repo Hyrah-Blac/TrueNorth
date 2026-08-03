@@ -1,9 +1,14 @@
-import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, MessageCircle, Navigation } from "lucide-react";
 import { CardActionLink } from "./CardActionLink";
 import type { CompanyInfo } from "../../types";
 
 function whatsAppHref(whatsapp: string) {
   return `https://wa.me/${whatsapp.replace(/\D/g, "")}`;
+}
+
+function directionsHref(company: CompanyInfo) {
+  const query = encodeURIComponent(`${company.address}, ${company.city}`);
+  return `https://www.google.com/maps/search/?api=1&query=${query}`;
 }
 
 export function CompanyInfoCard({ company }: { company: CompanyInfo }) {
@@ -13,6 +18,13 @@ export function CompanyInfoCard({ company }: { company: CompanyInfo }) {
     company.address ? { Icon: MapPin, label: `${company.address}, ${company.city}`, href: undefined } : null,
     { Icon: Clock, label: company.operatingHours, href: undefined },
   ].filter((row): row is { Icon: typeof Phone; label: string; href?: string } => Boolean(row));
+
+  const quickActions = [
+    { Icon: Phone, label: "Call", href: `tel:${company.phone.replace(/\s/g, "")}` },
+    company.whatsapp ? { Icon: MessageCircle, label: "WhatsApp", href: whatsAppHref(company.whatsapp) } : null,
+    { Icon: Mail, label: "Email", href: `mailto:${company.email}` },
+    company.address ? { Icon: Navigation, label: "Directions", href: directionsHref(company) } : null,
+  ].filter((action): action is { Icon: typeof Phone; label: string; href: string } => Boolean(action));
 
   return (
     <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-5 shadow-crisp">
@@ -33,15 +45,30 @@ export function CompanyInfoCard({ company }: { company: CompanyInfo }) {
         ))}
       </dl>
 
-      <div className="mt-4 flex items-center gap-2">
+      <div className="mt-4 grid grid-cols-4 gap-2">
+        {quickActions.map(({ Icon, label, href }) => (
+          <a
+            key={label}
+            href={href}
+            target={href.startsWith("http") ? "_blank" : undefined}
+            rel={href.startsWith("http") ? "noreferrer noopener" : undefined}
+            className="group flex flex-col items-center gap-1.5 rounded-lg border border-slate-200 py-2.5 transition-colors duration-300 hover:border-sky-500 hover:bg-sky-50/40"
+          >
+            <Icon
+              className="h-4 w-4 text-navy-900 transition-colors duration-300 group-hover:text-sky-600"
+              aria-hidden="true"
+            />
+            <span className="text-[9px] font-medium uppercase tracking-wide text-slate-500 group-hover:text-sky-600">
+              {label}
+            </span>
+          </a>
+        ))}
+      </div>
+
+      <div className="mt-3">
         <CardActionLink href="/contact" variant="outline">
           Contact Us
         </CardActionLink>
-        {company.whatsapp ? (
-          <CardActionLink href={whatsAppHref(company.whatsapp)} variant="primary" external>
-            WhatsApp
-          </CardActionLink>
-        ) : null}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { useAutoScroll } from "../hooks/useAutoScroll";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 import { ErrorState } from "./ErrorState";
+import { FollowUpSuggestions } from "./FollowUpSuggestions";
 import type { ConciergeError, ConciergeMessage } from "../types";
 
 interface MessageListProps {
@@ -13,6 +14,8 @@ interface MessageListProps {
 
 export function MessageList({ messages, isSending, error, onRetry }: MessageListProps) {
   const scrollRef = useAutoScroll(`${messages.length}-${isSending}-${error?.message ?? ""}`);
+  const lastMessage = messages[messages.length - 1];
+  const showFollowUps = !isSending && !error && lastMessage?.role === "assistant";
 
   return (
     <div
@@ -28,6 +31,7 @@ export function MessageList({ messages, isSending, error, onRetry }: MessageList
         ))}
         {isSending ? <TypingIndicator /> : null}
         {error ? <ErrorState error={error} onRetry={onRetry} /> : null}
+        {showFollowUps ? <FollowUpSuggestions message={lastMessage} /> : null}
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ const MAX_KB_ENTRIES = 6;
  * Fetches company info and featured knowledge in parallel to minimise
  * the latency hit on the first message of a new conversation.
  */
-export async function buildSystemPrompt(): Promise<string> {
+export async function buildSystemPrompt(pageContext?: string): Promise<string> {
   const [company, featuredKnowledge] = await Promise.all([
     getCompanyInfoForAI(),
     getFeaturedKnowledgeForAI(MAX_KB_ENTRIES),
@@ -66,6 +66,10 @@ export async function buildSystemPrompt(): Promise<string> {
     company.description ||
     `${company.name} is a professional charter aviation operator based in ${company.city}, ${company.country}, serving business, government, NGO, safari, medical, and cargo missions.`;
 
+  const pageContextSection = pageContext
+    ? `\n\n## Visitor's Current Page\n\nThe visitor is currently on ${pageContext}. Weave this in naturally where it's relevant — for example, referencing what they're already looking at — but never mention "page context" or explain how you know this.`
+    : "";
+
   return `You are the AI Concierge for ${company.name}, a professional charter aviation operator based in ${company.city}, ${company.country}.
 
 ## Your Role
@@ -83,7 +87,7 @@ You help clients choose the right aircraft, plan charter flights, understand the
 
 ## Current Date & Time
 
-${dateStr}, ${timeStr}.${knowledgeSection}
+${dateStr}, ${timeStr}.${knowledgeSection}${pageContextSection}
 
 ## Tools
 
@@ -97,7 +101,7 @@ You have four tools. Use them — never guess when data is available:
 ## Response Guidelines
 
 - Be concise. Clients are decision-makers; avoid walls of text.
-- Recommend aircraft by name, with specific numbers: passengers, range (nm), speed (kts), mission fit.
+- Recommend aircraft by name, with specific numbers: passengers, range (nm), speed (kts), mission fit — and briefly explain *why* it fits (cabin comfort, runway suitability, luggage capacity, pet-friendliness, or business/medical/family suitability, whichever is relevant).
 - When you need more information, ask one focused question — not a list of questions.
 - Always suggest a clear next step: request a quote, WhatsApp the team, or ask a follow-up.
 - Use short paragraphs or brief bullets. Never long essays.
@@ -112,5 +116,5 @@ You have four tools. Use them — never guess when data is available:
 - **Do not process bookings or payments.**
 - **Do not access weather or NOTAMs.**
 - If asked about something outside charter aviation, politely redirect.
-- If a tool returns no results, say so honestly — do not fabricate alternatives.`;
+- If search_aircraft or lookup_airport returns no results, say so honestly, then try one broader search before giving up — relax the passenger count or mission type, or, for airports, search nearby airports or the wider region. Only ever mention an aircraft or airport that a tool has actually returned; if nothing suitable turns up even after a broader search, say that plainly and offer to connect them with the operations team instead of guessing.`;
 }

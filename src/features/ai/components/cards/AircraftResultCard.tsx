@@ -2,6 +2,9 @@ import Image from "next/image";
 import { Users, MapPinned, Gauge, PawPrint, Wifi } from "lucide-react";
 import { AIRCRAFT_CATEGORY_LABELS } from "@/database/constants/aircraft";
 import { MISSION_TYPE_LABELS } from "@/database/constants/mission-type";
+import { CompareButton } from "@/components/aircraft/compare/CompareButton";
+import { useConcierge } from "../../context/ConciergeContext";
+import { buildRequestQuoteHref } from "../../lib/tripDraft";
 import { CardActionLink } from "./CardActionLink";
 import type { AircraftSummary } from "../../types";
 
@@ -10,6 +13,7 @@ function isMissionType(value: string): value is keyof typeof MISSION_TYPE_LABELS
 }
 
 export function AircraftResultCard({ aircraft }: { aircraft: AircraftSummary }) {
+  const { tripDraft } = useConcierge();
   const categoryLabel =
     aircraft.category in AIRCRAFT_CATEGORY_LABELS
       ? AIRCRAFT_CATEGORY_LABELS[aircraft.category as keyof typeof AIRCRAFT_CATEGORY_LABELS]
@@ -34,6 +38,13 @@ export function AircraftResultCard({ aircraft }: { aircraft: AircraftSummary }) 
         <span className="absolute left-3 top-3 rounded-md bg-white/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-navy-900">
           {categoryLabel}
         </span>
+        <CompareButton
+          slug={aircraft.slug}
+          name={aircraft.name}
+          imageUrl={aircraft.heroImageUrl}
+          categoryLabel={categoryLabel}
+          variant="card"
+        />
       </div>
 
       <div className="flex flex-col gap-3 p-4">
@@ -88,7 +99,7 @@ export function AircraftResultCard({ aircraft }: { aircraft: AircraftSummary }) 
           <CardActionLink href={`/fleet/${aircraft.slug}`} variant="outline">
             View Aircraft
           </CardActionLink>
-          <CardActionLink href={`/request-charter?aircraft=${aircraft.slug}`} variant="primary">
+          <CardActionLink href={buildRequestQuoteHref(tripDraft, aircraft.slug)} variant="primary">
             Request Charter
           </CardActionLink>
         </div>
