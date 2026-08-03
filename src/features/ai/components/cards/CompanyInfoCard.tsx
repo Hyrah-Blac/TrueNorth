@@ -27,15 +27,15 @@ export function CompanyInfoCard({ company }: { company: CompanyInfo }) {
   ].filter((action): action is { Icon: typeof Phone; label: string; href: string } => Boolean(action));
 
   return (
-    <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-5 shadow-crisp">
+    <div className="w-full max-w-sm rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
       <h4 className="font-display text-sm font-semibold text-navy-900">{company.shortName}</h4>
 
       <dl className="mt-3 space-y-2.5">
         {rows.map((row, index) => (
           <div key={index} className="flex items-start gap-2.5">
-            <row.Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-500" aria-hidden="true" />
+            <row.Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600" aria-hidden="true" />
             {row.href ? (
-              <a href={row.href} className="text-xs leading-relaxed text-slate-700 hover:text-sky-600">
+              <a href={row.href} className="text-xs leading-relaxed text-slate-700 hover:text-blue-600">
                 {row.label}
               </a>
             ) : (
@@ -52,13 +52,13 @@ export function CompanyInfoCard({ company }: { company: CompanyInfo }) {
             href={href}
             target={href.startsWith("http") ? "_blank" : undefined}
             rel={href.startsWith("http") ? "noreferrer noopener" : undefined}
-            className="group flex flex-col items-center gap-1.5 rounded-lg border border-slate-200 py-2.5 transition-colors duration-300 hover:border-sky-500 hover:bg-sky-50/40"
+            className="group flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 py-2.5 transition-colors duration-300 hover:border-blue-500 hover:bg-blue-50/40"
           >
             <Icon
-              className="h-4 w-4 text-navy-900 transition-colors duration-300 group-hover:text-sky-600"
+              className="h-4 w-4 text-navy-900 transition-colors duration-300 group-hover:text-blue-600"
               aria-hidden="true"
             />
-            <span className="text-[9px] font-medium uppercase tracking-wide text-slate-500 group-hover:text-sky-600">
+            <span className="text-[9px] font-medium uppercase tracking-wide text-slate-500 group-hover:text-blue-600">
               {label}
             </span>
           </a>

@@ -27,35 +27,41 @@ export function ConciergePanel({ open, onClose }: ConciergePanelProps) {
       aria-hidden={!open}
       className={`fixed inset-0 z-[90] ${open ? "" : "pointer-events-none"}`}
     >
-      {/* Backdrop — desktop only; the mobile fullscreen panel needs no scrim behind it. */}
+      {/* Backdrop — no blur, just a light scrim. Not clickable: the
+          panel should only close via the X button in the header. */}
       <div
-        onClick={onClose}
         aria-hidden="true"
-        className={`absolute inset-0 hidden bg-navy-950/30 backdrop-blur-[2px] transition-opacity duration-500 ease-editorial sm:block ${
+        className={`absolute inset-0 pointer-events-none bg-navy-950/15 transition-opacity duration-500 ease-editorial ${
           open ? "opacity-100" : "opacity-0"
         }`}
       />
 
+      {/* Floating panel — full-screen on mobile, floating card from sm: up.
+          Fixed height on desktop (rather than h-auto) so the growing
+          textarea in ChatInput never resizes the card itself — the
+          message list flexes to absorb the difference instead. */}
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="concierge-panel-title"
         tabIndex={-1}
-        className={`absolute inset-0 flex w-full flex-col bg-white shadow-lifted transition-all duration-500 ease-editorial sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[420px] sm:border-l sm:border-slate-200 ${
-          open
-            ? "translate-x-0 opacity-100"
-            : "translate-x-full opacity-0 sm:translate-x-8"
-        }`}
+        className={`absolute inset-0 flex flex-col overflow-hidden bg-white shadow-[0_40px_90px_-12px_rgba(15,23,42,0.28),0_0_0_1px_rgba(15,23,42,0.06)] ring-1 ring-black/5 transition-all duration-500 ease-editorial
+          sm:inset-auto sm:bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:right-6 sm:h-[540px] sm:w-[440px] sm:rounded-[28px]
+          ${open ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0 pointer-events-none"}`}
       >
+        {/* Top — rounded via parent overflow-hidden on desktop */}
         <ConciergeHeader onClose={onClose} onNewConversation={startNewConversation} hasConversation={hasConversation} />
 
-        {hasConversation ? (
-          <MessageList messages={messages} isSending={isSending} error={error} onRetry={retryLastMessage} />
-        ) : (
-          <WelcomeScreen onSelect={(prompt) => void sendMessage(prompt)} />
-        )}
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+          {hasConversation ? (
+            <MessageList messages={messages} isSending={isSending} error={error} onRetry={retryLastMessage} />
+          ) : (
+            <WelcomeScreen onSelect={(prompt) => void sendMessage(prompt)} />
+          )}
+        </div>
 
+        {/* Bottom — sits flush inside the rounded container */}
         <ChatInput onSend={(text) => void sendMessage(text)} disabled={isSending} maxLength={maxMessageLength} />
       </div>
     </div>,

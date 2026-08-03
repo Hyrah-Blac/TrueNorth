@@ -18,8 +18,8 @@ interface CardActionLinkProps {
 export function CardActionLink({ href, variant, external, children }: CardActionLinkProps) {
   const className =
     variant === "primary"
-      ? "flex-1 rounded-full border border-blue-500 bg-blue-500 px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-white transition-colors duration-300 hover:bg-blue-700 hover:border-blue-700"
-      : "flex-1 rounded-full border border-slate-300 px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-navy-900 transition-colors duration-300 hover:border-sky-500 hover:text-sky-600";
+      ? "flex-1 rounded-full border border-blue-600 bg-blue-600 px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-white transition-colors duration-300 hover:bg-blue-700 hover:border-blue-700"
+      : "flex-1 rounded-full border border-slate-300 px-3 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-navy-900 transition-colors duration-300 hover:border-blue-500 hover:text-blue-600";
 
   if (external) {
     return (

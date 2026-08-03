@@ -1,4 +1,4 @@
-import { Compass, X, RotateCcw } from "lucide-react";
+import { Headset, X, RotateCcw } from "lucide-react";
 
 interface ConciergeHeaderProps {
   onClose: () => void;
@@ -17,8 +17,8 @@ export function ConciergeHeader({
       className="flex items-center justify-between border-b border-slate-100 px-6 pb-5 sm:px-10"
     >
       <div className="flex items-center gap-3">
-        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-950 text-white">
-          <Compass className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+          <Headset className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
           <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full border-2 border-white bg-green-500">
             <span className="absolute h-3 w-3 animate-ping rounded-full bg-green-500/60" />
           </span>
@@ -26,11 +26,11 @@ export function ConciergeHeader({
         <div>
           <div className="flex items-center gap-2">
             <h2 id="concierge-panel-title" className="font-display text-sm font-semibold text-navy-900">
-              AI Concierge
+              True North Concierge
             </h2>
             <span className="text-[10px] uppercase tracking-wide text-green-600">Online</span>
           </div>
-          <p className="text-xs text-slate-500">Private Charter Advisor</p>
+          <p className="text-xs text-slate-500">Your personal charter aviation assistant.</p>
         </div>
       </div>
 

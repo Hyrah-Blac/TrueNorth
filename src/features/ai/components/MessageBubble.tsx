@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import { AlertTriangle, Compass } from "lucide-react";
+import { AlertTriangle, Headset } from "lucide-react";
 import { formatTime } from "@/utils/date";
 import { renderMarkdown } from "../lib/markdown";
 import { ToolResultRail } from "./cards/ToolResultRail";
@@ -19,7 +19,7 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
   if (isUser) {
     return (
       <div className="flex flex-col items-end gap-1.5">
-        <div className="max-w-[82%] break-words rounded-lg rounded-tr-sm bg-navy-950 px-4 py-2.5 text-sm leading-relaxed text-white">
+        <div className="max-w-[82%] break-words rounded-2xl rounded-tr-md bg-gradient-to-br from-blue-600 to-blue-700 px-4 py-2.5 text-sm leading-relaxed text-white shadow-[0_4px_14px_-4px_rgba(37,99,235,0.35)]">
           {message.content}
         </div>
         <div className="flex items-center gap-1.5 pr-1 text-[10px] uppercase tracking-wide text-slate-400">
@@ -39,11 +39,11 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-2">
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-navy-950 text-white">
-          <Compass className="h-3 w-3" strokeWidth={1.5} aria-hidden="true" />
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+          <Headset className="h-3 w-3" strokeWidth={1.5} aria-hidden="true" />
         </div>
         <span className="font-display text-xs font-medium uppercase tracking-wide text-slate-500">
-          AI Concierge
+          Concierge
         </span>
         <span className="text-[10px] text-slate-400">{formatTime(message.createdAt)}</span>
       </div>

@@ -22,7 +22,7 @@ export function MessageList({ messages, isSending, error, onRetry }: MessageList
       ref={scrollRef}
       role="log"
       aria-live="polite"
-      aria-label="Conversation with AI Concierge"
+      aria-label="Conversation with Concierge"
       className="flex-1 overflow-y-auto px-6 py-6 sm:px-10"
     >
       <div className="flex flex-col gap-6">

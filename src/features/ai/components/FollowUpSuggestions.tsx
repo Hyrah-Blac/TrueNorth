@@ -38,7 +38,7 @@ export function FollowUpSuggestions({ message }: { message: ConciergeMessage }) 
           key={suggestion}
           type="button"
           onClick={() => void sendMessage(suggestion)}
-          className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-600 transition-colors duration-300 ease-editorial hover:border-sky-400 hover:text-sky-600"
+          className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-600 transition-colors duration-300 ease-editorial hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700"
         >
           {suggestion}
         </button>

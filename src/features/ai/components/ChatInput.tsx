@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowUp } from "lucide-react";
+import { Send } from "lucide-react";
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -41,11 +41,8 @@ export function ChatInput({ onSend, disabled, maxLength }: ChatInputProps) {
   const showCounter = remaining <= 200;
 
   return (
-    <div
-      style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))" }}
-      className="border-t border-slate-100 bg-white px-6 pt-4 sm:px-10"
-    >
-      <div className="flex items-end gap-3 rounded-lg border border-slate-200 bg-white px-4 py-2.5 transition-colors duration-300 focus-within:border-sky-400">
+    <div className="border-t border-slate-100 bg-white px-4 pb-4 pt-3">
+      <div className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 transition-colors duration-200 focus-within:border-slate-300 focus-within:bg-white">
         <textarea
           ref={textareaRef}
           value={value}
@@ -56,26 +53,27 @@ export function ChatInput({ onSend, disabled, maxLength }: ChatInputProps) {
           maxLength={maxLength}
           placeholder="Ask about routes, aircraft, or availability…"
           aria-label="Message the AI Concierge"
-          className="max-h-[140px] flex-1 resize-none border-0 bg-transparent py-1.5 text-sm leading-relaxed text-navy-900 placeholder:text-slate-400 focus:outline-none focus:ring-0 disabled:opacity-50"
+          className="max-h-[140px] flex-1 resize-none border-0 bg-transparent py-1 text-[14px] font-normal leading-relaxed tracking-[0.005em] text-navy-900 placeholder:font-light placeholder:text-slate-400 focus:outline-none focus:ring-0 disabled:opacity-50"
         />
         <button
           type="button"
           onClick={handleSubmit}
           disabled={disabled || !value.trim()}
           aria-label="Send message"
-          className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy-950 text-white transition-all duration-300 ease-editorial hover:bg-blue-700 disabled:pointer-events-none disabled:opacity-30"
+          className="group mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm transition-all duration-200 ease-out hover:scale-105 hover:bg-blue-700 hover:shadow-md active:scale-95 disabled:pointer-events-none disabled:scale-100 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
         >
-          <ArrowUp className="h-4 w-4" aria-hidden="true" />
+          <Send
+            className="h-4 w-4 translate-x-[-1px] transition-transform duration-200 group-hover:translate-x-0"
+            strokeWidth={2}
+            aria-hidden="true"
+          />
         </button>
       </div>
-      <div className="mt-1.5 flex items-center justify-between px-1">
-        <span className="text-[10px] uppercase tracking-wide text-slate-400">
-          Enter to send · Shift + Enter for a new line
-        </span>
-        {showCounter ? (
-          <span className={`text-[10px] ${remaining <= 0 ? "text-red-600" : "text-slate-400"}`}>{remaining}</span>
-        ) : null}
-      </div>
+      {showCounter && (
+        <div className="mt-1.5 flex justify-end px-1">
+          <span className={`text-[10px] font-medium tracking-[0.04em] tabular-nums ${remaining <= 0 ? "text-red-600" : "text-slate-400"}`}>{remaining}</span>
+        </div>
+      )}
     </div>
   );
 }

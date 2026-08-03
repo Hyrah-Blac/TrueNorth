@@ -20,9 +20,9 @@ export function AirportResultCard({ airport }: { airport: AirportSummary }) {
   const isDestination = tripDraft.destinationAirportCode === airport.icao;
 
   return (
-    <div className="w-[260px] shrink-0 rounded-xl border border-slate-200 bg-white p-4 shadow-crisp transition-colors duration-300 ease-editorial hover:border-slate-300 sm:w-[280px]">
+    <div className="w-[260px] shrink-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-300 ease-editorial hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_12px_24px_-8px_rgba(37,99,235,0.15)] sm:w-[280px]">
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-navy-950 text-white">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
           <MapPin className="h-4 w-4" aria-hidden="true" />
         </div>
         <div className="min-w-0">
@@ -57,9 +57,9 @@ export function AirportResultCard({ airport }: { airport: AirportSummary }) {
           {activeFeatures.map(({ key, label, Icon }) => (
             <span
               key={key}
-              className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-600"
+              className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-blue-700"
             >
-              <Icon className="h-3 w-3 text-sky-500" aria-hidden="true" />
+              <Icon className="h-3 w-3 text-blue-600" aria-hidden="true" />
               {label}
             </span>
           ))}
@@ -75,8 +75,8 @@ export function AirportResultCard({ airport }: { airport: AirportSummary }) {
           aria-pressed={isDeparture}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-[11px] font-medium uppercase tracking-wide transition-colors duration-300 ${
             isDeparture
-              ? "border-sky-500 bg-sky-100/70 text-sky-700"
-              : "border-slate-300 text-navy-900 hover:border-sky-500 hover:text-sky-600"
+              ? "border-blue-500 bg-blue-50 text-blue-700"
+              : "border-slate-300 text-navy-900 hover:border-blue-400 hover:text-blue-600"
           }`}
         >
           {isDeparture ? (
@@ -92,8 +92,8 @@ export function AirportResultCard({ airport }: { airport: AirportSummary }) {
           aria-pressed={isDestination}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-[11px] font-medium uppercase tracking-wide transition-colors duration-300 ${
             isDestination
-              ? "border-sky-500 bg-sky-100/70 text-sky-700"
-              : "border-slate-300 text-navy-900 hover:border-sky-500 hover:text-sky-600"
+              ? "border-blue-500 bg-blue-50 text-blue-700"
+              : "border-slate-300 text-navy-900 hover:border-blue-400 hover:text-blue-600"
           }`}
         >
           {isDestination ? (
