@@ -74,27 +74,15 @@ function getClient(apiKey: string): GoogleGenAI {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface CompletionOptions {
-  /**
-   * Requested model. Retained for interface compatibility with callers,
-   * but the actual model used is always resolved from the required
-   * GEMINI_MODEL env var — see getConfig() — so a single env var
-   * controls the model everywhere without touching call sites.
-   */
   model: string;
   messages: OpenRouterMessage[];
   tools?: AiToolDefinition[];
-  /**
-   * When `tools` is provided: "auto" (default) lets the model call any of
-   * them; "none" declares the same schema but explicitly forbids calling —
-   * use this instead of omitting `tools` to end a function-calling loop,
-   * since dropping the schema abruptly is what causes some Gemini 3.x
-   * models to still attempt (and fail) a function call anyway. See
-   * NO_FUNCTION_CALLING below.
-   */
   toolChoice?: "auto" | "none";
-  /** 0–1. Defaults to 0.4 — tuned for consistent, deterministic answers. */
   temperature?: number;
   maxTokens?: number;
+
+  /** Abort signal forwarded from chat.service.ts */
+  signal?: AbortSignal;
 }
 
 export interface CompletionResult {
@@ -301,9 +289,18 @@ export async function createCompletion(
   // produces a 504 with no useful error message. This now covers the
   // whole stream, not just the initial call — a stalled stream mid-way
   // through is just as fatal as a stalled request.
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+const controller = new AbortController();
 
+// Forward cancellation from chat.service.ts
+if (options.signal) {
+  options.signal.addEventListener(
+    "abort",
+    () => controller.abort(),
+    { once: true }
+  );
+}
+
+const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
   let accumulatedText = "";
   // Gemini's stream repeats/refines usage metadata, response id, model
   // version, and finish reason as it progresses — the LAST chunk carries

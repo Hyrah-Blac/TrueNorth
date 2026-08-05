@@ -134,10 +134,10 @@ export async function runChat(
   await saveUserMessage(conversationId, sanitizedMessage);
 
   // 3. Build prompt — system prompt and history fetched in parallel
-  const [systemPrompt, history] = await Promise.all([
-    buildSystemPrompt(params.pageContext, settings),
-    getConversationHistory(conversationId, 20),
-  ]);
+ const [systemPrompt, history] = await Promise.all([
+  buildSystemPrompt(params.pageContext),
+  getConversationHistory(conversationId, 20),
+]);
 
   // The history contains the user message we just saved. Remove it —
   // we add it explicitly so it is always the final message in the array.
