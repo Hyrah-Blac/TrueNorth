@@ -18,6 +18,15 @@ const socialLinkSchema = z.object({
   label: z.string().trim().min(1).max(100),
 });
 
+const aiSettingsSchema = z.object({
+  enabled: z.boolean().default(true),
+  welcomeMessage: z.string().trim().max(200).optional().or(z.literal("")),
+  tone: z.string().trim().max(100).optional().or(z.literal("")),
+  fallbackMessage: z.string().trim().max(300).optional().or(z.literal("")),
+  starterPrompts: z.array(z.string().trim().min(1).max(200)).max(6).default([]),
+  maxConversationLength: z.coerce.number().int().min(5).max(500).optional(),
+});
+
 export const siteSettingsSchema = z.object({
   // Contact
   phone: phoneField,
@@ -38,7 +47,10 @@ export const siteSettingsSchema = z.object({
   operatingHours: z.string().trim().min(1, "Operating hours are required").max(200),
   // Social
   socialLinks: z.array(socialLinkSchema).max(10).default([]),
+  // AI Concierge
+  ai: aiSettingsSchema.default({ enabled: true, starterPrompts: [] }),
 });
 
 export type SiteSettingsInput = z.infer<typeof siteSettingsSchema>;
 export type SocialLinkInput = z.infer<typeof socialLinkSchema>;
+export type AiSettingsInput = z.infer<typeof aiSettingsSchema>;

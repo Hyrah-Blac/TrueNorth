@@ -118,3 +118,18 @@ export interface ChatResponse {
   message: IMessage;
   tokenUsage?: ITokenUsage;
 }
+
+/**
+ * Events streamed over the POST /api/ai/chat response (Server-Sent
+ * Events). "tool_status" fires while a tool call is in flight, "chunk"
+ * delivers the final reply progressively, "done" carries the fully
+ * persisted message so the client can reconcile its optimistic state,
+ * and "error" reports a failure mid-stream (HTTP status is already 200
+ * by the time streaming starts, so errors travel through the stream
+ * itself rather than as an HTTP status code).
+ */
+export type ChatStreamEvent =
+  | { type: "tool_status"; label: string }
+  | { type: "chunk"; delta: string }
+  | { type: "done"; conversationId: string; sessionId: string; message: IMessage; tokenUsage?: ITokenUsage }
+  | { type: "error"; message: string };

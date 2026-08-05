@@ -7,23 +7,24 @@ export type { IMessage, IToolCall, AircraftSummary, AirportSummary, CompanyInfo 
 
 /**
  * Client-local message shape. Extends the persisted `IMessage` with a
- * `sent`/`failed` status so a failed send can be flagged with a retry
- * affordance — the in-flight state itself is communicated separately via
- * the typing indicator, not stored on the message.
+ * `sent`/`streaming`/`failed` status: `streaming` marks the assistant's
+ * reply while it's still being progressively filled in, `failed` flags
+ * a send that needs a retry affordance. Once a reply completes it's
+ * replaced with the server's own persisted message (status `sent`).
  */
 export interface ConciergeMessage extends Omit<IMessage, "_id" | "conversationId" | "createdAt" | "updatedAt"> {
   _id: string;
   conversationId?: string;
   createdAt: string;
   updatedAt: string;
-  status: "sent" | "failed";
+  status: "sent" | "streaming" | "failed";
 }
 
 export interface SuggestedQuestion {
   prompt: string;
 }
 
-export type ToolResultKind = "aircraft" | "airport" | "company" | "none";
+export type ToolResultKind = "aircraft" | "airport" | "company" | "empty_aircraft" | "empty_airport" | "none";
 
 /** Narrows a tool call's untyped `result` payload to a renderable shape + kind. */
 export interface ParsedToolResult {

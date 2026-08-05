@@ -24,6 +24,17 @@ export interface SiteSettingsDocument extends Document {
     href: string;
     label: string;
   }[];
+  // AI Concierge configuration — all optional; buildSystemPrompt() and
+  // the frontend fall back to sensible defaults when unset so an admin
+  // who never touches this section sees no behavior change.
+  ai: {
+    enabled: boolean;
+    welcomeMessage?: string;
+    tone?: string;
+    fallbackMessage?: string;
+    starterPrompts: string[];
+    maxConversationLength?: number;
+  };
   updatedBy?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -59,6 +70,21 @@ const SiteSettingsSchema = new Schema<SiteSettingsDocument>(
     operatingHours: { type: String, required: true, trim: true },
     // Social
     socialLinks: { type: [SocialLinkSchema], default: [] },
+    // AI Concierge
+    ai: {
+      type: new Schema(
+        {
+          enabled: { type: Boolean, default: true },
+          welcomeMessage: { type: String, trim: true, maxlength: 200 },
+          tone: { type: String, trim: true, maxlength: 100 },
+          fallbackMessage: { type: String, trim: true, maxlength: 300 },
+          starterPrompts: { type: [String], default: [] },
+          maxConversationLength: { type: Number, min: 5, max: 500 },
+        },
+        { _id: false }
+      ),
+      default: () => ({ enabled: true, starterPrompts: [] }),
+    },
     updatedBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }

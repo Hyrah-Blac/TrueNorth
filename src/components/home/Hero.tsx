@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Container } from "@/components/layout/container/Container";
-import { Button } from "@/components/shared/buttons/Button";
 
 interface HeroProps {
   companyName: string;
@@ -11,100 +9,116 @@ interface HeroProps {
 }
 
 export function Hero({ companyName, tagline }: HeroProps) {
-  const parallaxRef = useRef<HTMLDivElement>(null);
-  const frameRequested = useRef(false);
-  const [motionEnabled, setMotionEnabled] = useState(false);
-
-  useEffect(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setMotionEnabled(!prefersReduced);
-    if (prefersReduced) return;
-
-    const handlePointerMove = (event: PointerEvent) => {
-      if (frameRequested.current) return;
-      frameRequested.current = true;
-      requestAnimationFrame(() => {
-        const node = parallaxRef.current;
-        if (node) {
-          const xRatio = event.clientX / window.innerWidth - 0.5;
-          const yRatio = event.clientY / window.innerHeight - 0.5;
-          node.style.transform = `translate3d(${xRatio * -10}px, ${yRatio * -10}px, 0) scale(1.03)`;
-        }
-        frameRequested.current = false;
-      });
-    };
-
-    window.addEventListener("pointermove", handlePointerMove, { passive: true });
-    return () => window.removeEventListener("pointermove", handlePointerMove);
-  }, []);
-
   return (
     <section className="relative flex h-screen min-h-[640px] items-center overflow-hidden bg-navy-950">
       <div className="absolute inset-0" aria-hidden="true">
-        <div ref={parallaxRef} className="absolute inset-0 transition-transform duration-700 ease-out">
-          <Image
-            src="/images/hero/2292095.jpg"
-            alt=""
-            fill
-            priority
-            className={`object-cover ${motionEnabled ? "animate-zoom-slow" : ""}`}
-            sizes="100vw"
-          />
-        </div>
-
-        {/* Scrim: top fade for the transparent navbar, a stronger bottom
-            fade for the button row, and a soft radial darkening centered
-            on the text block itself — the aircraft's tail crosses right
-            through that area, so the text needs a bit more contrast than
-            a simple top-to-bottom gradient alone provides. */}
-        <div className="absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-navy-950/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-navy-950/30 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_55%,rgba(9,21,33,0.45),transparent_70%)]" />
+        <Image
+          src="/images/hero/hunter.jpg"
+          alt=""
+          fill
+          priority
+          className="animate-kenburns object-cover"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-black/60" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.45)_100%)]" />
       </div>
 
       <Container className="relative flex justify-center">
-        <div className="max-w-2xl text-center lg:max-w-4xl xl:max-w-5xl">
-          <p className="spec-readout mb-3 font-mono text-[clamp(0.625rem,0.6rem+0.1vw,0.6875rem)] font-medium uppercase tracking-widest2 text-white/50">
+        <div className="max-w-xl text-center">
+          <p
+            className="animate-fade-in-up mb-6 font-mono text-[0.625rem] font-medium uppercase tracking-[0.5em] text-white/50"
+            style={{ animationDelay: "0ms" }}
+          >
             {companyName}
           </p>
 
-          <h1 className="font-editorial text-[clamp(2.5rem,1.7rem+3vw,4.75rem)] font-light uppercase leading-[1.1] tracking-[0.005em] text-white">
+          <h1
+            className="animate-fade-in-up font-editorial text-[clamp(2.25rem,1.6rem+2.6vw,4.25rem)] font-light uppercase leading-[1.15] tracking-[0.01em] text-white"
+            style={{ animationDelay: "120ms" }}
+          >
             Adventure,
             <br />
             above &amp; <span className="text-champagne-400">beyond</span>
           </h1>
 
-          <div className="mx-auto mt-8 h-px w-12 bg-white/20" />
+          <div
+            className="animate-fade-in-up mx-auto mt-9 h-px w-6 bg-white/20"
+            style={{ animationDelay: "260ms" }}
+          />
 
-          <p className="mx-auto mt-5 max-w-md text-[clamp(0.8125rem,0.8rem+0.15vw,0.9375rem)] leading-relaxed text-slate-200">
+          <p
+            className="animate-fade-in-up mx-auto mt-8 max-w-[22rem] text-[0.875rem] font-light leading-loose tracking-wide text-white/60"
+            style={{ animationDelay: "340ms" }}
+          >
             {tagline}
           </p>
-
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
-            <Button
-              href="/request-charter"
-              variant="outline-light"
-              size="lg"
-              className="px-[clamp(1.125rem,0.95rem+0.7vw,1.5rem)] py-[clamp(0.5rem,0.45rem+0.25vw,0.625rem)] text-[clamp(0.6875rem,0.66rem+0.1vw,0.75rem)]"
-            >
-              Request Charter
-            </Button>
-            <Button
-              href="/fleet"
-              variant="outline-light"
-              size="lg"
-              className="px-[clamp(1.125rem,0.95rem+0.7vw,1.5rem)] py-[clamp(0.5rem,0.45rem+0.25vw,0.625rem)] text-[clamp(0.6875rem,0.66rem+0.1vw,0.75rem)]"
-            >
-              Explore Fleet
-            </Button>
-          </div>
         </div>
       </Container>
 
-      <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-white/40 lg:flex">
-        <span className="text-[0.65rem] uppercase tracking-[0.3em]">Scroll</span>
-        <span className="h-8 w-px bg-white/40" />
+      <div
+        className="animate-fade-in-up absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
+        style={{ animationDelay: "600ms" }}
+        aria-hidden="true"
+      >
+        <span className="font-mono text-[0.5625rem] uppercase tracking-[0.4em] text-white/40">
+          Scroll
+        </span>
+        <div className="relative h-10 w-px overflow-hidden bg-white/15">
+          <div className="animate-scroll-line absolute inset-x-0 top-0 h-1/2 bg-white/70" />
+        </div>
       </div>
+
+      <style jsx>{`
+        @keyframes kenburns {
+          0% {
+            transform: scale(1) translate(0, 0);
+          }
+          100% {
+            transform: scale(1.12) translate(-1%, -1%);
+          }
+        }
+        .animate-kenburns {
+          animation: kenburns 40s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+          0% {
+            opacity: 0;
+            transform: translateY(14px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in-up {
+          opacity: 0;
+          animation: fadeInUp 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes scrollLine {
+          0% {
+            transform: translateY(-100%);
+          }
+          100% {
+            transform: translateY(200%);
+          }
+        }
+        .animate-scroll-line {
+          animation: scrollLine 2.2s ease-in-out infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .animate-kenburns,
+          .animate-fade-in-up,
+          .animate-scroll-line {
+            animation: none;
+            opacity: 1;
+            transform: none;
+          }
+        }
+      `}</style>
     </section>
   );
 }

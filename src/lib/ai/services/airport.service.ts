@@ -111,6 +111,51 @@ export async function getAirportByCodeForAI(code: string): Promise<AirportSummar
   return airport ? toAirportSummary(airport) : null;
 }
 
+const EARTH_RADIUS_KM = 6371;
+
+/** Great-circle distance between two coordinates, in kilometres. */
+function haversineDistanceKm(a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLon = toRad(b.longitude - a.longitude);
+  const lat1 = toRad(a.latitude);
+  const lat2 = toRad(b.latitude);
+
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/**
+ * Finds real airports near a known reference airport, by actual
+ * coordinate distance — used when a requested airport can't handle a
+ * flight (e.g. runway too short, or the visitor asks for alternatives)
+ * so the concierge can offer genuine nearby options instead of just
+ * saying no. Returns [] (never a fabricated list) if the reference
+ * airport itself isn't found.
+ */
+export async function findNearbyAirportsForAI(
+  referenceCode: string,
+  radiusKm = 150,
+  limit = 5
+): Promise<AirportSummary[]> {
+  await connectToDatabase();
+
+  const reference = await getAirportByCodeForAI(referenceCode);
+  if (!reference) return [];
+
+  const candidates = await Airport.find(
+    { status: "active", _id: { $ne: reference._id } },
+    AI_PROJECTION
+  ).lean();
+
+  return candidates
+    .map((doc) => ({ summary: toAirportSummary(doc), distanceKm: haversineDistanceKm(reference, doc as unknown as { latitude: number; longitude: number }) }))
+    .filter((entry) => entry.distanceKm <= radiusKm)
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, limit)
+    .map((entry) => entry.summary);
+}
+
 // ── Mapping ───────────────────────────────────────────────────────────────────
 
 function toAirportSummary(a: Record<string, unknown>): AirportSummary {

@@ -1,7 +1,7 @@
 export const AI_MODELS = {
-  DEFAULT: "openrouter/free",
-  FAST: "openrouter/free",
-  CAPABLE: "openrouter/free",
+  DEFAULT: "gemini-2.5-flash",
+  FAST: "gemini-2.5-flash",
+  CAPABLE: "gemini-2.5-flash",
 } as const;
 
 export type AiModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
@@ -34,8 +34,10 @@ export const MESSAGE_ROLE_VALUES = Object.values(MESSAGE_ROLES) as MessageRole[]
 export const AI_TOOL_NAMES = {
   SEARCH_AIRCRAFT: "search_aircraft",
   LOOKUP_AIRPORT: "lookup_airport",
+  FIND_NEARBY_AIRPORTS: "find_nearby_airports",
   SEARCH_KNOWLEDGE: "search_knowledge",
   GET_COMPANY_INFO: "get_company_info",
+  SUBMIT_QUOTE_REQUEST: "submit_quote_request",   
 } as const;
 
 export type AiToolName = (typeof AI_TOOL_NAMES)[keyof typeof AI_TOOL_NAMES];

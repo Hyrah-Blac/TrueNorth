@@ -11,6 +11,7 @@ import type { AircraftSummary, AirportSummary, CompanyInfo, ParsedToolResult } f
 const TOOL_NAME = {
   SEARCH_AIRCRAFT: "search_aircraft",
   LOOKUP_AIRPORT: "lookup_airport",
+  FIND_NEARBY_AIRPORTS: "find_nearby_airports",
   GET_COMPANY_INFO: "get_company_info",
 } as const;
 
@@ -32,23 +33,44 @@ function isCompanyInfo(value: unknown): value is CompanyInfo {
 
 /**
  * Converts a message's raw `toolCalls[]` into typed, UI-ready results.
- * Tool errors (`{ error: string }`, see tools/executor.ts) and empty
- * results are filtered out so the chat never renders an empty card rail.
+ * Tool errors (`{ error: string }`, see tools/executor.ts) are always
+ * dropped. A genuinely empty search result surfaces as an "empty_*"
+ * entry (guided next steps, see EmptyResultCard) rather than vanishing
+ * — but only if nothing of that same kind ultimately succeeded in this
+ * turn, so a successful find_nearby_airports fallback after a missed
+ * lookup_airport doesn't end up showing both a "not found" card and a
+ * results card for the same thing.
  */
 export function parseToolResults(toolCalls: IToolCall[]): ParsedToolResult[] {
   const parsed: ParsedToolResult[] = [];
+  const emptyAircraftCalls: IToolCall[] = [];
+  const emptyAirportCalls: IToolCall[] = [];
+  let hasSuccessfulAircraft = false;
+  let hasSuccessfulAirport = false;
 
   for (const toolCall of toolCalls) {
     const { result } = toolCall;
     if (!result || (isRecord(result) && "error" in result)) continue;
 
-    if (toolCall.name === TOOL_NAME.SEARCH_AIRCRAFT && isAircraftArray(result) && result.length > 0) {
-      parsed.push({ kind: "aircraft", toolCall, aircraft: result });
+    if (toolCall.name === TOOL_NAME.SEARCH_AIRCRAFT && isAircraftArray(result)) {
+      if (result.length > 0) {
+        hasSuccessfulAircraft = true;
+        parsed.push({ kind: "aircraft", toolCall, aircraft: result });
+      } else {
+        emptyAircraftCalls.push(toolCall);
+      }
       continue;
     }
 
-    if (toolCall.name === TOOL_NAME.LOOKUP_AIRPORT && isAirportArray(result) && result.length > 0) {
-      parsed.push({ kind: "airport", toolCall, airports: result });
+    const isAirportTool =
+      toolCall.name === TOOL_NAME.LOOKUP_AIRPORT || toolCall.name === TOOL_NAME.FIND_NEARBY_AIRPORTS;
+    if (isAirportTool && isAirportArray(result)) {
+      if (result.length > 0) {
+        hasSuccessfulAirport = true;
+        parsed.push({ kind: "airport", toolCall, airports: result });
+      } else {
+        emptyAirportCalls.push(toolCall);
+      }
       continue;
     }
 
@@ -56,6 +78,13 @@ export function parseToolResults(toolCalls: IToolCall[]): ParsedToolResult[] {
       parsed.push({ kind: "company", toolCall, company: result });
       continue;
     }
+  }
+
+  if (!hasSuccessfulAircraft && emptyAircraftCalls.length > 0) {
+    parsed.push({ kind: "empty_aircraft", toolCall: emptyAircraftCalls[0] });
+  }
+  if (!hasSuccessfulAirport && emptyAirportCalls.length > 0) {
+    parsed.push({ kind: "empty_airport", toolCall: emptyAirportCalls[0] });
   }
 
   return parsed;

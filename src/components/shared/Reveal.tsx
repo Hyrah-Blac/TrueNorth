@@ -29,6 +29,13 @@ const visibleStateByVariant: Record<RevealVariant, string> = {
  * fade/slide/blur into place. Fully inert (renders children plainly, no
  * hidden state) for users who prefer reduced motion, and falls back to
  * "just visible" if IntersectionObserver isn't available.
+ *
+ * Two reliability fixes over a naive implementation:
+ *  1. Anything already in (or near) the viewport on mount shows immediately
+ *     instead of waiting for a scroll event to fire the observer.
+ *  2. The observer triggers slightly BEFORE the element is fully in view
+ *     (positive rootMargin, low threshold), so content is never scrolled
+ *     into visual range while still sitting at opacity-0.
  */
 export function Reveal({ children, variant = "fade-up", delayMs = 0, className = "", as = "div" }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -41,10 +48,22 @@ export function Reveal({ children, variant = "fade-up", delayMs = 0, className =
       setVisible(true);
       return;
     }
-    setMotionEnabled(true);
 
     const node = ref.current;
     if (!node) return;
+
+    // If the element is already in (or close to) the viewport the moment
+    // this mounts — e.g. a short page, a fast initial scroll position, or
+    // a section that just happens to render above the fold — show it
+    // immediately rather than waiting on the observer's first callback.
+    const rect = node.getBoundingClientRect();
+    const alreadyInView = rect.top < window.innerHeight * 1.1 && rect.bottom > 0;
+    if (alreadyInView) {
+      setVisible(true);
+      return;
+    }
+
+    setMotionEnabled(true);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -53,7 +72,10 @@ export function Reveal({ children, variant = "fade-up", delayMs = 0, className =
           observer.disconnect();
         }
       },
-      { threshold: 0.15, rootMargin: "0px 0px -60px 0px" },
+      // threshold 0 + positive rootMargin: fire as soon as the element is
+      // within ~120px of entering the viewport, not once it's already
+      // partially scrolled into view.
+      { threshold: 0, rootMargin: "0px 0px 120px 0px" },
     );
     observer.observe(node);
     return () => observer.disconnect();
@@ -64,7 +86,7 @@ export function Reveal({ children, variant = "fade-up", delayMs = 0, className =
   return (
     <Tag
       ref={ref as never}
-      className={`${motionEnabled ? "transition-all duration-1000 ease-editorial" : ""} ${
+      className={`${motionEnabled ? "transition-all duration-700 ease-editorial" : ""} ${
         visible ? visibleStateByVariant[variant] : hiddenStateByVariant[variant]
       } ${className}`}
       style={motionEnabled ? { transitionDelay: `${delayMs}ms` } : undefined}

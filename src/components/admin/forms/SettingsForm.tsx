@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Save, CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { FormField } from "@/components/forms/FormField";
@@ -191,6 +191,92 @@ export function SettingsForm({ defaultValues }: { defaultValues: SiteSettingsInp
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── AI Concierge ────────────────────────────────────────────── */}
+      <div className="space-y-5 border-t border-slate-100 pt-6">
+        <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">AI Concierge</p>
+
+        <Controller
+          control={control}
+          name="ai.enabled"
+          render={({ field }) => (
+            <label className="flex items-center gap-2.5 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={field.value ?? true}
+                onChange={(event) => field.onChange(event.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+              />
+              Enable the AI Concierge on the public site
+            </label>
+          )}
+        />
+
+        <FormField
+          label="Welcome message"
+          htmlFor="ai.welcomeMessage"
+          hint="Shown as the concierge panel's opening heading"
+          error={errors.ai?.welcomeMessage?.message}
+        >
+          <TextInput id="ai.welcomeMessage" {...register("ai.welcomeMessage")} />
+        </FormField>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <FormField
+            label="Tone"
+            htmlFor="ai.tone"
+            hint="Optional — e.g. 'warm and formal', 'brisk and efficient'"
+            error={errors.ai?.tone?.message}
+          >
+            <TextInput id="ai.tone" {...register("ai.tone")} />
+          </FormField>
+          <FormField
+            label="Max conversation length"
+            htmlFor="ai.maxConversationLength"
+            hint="Messages before the concierge asks to start fresh"
+            error={errors.ai?.maxConversationLength?.message}
+          >
+            <TextInput id="ai.maxConversationLength" type="number" min={5} max={500} {...register("ai.maxConversationLength")} />
+          </FormField>
+        </div>
+
+        <FormField
+          label="Fallback message"
+          htmlFor="ai.fallbackMessage"
+          hint="Used when the concierge genuinely doesn't know something"
+          error={errors.ai?.fallbackMessage?.message}
+        >
+          <Textarea id="ai.fallbackMessage" rows={2} {...register("ai.fallbackMessage")} />
+        </FormField>
+
+        <Controller
+          control={control}
+          name="ai.starterPrompts"
+          render={({ field }) => (
+            <FormField
+              label="Starter prompts"
+              htmlFor="ai.starterPrompts"
+              hint="One per line — shown as suggested questions on the welcome screen (max 6)"
+              error={errors.ai?.starterPrompts?.message}
+            >
+              <Textarea
+                id="ai.starterPrompts"
+                rows={5}
+                value={(field.value ?? []).join("\n")}
+                onChange={(event) =>
+                  field.onChange(
+                    event.target.value
+                      .split("\n")
+                      .map((line) => line.trim())
+                      .filter(Boolean)
+                      .slice(0, 6)
+                  )
+                }
+              />
+            </FormField>
+          )}
+        />
       </div>
 
       {/* ── Submit ──────────────────────────────────────────────────── */}

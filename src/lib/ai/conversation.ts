@@ -3,6 +3,7 @@ import connectToDatabase from "@/database/connection";
 import { Conversation, Message } from "@/database/models/Conversation";
 import { MESSAGE_ROLES } from "@/database/constants/ai";
 import { logger } from "@/lib/logging/logger";
+import { recordConversationStarted } from "@/lib/ai/analytics";
 import type { ConversationDocument, MessageDocument } from "@/database/models/Conversation";
 import type { AiModel, MessageRole } from "@/database/constants/ai";
 import type { ITokenUsage, IToolCall } from "@/types/ai";
@@ -18,13 +19,23 @@ export async function findOrCreateConversation(params: {
   await connectToDatabase();
 
   if (params.conversationId) {
-    // Validate that the conversation belongs to this session — prevents
-    // one user from hijacking another user's conversation by guessing IDs.
-    const existing = await Conversation.findOne({
+    // Ownership check. Always requires the conversationId + sessionId
+    // to match, and — when the caller is authenticated — also requires
+    // the conversation's clerkUserId to match theirs. This is what
+    // prevents one authenticated user from ever attaching to another
+    // authenticated user's conversation, even if a stale/shared
+    // sessionId were somehow presented. Anonymous callers (no
+    // clerkUserId) keep the original conversationId + sessionId check.
+    const ownershipQuery: Record<string, unknown> = {
       _id: params.conversationId,
       sessionId: params.sessionId,
       status: "active",
-    });
+    };
+    if (params.clerkUserId) {
+      ownershipQuery.clerkUserId = params.clerkUserId;
+    }
+
+    const existing = await Conversation.findOne(ownershipQuery);
 
     if (existing) return existing;
 
@@ -36,11 +47,14 @@ export async function findOrCreateConversation(params: {
     });
   }
 
-  return Conversation.create({
+  const created = await Conversation.create({
     sessionId: params.sessionId,
     clerkUserId: params.clerkUserId,
     aiModel: params.aiModel,
   });
+
+  await recordConversationStarted();
+  return created;
 }
 
 export async function getConversationHistory(

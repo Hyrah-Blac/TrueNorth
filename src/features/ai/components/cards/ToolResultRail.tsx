@@ -4,6 +4,7 @@ import { parseToolResults } from "../../lib/toolResults";
 import { AircraftResultCard } from "./AircraftResultCard";
 import { AirportResultCard } from "./AirportResultCard";
 import { CompanyInfoCard } from "./CompanyInfoCard";
+import { EmptyResultCard } from "./EmptyResultCard";
 
 export function ToolResultRail({ toolCalls }: { toolCalls: IToolCall[] }) {
   const results = useMemo(() => parseToolResults(toolCalls), [toolCalls]);
@@ -34,6 +35,14 @@ export function ToolResultRail({ toolCalls }: { toolCalls: IToolCall[] }) {
 
         if (result.kind === "company" && result.company) {
           return <CompanyInfoCard key={index} company={result.company} />;
+        }
+
+        if (result.kind === "empty_aircraft") {
+          return <EmptyResultCard key={index} subject="aircraft" />;
+        }
+
+        if (result.kind === "empty_airport") {
+          return <EmptyResultCard key={index} subject="airport" />;
         }
 
         return null;

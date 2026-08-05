@@ -1,17 +1,17 @@
 import "server-only";
 import { AI_TOOL_NAMES } from "@/database/constants/ai";
 import { searchAircraftForAI } from "@/lib/ai/services/aircraft.service";
-import { searchAirportsForAI, getAirportByCodeForAI } from "@/lib/ai/services/airport.service";
+import { searchAirportsForAI, getAirportByCodeForAI, findNearbyAirportsForAI } from "@/lib/ai/services/airport.service";
 import { searchKnowledgeForAI } from "@/lib/ai/services/knowledge.service";
 import { getCompanyInfoForAI } from "@/lib/ai/services/company.service";
+import { submitQuoteRequestForAI } from "@/lib/ai/services/quote.service";
+import { recordToolUsage } from "@/lib/ai/analytics";
 import { logger } from "@/lib/logging/logger";
+import { OBJECT_ID_REGEX } from "@/utils/validators";
 import type { AiToolName } from "@/database/constants/ai";
 import type { AircraftCategory } from "@/database/constants/aircraft";
 import type { MissionType } from "@/database/constants/mission-type";
 
-// Valid aircraft category values — used to sanitize model-supplied args
-// before hitting the database. Import the constant array rather than
-// duplicating the list here.
 import { AIRCRAFT_CATEGORY_VALUES } from "@/database/constants/aircraft";
 import { MISSION_TYPE_VALUES } from "@/database/constants/mission-type";
 import { KNOWLEDGE_BASE_CATEGORY_VALUES } from "@/database/constants/knowledge-base";
@@ -40,6 +40,13 @@ function safeEnum<T extends string>(value: unknown, allowed: readonly T[]): T | 
   return allowed.includes(lower) ? lower : undefined;
 }
 
+/** A Mongo ObjectId string, e.g. an Aircraft `_id` from search_aircraft results. */
+function safeObjectId(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return OBJECT_ID_REGEX.test(trimmed) ? trimmed : undefined;
+}
+
 // ── Executor ──────────────────────────────────────────────────────────────────
 
 /**
@@ -57,6 +64,17 @@ export async function executeTool(
 ): Promise<unknown> {
   logger.debug("Executing AI tool", { name, args });
 
+  const result = await resolveTool(name, args);
+
+  const isErrorResult = typeof result === "object" && result !== null && "error" in result;
+  if (!isErrorResult) {
+    await recordToolUsage(name);
+  }
+
+  return result;
+}
+
+async function resolveTool(name: AiToolName, args: Record<string, unknown>): Promise<unknown> {
   switch (name) {
     case AI_TOOL_NAMES.SEARCH_AIRCRAFT: {
       return searchAircraftForAI({
@@ -84,6 +102,13 @@ export async function executeTool(
       });
     }
 
+    case AI_TOOL_NAMES.FIND_NEARBY_AIRPORTS: {
+      const referenceCode = safeString(args.referenceCode, 10);
+      if (!referenceCode) return [];
+      const radiusKm = safePositiveNumber(args.radiusKm) ?? 150;
+      return findNearbyAirportsForAI(referenceCode, Math.min(radiusKm, 500));
+    }
+
     case AI_TOOL_NAMES.SEARCH_KNOWLEDGE: {
       const query = safeString(args.query);
       if (!query) {
@@ -97,6 +122,43 @@ export async function executeTool(
 
     case AI_TOOL_NAMES.GET_COMPANY_INFO: {
       return getCompanyInfoForAI();
+    }
+
+    case AI_TOOL_NAMES.SUBMIT_QUOTE_REQUEST: {
+      // Sanitize/coerce only — no hardcoded "required field" gate here.
+      // `createQuoteSchema` (the same schema the website's charter
+      // request form validates against) is the single source of truth
+      // for what's required; submitQuoteRequestForAI runs the request
+      // through it and returns structured fieldErrors on failure so the
+      // model can ask the user for whatever's missing or invalid,
+      // instead of the executor guessing at a field list up front.
+      return submitQuoteRequestForAI({
+        customerName: safeString(args.customerName, 100),
+        customerEmail: safeString(args.customerEmail, 200),
+        customerPhone: safeString(args.customerPhone, 20),
+        customerCompany: safeString(args.customerCompany, 100),
+        departureAirportCode: safeString(args.departureAirportCode, 4),
+        destinationAirportCode: safeString(args.destinationAirportCode, 4),
+        departureDate: safeString(args.departureDate, 32),
+        returnDate: safeString(args.returnDate, 32),
+        isRoundTrip: safeBoolean(args.isRoundTrip),
+        passengerCount: safePositiveNumber(args.passengerCount),
+        missionType: safeEnum<MissionType>(args.missionType, MISSION_TYPE_VALUES),
+        aircraftPreference: safeObjectId(args.aircraftPreference),
+        budgetRangeMin: safePositiveNumber(args.budgetRangeMin),
+        budgetRangeMax: safePositiveNumber(args.budgetRangeMax),
+        specialRequests: safeString(args.specialRequests, 2000),
+        hasMedicalEquipment: safeBoolean(args.hasMedicalEquipment),
+        medicalEquipmentDetails: safeString(args.medicalEquipmentDetails, 1000),
+        hasVipRequirements: safeBoolean(args.hasVipRequirements),
+        vipRequirementsDetails: safeString(args.vipRequirementsDetails, 1000),
+        hasCargo: safeBoolean(args.hasCargo),
+        cargoDetails: safeString(args.cargoDetails, 1000),
+        hasPets: safeBoolean(args.hasPets),
+        petsDetails: safeString(args.petsDetails, 500),
+        hasDangerousGoods: safeBoolean(args.hasDangerousGoods),
+        dangerousGoodsDetails: safeString(args.dangerousGoodsDetails, 1000),
+      });
     }
 
     default: {

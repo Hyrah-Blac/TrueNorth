@@ -36,6 +36,11 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
     );
   }
 
+  // Before any content has arrived, MessageList's typing indicator owns
+  // this moment (with the tool-aware label) — an empty header row here
+  // would just duplicate it.
+  if (message.status === "streaming" && !message.content) return null;
+
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-2">
@@ -43,13 +48,19 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
           <Headset className="h-3 w-3" strokeWidth={1.5} aria-hidden="true" />
         </div>
         <span className="font-display text-xs font-medium uppercase tracking-wide text-slate-500">
-          Concierge
+          AI Concierge
         </span>
         <span className="text-[10px] text-slate-400">{formatTime(message.createdAt)}</span>
       </div>
 
       <div className="break-words pl-8 text-sm leading-relaxed text-slate-800 [&_p+p]:mt-3">
         {renderedContent}
+        {message.status === "streaming" ? (
+          <span
+            className="ml-0.5 inline-block h-3.5 w-[2px] translate-y-0.5 animate-pulse bg-blue-500 motion-reduce:animate-none"
+            aria-hidden="true"
+          />
+        ) : null}
       </div>
 
       {message.toolCalls.length > 0 ? (

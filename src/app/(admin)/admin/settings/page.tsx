@@ -34,6 +34,14 @@ export default async function AdminSettingsPage() {
             country: settings.country,
             operatingHours: settings.operatingHours,
             socialLinks: settings.socialLinks ?? [],
+            ai: {
+              enabled: settings.ai.enabled,
+              welcomeMessage: settings.ai.welcomeMessage,
+              tone: settings.ai.tone ?? "",
+              fallbackMessage: settings.ai.fallbackMessage,
+              starterPrompts: settings.ai.starterPrompts,
+              maxConversationLength: settings.ai.maxConversationLength,
+            },
           }}
         />
       </div>

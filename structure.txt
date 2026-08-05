@@ -410,6 +410,7 @@
 [DIR ] src\database\interfaces
 [DIR ] src\database\migrations
 [DIR ] src\database\models
+[FILE] src\database\models\AiAnalytics.ts
 [FILE] src\database\models\Aircraft.ts
 [FILE] src\database\models\Airport.ts
 [FILE] src\database\models\Booking.ts
@@ -467,7 +468,9 @@
 [DIR ] src\features\ai\components\cards
 [FILE] src\features\ai\components\cards\AircraftResultCard.tsx
 [FILE] src\features\ai\components\cards\AirportResultCard.tsx
+[FILE] src\features\ai\components\cards\CardActionLink.tsx
 [FILE] src\features\ai\components\cards\CompanyInfoCard.tsx
+[FILE] src\features\ai\components\cards\EmptyResultCard.tsx
 [FILE] src\features\ai\components\cards\ToolResultRail.tsx
 [FILE] src\features\ai\components\ChatInput.tsx
 [FILE] src\features\ai\components\ConciergeButton.tsx
@@ -475,8 +478,10 @@
 [FILE] src\features\ai\components\ConciergePanel.tsx
 [FILE] src\features\ai\components\ConciergePanelWithProvider.tsx
 [FILE] src\features\ai\components\ErrorState.tsx
+[FILE] src\features\ai\components\FollowUpSuggestions.tsx
 [FILE] src\features\ai\components\MessageBubble.tsx
 [FILE] src\features\ai\components\MessageList.tsx
+[FILE] src\features\ai\components\QuoteProgress.tsx
 [FILE] src\features\ai\components\TypingIndicator.tsx
 [FILE] src\features\ai\components\WelcomeScreen.tsx
 [DIR ] src\features\ai\context
@@ -487,9 +492,11 @@
 [DIR ] src\features\ai\lib
 [FILE] src\features\ai\lib\api.ts
 [FILE] src\features\ai\lib\markdown.tsx
+[FILE] src\features\ai\lib\pageContext.ts
 [FILE] src\features\ai\lib\session.ts
 [FILE] src\features\ai\lib\storage.ts
 [FILE] src\features\ai\lib\toolResults.ts
+[FILE] src\features\ai\lib\tripDraft.ts
 [DIR ] src\features\ai\types
 [FILE] src\features\ai\types\index.ts
 [DIR ] src\features\aircraft
@@ -584,6 +591,7 @@
 [FILE] src\jobs\cleanup-expired-quotes.ts
 [DIR ] src\lib
 [DIR ] src\lib\ai
+[FILE] src\lib\ai\analytics.ts
 [FILE] src\lib\ai\chat.schema.ts
 [FILE] src\lib\ai\chat.service.ts
 [FILE] src\lib\ai\client.ts

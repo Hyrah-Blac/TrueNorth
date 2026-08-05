@@ -18,7 +18,9 @@ export default async function PublicLayout({ children }: { children: React.React
       <main id="main-content">{children}</main>
       <Footer />
       <WhatsAppButton whatsapp={settings.whatsapp || settings.phone} />
-      <AiConcierge />
+      {settings.ai.enabled ? (
+        <AiConcierge welcomeMessage={settings.ai.welcomeMessage} starterPrompts={settings.ai.starterPrompts} />
+      ) : null}
     </>
   );
 }

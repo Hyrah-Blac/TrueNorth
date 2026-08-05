@@ -4,6 +4,7 @@ import { Container } from "@/components/layout/container/Container";
 import { CharterRequestForm } from "@/components/quote/CharterRequestForm";
 import { getAircraftOptions, getAircraftByIdOrSlug } from "@/features/aircraft/lib/getAircraft";
 import { getSiteSettings } from "@/lib/config/siteSettings";
+import { recordQuoteStart } from "@/lib/ai/analytics";
 import type { CreateQuoteInput } from "@/features/quote/schemas/quote.schema";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -24,11 +25,21 @@ interface RequestCharterPageProps {
     destination?: string;
     departure?: string;
     passengers?: string;
+    pets?: string;
+    source?: string;
   }>;
 }
 
 export default async function RequestCharterPage({ searchParams }: RequestCharterPageProps) {
   const params = await searchParams;
+
+  // The concierge is currently the only sender of `source=concierge` —
+  // this is purely a "did a quote start from the concierge" counter for
+  // Feature 12, and never affects rendering or form defaults.
+  if (params.source === "concierge") {
+    await recordQuoteStart();
+  }
+
   const [aircraftOptions, prefillAircraft] = await Promise.all([
     getAircraftOptions(),
     params.aircraft ? getAircraftByIdOrSlug(params.aircraft) : Promise.resolve(null),
@@ -37,7 +48,7 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
   const passengerCount = params.passengers ? Number.parseInt(params.passengers, 10) : undefined;
 
   const defaultValues: Partial<CreateQuoteInput> | undefined =
-    prefillAircraft || params.destination || params.departure || passengerCount
+    prefillAircraft || params.destination || params.departure || passengerCount || params.pets
       ? {
           ...(prefillAircraft ? { aircraftPreference: prefillAircraft._id } : {}),
           ...(params.destination ? { destinationAirportCode: params.destination.toUpperCase() } : {}),
@@ -45,6 +56,7 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
           ...(passengerCount && passengerCount > 0 && passengerCount <= 100
             ? { passengerCount }
             : {}),
+          ...(params.pets === "1" ? { hasPets: true } : {}),
         }
       : undefined;
 

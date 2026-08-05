@@ -8,6 +8,28 @@ const MESSAGES_KEY = "tnc_concierge_messages";
  *  and bounds localStorage size; the server holds the full transcript. */
 const MAX_STORED_MESSAGES = 50;
 
+// The active storage scope. `null` = anonymous visitor, in which case we
+// keep using the original unsuffixed keys exactly as before (requirement:
+// anonymous behaviour must stay byte-for-byte identical). Once a Clerk
+// user id is set via setStorageScope(), every read/write below is
+// namespaced to that user so two different people on the same browser
+// never share a cached session, conversation, or message history.
+let currentScope: string | null = null;
+
+/**
+ * Points the storage layer at a given user's namespace. Call this
+ * whenever the signed-in Clerk user changes (login, logout, or account
+ * switch) *before* reading/writing so all storage calls below land in
+ * the right place. Pass `null`/`undefined` for anonymous visitors.
+ */
+export function setStorageScope(clerkUserId: string | null | undefined): void {
+  currentScope = clerkUserId ?? null;
+}
+
+function scopedKey(base: string): string {
+  return currentScope ? `${base}_${currentScope}` : base;
+}
+
 function isBrowser() {
   return typeof window !== "undefined";
 }
@@ -34,27 +56,31 @@ function safeSet(key: string, value: string): void {
 }
 
 export function getStoredSessionId(): string | null {
-  return safeGet(SESSION_KEY);
+  return safeGet(scopedKey(SESSION_KEY));
 }
 
 export function setStoredSessionId(sessionId: string): void {
-  safeSet(SESSION_KEY, sessionId);
+  safeSet(scopedKey(SESSION_KEY), sessionId);
 }
 
 export function getStoredConversationId(): string | null {
-  return safeGet(CONVERSATION_KEY);
+  return safeGet(scopedKey(CONVERSATION_KEY));
 }
 
 export function setStoredConversationId(conversationId: string): void {
-  safeSet(CONVERSATION_KEY, conversationId);
+  safeSet(scopedKey(CONVERSATION_KEY), conversationId);
 }
 
 export function getStoredMessages(): ConciergeMessage[] {
-  const raw = safeGet(MESSAGES_KEY);
+  const raw = safeGet(scopedKey(MESSAGES_KEY));
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as ConciergeMessage[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // A "streaming" status can only be persisted if the tab closed or
+    // refreshed mid-reply — there's no live connection left to finish
+    // it, so it would otherwise restore as a permanently empty bubble.
+    return parsed.filter((message) => message.status !== "streaming");
   } catch {
     return [];
   }
@@ -62,14 +88,14 @@ export function getStoredMessages(): ConciergeMessage[] {
 
 export function setStoredMessages(messages: ConciergeMessage[]): void {
   const trimmed = messages.slice(-MAX_STORED_MESSAGES);
-  safeSet(MESSAGES_KEY, JSON.stringify(trimmed));
+  safeSet(scopedKey(MESSAGES_KEY), JSON.stringify(trimmed));
 }
 
 export function clearStoredConversation(): void {
   if (!isBrowser()) return;
   try {
-    window.localStorage.removeItem(CONVERSATION_KEY);
-    window.localStorage.removeItem(MESSAGES_KEY);
+    window.localStorage.removeItem(scopedKey(CONVERSATION_KEY));
+    window.localStorage.removeItem(scopedKey(MESSAGES_KEY));
   } catch {
     // Ignore — see safeGet.
   }
