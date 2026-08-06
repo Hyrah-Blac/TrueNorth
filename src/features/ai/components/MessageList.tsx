@@ -3,6 +3,7 @@ import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 import { ErrorState } from "./ErrorState";
 import { FollowUpSuggestions } from "./FollowUpSuggestions";
+import { CompassWatermark } from "./CompassWatermark";
 import type { ConciergeError, ConciergeMessage } from "../types";
 
 interface MessageListProps {
@@ -26,20 +27,34 @@ export function MessageList({ messages, isSending, toolStatusLabel, error, onRet
   const showFollowUps = !isSending && !error && lastMessage?.role === "assistant" && lastMessage.status === "sent";
 
   return (
-    <div
-      ref={scrollRef}
-      role="log"
-      aria-live="polite"
-      aria-label="Conversation with AI Concierge"
-      className="flex-1 overflow-y-auto px-6 py-6 sm:px-10"
-    >
-      <div className="flex flex-col gap-6">
-        {messages.map((message) => (
-          <MessageBubble key={message._id} message={message} />
-        ))}
-        {showTypingIndicator ? <TypingIndicator label={toolStatusLabel} /> : null}
-        {error ? <ErrorState error={error} onRetry={onRetry} /> : null}
-        {showFollowUps ? <FollowUpSuggestions message={lastMessage} /> : null}
+    // relative wrapper holds the watermark fixed in place; the scroll
+    // container inside is transparent so the compass reads as "behind
+    // the conversation" rather than scrolling away with the messages.
+    <div className="relative min-h-0 flex-1 overflow-hidden">
+      <div
+        className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden text-navy-900/[0.045]"
+        aria-hidden="true"
+      >
+        <div className="h-[440px] w-[440px] shrink-0 sm:h-[520px] sm:w-[520px]">
+          <CompassWatermark />
+        </div>
+      </div>
+
+      <div
+        ref={scrollRef}
+        role="log"
+        aria-live="polite"
+        aria-label="Conversation with AI Concierge"
+        className="relative h-full overflow-y-auto px-6 py-6 sm:px-10"
+      >
+        <div className="flex flex-col gap-6">
+          {messages.map((message) => (
+            <MessageBubble key={message._id} message={message} />
+          ))}
+          {showTypingIndicator ? <TypingIndicator label={toolStatusLabel} /> : null}
+          {error ? <ErrorState error={error} onRetry={onRetry} /> : null}
+          {showFollowUps ? <FollowUpSuggestions message={lastMessage} /> : null}
+        </div>
       </div>
     </div>
   );

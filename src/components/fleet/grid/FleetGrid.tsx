@@ -21,9 +21,9 @@ export function FleetGrid({ items }: { items: IAircraft[] }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="flex flex-col gap-8 sm:gap-10">
       {items.map((aircraft, index) => (
-        <AircraftCard key={aircraft._id} aircraft={aircraft} index={index} />
+        <AircraftCard key={aircraft._id} aircraft={aircraft} reversed={index % 2 === 1} />
       ))}
     </div>
   );

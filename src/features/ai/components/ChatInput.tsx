@@ -42,6 +42,10 @@ export function ChatInput({ onSend, disabled, maxLength }: ChatInputProps) {
 
   return (
     <div className="border-t border-slate-100 bg-white px-4 pb-4 pt-3">
+      {/* rounded-2xl matches the soft-premium radius used on the panel
+          and message bubbles. Send button below moves off rounded-full
+          to stay consistent with the "elegant rectangle, never a pill"
+          brand language, and now uses the shadow-crisp token. */}
       <div className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 transition-colors duration-200 focus-within:border-slate-300 focus-within:bg-white">
         <textarea
           ref={textareaRef}
@@ -53,14 +57,14 @@ export function ChatInput({ onSend, disabled, maxLength }: ChatInputProps) {
           maxLength={maxLength}
           placeholder="Ask about routes, aircraft, or availability…"
           aria-label="Message the AI Concierge"
-          className="max-h-[140px] flex-1 resize-none border-0 bg-transparent py-1 text-[14px] font-normal leading-relaxed tracking-[0.005em] text-navy-900 placeholder:font-light placeholder:text-slate-400 focus:outline-none focus:ring-0 disabled:opacity-50"
+          className="max-h-[140px] flex-1 resize-none border-0 bg-transparent py-1 text-[13px] font-body font-normal leading-relaxed tracking-[0.005em] text-navy-900 placeholder:font-light placeholder:text-slate-400 focus:outline-none focus:ring-0 disabled:opacity-50"
         />
         <button
           type="button"
           onClick={handleSubmit}
           disabled={disabled || !value.trim()}
           aria-label="Send message"
-          className="group mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm transition-all duration-200 ease-out hover:scale-105 hover:bg-blue-700 hover:shadow-md active:scale-95 disabled:pointer-events-none disabled:scale-100 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+          className="group mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-crisp transition-all duration-200 ease-out hover:scale-105 hover:bg-blue-700 hover:shadow-md active:scale-95 disabled:pointer-events-none disabled:scale-100 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
         >
           <Send
             className="h-4 w-4 translate-x-[-1px] transition-transform duration-200 group-hover:translate-x-0"
@@ -71,7 +75,7 @@ export function ChatInput({ onSend, disabled, maxLength }: ChatInputProps) {
       </div>
       {showCounter && (
         <div className="mt-1.5 flex justify-end px-1">
-          <span className={`text-[10px] font-medium tracking-[0.04em] tabular-nums ${remaining <= 0 ? "text-red-600" : "text-slate-400"}`}>{remaining}</span>
+          <span className={`text-[10px] font-medium tracking-widest2 tabular-nums ${remaining <= 0 ? "text-red-600" : "text-slate-400"}`}>{remaining}</span>
         </div>
       )}
     </div>

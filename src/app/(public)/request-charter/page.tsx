@@ -72,7 +72,7 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
           <h1 className="font-editorial max-w-2xl text-[1.75rem] font-light leading-[1.15] tracking-tight text-navy-900 sm:text-4xl lg:text-5xl">
             {prefillAircraft ? `Request the ${prefillAircraft.name}` : "Tell us about your mission"}
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600 sm:mt-5 sm:text-base">
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-slate-600 sm:mt-5 sm:text-sm">
             Fill in your route, dates, and requirements. Our operations team typically responds
             with aircraft recommendations and pricing within a few hours.
           </p>

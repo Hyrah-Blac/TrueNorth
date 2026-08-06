@@ -55,8 +55,17 @@ export interface OpenRouterToolCall {
     name: string;
     arguments: string;
   };
+  /**
+   * Gemini 3.x thinking models attach an opaque signature to their
+   * functionCall response parts (typically only the first, for a batch of
+   * parallel calls) and require it echoed back verbatim on the turn where
+   * that call is resent as conversation history — omitting it is a
+   * documented cause of "malformed_function_call" / 400 errors on the
+   * next turn. Unused (undefined) for non-Gemini-3 models. See
+   * client.ts's toGeminiContents for where this gets threaded through.
+   */
+  thoughtSignature?: string;
 }
-
 export interface OpenRouterChoice {
   message: {
     role: string;

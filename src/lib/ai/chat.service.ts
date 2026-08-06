@@ -22,6 +22,7 @@ import type {
   ChatResponse,
   ChatStreamEvent,
   OpenRouterMessage,
+  OpenRouterToolCall,
 } from "@/types/ai";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -60,13 +61,24 @@ export interface RunChatParams {
   signal?: AbortSignal;
 }
 
-// ── Tool message wire type (OpenRouter extension, not in public IMessage) ──────
+// ── Tool message wire types (OpenRouter extensions, not in public IMessage) ────
 
 interface ToolResultMessage {
   role: "tool";
   tool_call_id: string;
   name: string;
   content: string;
+}
+
+// The turn where the model requested tool calls. Carries the real
+// tool_calls array (including each call's thoughtSignature, where the
+// model returned one) through to client.ts's toGeminiContents, instead
+// of the plain-text-only shape used elsewhere — see OpenRouterToolCall
+// for why the signature matters.
+interface AssistantToolCallMessage {
+  role: "assistant";
+  content: string;
+  tool_calls?: OpenRouterToolCall[];
 }
 
 // ── Orchestration ─────────────────────────────────────────────────────────────
@@ -108,34 +120,37 @@ export async function runChat(
 
   // Fetched once per turn and reused everywhere below (buildSystemPrompt,
   // the enabled check, the conversation-length check) — never re-fetched.
-  const settings = await getSiteSettings();
+// Fetched once per turn and reused everywhere below (buildSystemPrompt,
+// the enabled check, the conversation-length check) — never re-fetched.
+const settings = await getSiteSettings();
 
-  if (!settings.ai.enabled) {
-    return respondWithoutCallingModel(
-      conversationId,
-      params.sessionId,
-      "The AI Concierge is temporarily unavailable. Please contact our operations team directly and they'll be glad to help.",
-      onEvent,
-      params.signal
-    );
-  }
+if (!settings.ai.enabled) {
+  return respondWithoutCallingModel(
+    conversationId,
+    params.sessionId,
+    "The AI Concierge is temporarily unavailable. Please contact our operations team directly and they'll be glad to help.",
+    onEvent,
+    params.signal
+  );
+}
 
-  if (conversation.messageCount >= settings.ai.maxConversationLength) {
-    return respondWithoutCallingModel(
-      conversationId,
-      params.sessionId,
-      "We've covered a lot in this conversation — to keep things running smoothly, please start a new conversation, or reach out to our operations team directly for anything further.",
-      onEvent,
-      params.signal
-    );
-  }
+if (conversation.messageCount >= settings.ai.maxConversationLength) {
+  return respondWithoutCallingModel(
+    conversationId,
+    params.sessionId,
+    "We've covered a lot in this conversation — to keep things running smoothly, please start a new conversation, or reach out to our operations team directly for anything further.",
+    onEvent,
+    params.signal
+  );
+}
 
   // 2. Persist user message
   await saveUserMessage(conversationId, sanitizedMessage);
 
   // 3. Build prompt — system prompt and history fetched in parallel
- const [systemPrompt, history] = await Promise.all([
-  buildSystemPrompt(params.pageContext),
+// 3. Build prompt — system prompt and history fetched in parallel
+const [systemPrompt, history] = await Promise.all([
+  buildSystemPrompt(params.pageContext, settings),
   getConversationHistory(conversationId, 20),
 ]);
 
@@ -211,11 +226,15 @@ export async function runChat(
     // Build the thread: original messages + assistant's tool-call turn
     // Using a wider type here because "tool" role is an OpenRouter
     // extension not included in our public OpenRouterMessage union.
-    const extendedMessages: Array<OpenRouterMessage | ToolResultMessage> = [
+    const extendedMessages: Array<OpenRouterMessage | AssistantToolCallMessage | ToolResultMessage> = [
       ...messages,
       {
         role: MESSAGE_ROLES.ASSISTANT,
         content: firstChoice.message.content ?? "",
+        // Preserved (including any thoughtSignature) so client.ts can
+        // reconstruct this as a real functionCall turn rather than a
+        // stripped-down placeholder — see AssistantToolCallMessage.
+        tool_calls: firstChoice.message.tool_calls,
       },
     ];
 
@@ -441,24 +460,49 @@ async function respondWithoutCallingModel(
  * created even though the model failed to write a reply about it.
  */
 function buildFallbackContent(toolCalls: IToolCall[]): string {
-  const quoteCall = [...toolCalls]
-    .reverse()
-    .find((tc) => tc.name === AI_TOOL_NAMES.SUBMIT_QUOTE_REQUEST && isSuccessfulQuoteResult(tc.result));
+  const quoteCall = [...toolCalls].reverse().find((tc) => tc.name === AI_TOOL_NAMES.SUBMIT_QUOTE_REQUEST && isQuoteResult(tc.result));
 
-  if (quoteCall && isSuccessfulQuoteResult(quoteCall.result)) {
+  if (quoteCall && isQuoteResult(quoteCall.result)) {
+    // Relay the quote service's own message either way: on success it
+    // already contains the real, database-generated reference number;
+    // on failure it already explains what needs fixing (see
+    // submitQuoteRequestForAI) — better than losing that detail to a
+    // generic apology just because the model's closing prose failed.
     return quoteCall.result.message;
+  }
+
+  // No quote to relay, but other tools may still have returned real,
+  // useful data this turn (aircraft, airports, knowledge, company info)
+  // that the UI renders as result cards independently of this text. A
+  // generic apology reads as if nothing worked when something clearly
+  // did — a shorter, honest line fits better here.
+  const otherCalls = toolCalls.filter((tc) => tc.name !== AI_TOOL_NAMES.SUBMIT_QUOTE_REQUEST);
+  if (otherCalls.some((tc) => hasMeaningfulResult(tc.result))) {
+    return "Here's what I found — take a look below. Let me know if you'd like more detail or the next step.";
   }
 
   return FALLBACK_RESPONSE;
 }
 
-function isSuccessfulQuoteResult(
+/** True for a non-error result with actual content — excludes `{ error }` results and empty arrays (a genuinely empty search). */
+function hasMeaningfulResult(value: unknown): boolean {
+  if (!value) return false;
+  if (isToolErrorResult(value)) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
+}
+
+function isToolErrorResult(value: unknown): boolean {
+  return typeof value === "object" && value !== null && "error" in value;
+}
+
+function isQuoteResult(
   value: unknown
-): value is { success: true; message: string; quoteNumber?: string } {
+): value is { success: boolean; message: string; quoteNumber?: string; fieldErrors?: Record<string, string> } {
   return (
     typeof value === "object" &&
     value !== null &&
-    (value as { success?: unknown }).success === true &&
+    typeof (value as { success?: unknown }).success === "boolean" &&
     typeof (value as { message?: unknown }).message === "string"
   );
 }

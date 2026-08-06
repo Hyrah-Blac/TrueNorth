@@ -2,7 +2,6 @@ import "server-only";
 import { getCompanyInfoForAI } from "@/lib/ai/services/company.service";
 import { getFeaturedKnowledgeForAI } from "@/lib/ai/services/knowledge.service";
 import { getSiteSettings } from "@/lib/config/siteSettings";
-
 // Cap the content length of each knowledge entry included in the system
 // prompt. Long entries are truncated to keep the prompt token count
 // predictable — the model can always call search_knowledge for the full text.
@@ -24,11 +23,11 @@ const MAX_KB_ENTRIES = 6;
  * Fetches company info and featured knowledge in parallel to minimise
  * the latency hit on the first message of a new conversation.
  */
-
 export async function buildSystemPrompt(
-  pageContext?: string
+  pageContext?: string,
+  settings?: Awaited<ReturnType<typeof getSiteSettings>>
 ): Promise<string> {
-  const settings = await getSiteSettings();
+  const siteSettings = settings ?? (await getSiteSettings());
 
   const [company, featuredKnowledge] = await Promise.all([
     getCompanyInfoForAI(),

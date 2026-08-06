@@ -27,19 +27,21 @@ export function CompanyInfoCard({ company }: { company: CompanyInfo }) {
   ].filter((action): action is { Icon: typeof Phone; label: string; href: string } => Boolean(action));
 
   return (
-    <div className="w-full max-w-sm rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <h4 className="font-display text-sm font-semibold text-navy-900">{company.shortName}</h4>
+    // Raw shadow string replaced with the shadow-crisp token, same as
+    // AirportResultCard / AircraftResultCard.
+    <div className="w-full max-w-sm rounded-2xl border border-slate-200/80 bg-white p-5 shadow-crisp">
+      <h4 className="font-editorial text-[18px] font-normal tracking-[-0.012em] text-navy-900">{company.shortName}</h4>
 
       <dl className="mt-3 space-y-2.5">
         {rows.map((row, index) => (
           <div key={index} className="flex items-start gap-2.5">
             <row.Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600" aria-hidden="true" />
             {row.href ? (
-              <a href={row.href} className="text-xs leading-relaxed text-slate-700 hover:text-blue-600">
+              <a href={row.href} className="font-body text-xs leading-relaxed text-slate-700 hover:text-blue-600">
                 {row.label}
               </a>
             ) : (
-              <span className="text-xs leading-relaxed text-slate-700">{row.label}</span>
+              <span className="font-body text-xs leading-relaxed text-slate-700">{row.label}</span>
             )}
           </div>
         ))}
@@ -52,13 +54,13 @@ export function CompanyInfoCard({ company }: { company: CompanyInfo }) {
             href={href}
             target={href.startsWith("http") ? "_blank" : undefined}
             rel={href.startsWith("http") ? "noreferrer noopener" : undefined}
-            className="group flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 py-2.5 transition-colors duration-300 hover:border-blue-500 hover:bg-blue-50/40"
+            className="group flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 py-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-50/40 hover:shadow-crisp"
           >
             <Icon
               className="h-4 w-4 text-navy-900 transition-colors duration-300 group-hover:text-blue-600"
               aria-hidden="true"
             />
-            <span className="text-[9px] font-medium uppercase tracking-wide text-slate-500 group-hover:text-blue-600">
+            <span className="text-[9px] font-medium uppercase tracking-widest2 text-slate-500 group-hover:text-blue-600">
               {label}
             </span>
           </a>

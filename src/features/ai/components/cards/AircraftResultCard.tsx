@@ -21,9 +21,18 @@ export function AircraftResultCard({ aircraft }: { aircraft: AircraftSummary }) 
 
   const missions = aircraft.recommendedMissionTypes.slice(0, 2);
   const explanation = aircraft.aiNotes || aircraft.aiStrengths[0] || aircraft.tagline;
+  const manufacturerModel = `${aircraft.manufacturer} ${aircraft.model}`.trim();
+  // Some aircraft records use "Manufacturer Model" as the display name
+  // too (e.g. "Cessna Citation XLS+" / "Cessna Citation XLS+"), which
+  // renders as visible, pointless repetition right under the title —
+  // only show the subtitle when it actually adds information.
+  const showManufacturerModel = manufacturerModel.toLowerCase() !== aircraft.name.trim().toLowerCase();
 
   return (
-    <div className="w-[280px] shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-crisp transition-colors duration-300 ease-editorial hover:border-slate-300 sm:w-[300px]">
+    // shadow-crisp at rest, lifting to shadow-soft on hover — same
+    // premium micro-interaction as the WelcomeScreen prompt cards, so
+    // every "tappable card" surface in the concierge behaves the same way.
+    <div className="w-[280px] shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-crisp transition-all duration-300 ease-editorial hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-soft sm:w-[300px]">
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-navy-900 to-navy-950">
         {aircraft.heroImageUrl ? (
           <Image
@@ -35,7 +44,7 @@ export function AircraftResultCard({ aircraft }: { aircraft: AircraftSummary }) 
           />
         ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-navy-950/60 via-transparent to-transparent" />
-        <span className="absolute left-3 top-3 rounded-md bg-white/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-navy-900">
+        <span className="absolute left-3 top-3 rounded-md bg-white/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest2 text-navy-900">
           {categoryLabel}
         </span>
         <CompareButton
@@ -49,13 +58,17 @@ export function AircraftResultCard({ aircraft }: { aircraft: AircraftSummary }) 
 
       <div className="flex flex-col gap-3 p-4">
         <div>
-          <h4 className="font-display text-base font-semibold leading-snug text-navy-900">{aircraft.name}</h4>
-          <p className="text-xs text-slate-500">
-            {aircraft.manufacturer} {aircraft.model}
-          </p>
+          <h4 className="font-editorial text-[16px] font-normal leading-snug tracking-[-0.008em] text-navy-900">{aircraft.name}</h4>
+          {showManufacturerModel ? (
+            <p className="mt-1 font-body text-[10.5px] font-medium uppercase tracking-widest2 text-slate-500">
+              {manufacturerModel}
+            </p>
+          ) : null}
         </div>
 
-        {explanation ? <p className="text-[13px] leading-relaxed text-slate-700">{explanation}</p> : null}
+        {explanation ? (
+          <p className="line-clamp-2 font-body text-[13px] leading-relaxed text-slate-600">{explanation}</p>
+        ) : null}
 
         <dl className="flex items-center gap-3 border-y border-slate-100 py-2.5">
           <div className="flex items-center gap-1.5">
@@ -77,19 +90,19 @@ export function AircraftResultCard({ aircraft }: { aircraft: AircraftSummary }) 
             {missions.filter(isMissionType).map((mission) => (
               <span
                 key={mission}
-                className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-600"
+                className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-slate-600"
               >
                 {MISSION_TYPE_LABELS[mission]}
               </span>
             ))}
             {aircraft.petFriendly ? (
-              <span className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-600">
-                <PawPrint className="h-3 w-3" aria-hidden="true" /> Pet friendly
+              <span className="flex items-center gap-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-slate-600">
+                <PawPrint className="h-2.5 w-2.5" aria-hidden="true" /> Pet friendly
               </span>
             ) : null}
             {aircraft.wifiAvailable ? (
-              <span className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-600">
-                <Wifi className="h-3 w-3" aria-hidden="true" /> Wi-Fi
+              <span className="flex items-center gap-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-slate-600">
+                <Wifi className="h-2.5 w-2.5" aria-hidden="true" /> Wi-Fi
               </span>
             ) : null}
           </div>
