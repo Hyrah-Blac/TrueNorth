@@ -176,7 +176,7 @@ function toFunctionDeclaration(tool: AiToolDefinition): FunctionDeclaration {
 }
 
 const toolsCache = new WeakMap
-  AiToolDefinition[],
+ < AiToolDefinition[],
   [{ functionDeclarations: FunctionDeclaration[] }]
 >();
 

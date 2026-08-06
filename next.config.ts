@@ -22,7 +22,5 @@ export default withSentryConfig(nextConfig, {
   org: "true-north-charters",
   project: "javascript-nextjs",
   authToken: process.env.SENTRY_AUTH_TOKEN,
-  hideSourceMaps: true,
   silent: !process.env.CI,
-  disableLogger: true,
 });
