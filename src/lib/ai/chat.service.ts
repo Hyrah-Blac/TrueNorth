@@ -49,6 +49,22 @@ const MAX_TOOL_CALLS_PER_TURN = 5;
  */
 const MAX_TOOL_ROUNDS = 4;
 
+/**
+ * Info-gathering tools that establish trip details. If the model requests
+ * submit_quote_request in the SAME round as any of these, that's a strong
+ * signal the required "summarise and ask the customer to confirm" step
+ * (see buildSystemPrompt's Quotation Workflow, step 6) was skipped — a
+ * model can describe a confirmation step in a reply and then submit the
+ * same turn regardless of whether the customer actually replied yes, so
+ * this can't be enforced by prompt wording alone. See the guard in the
+ * tool round loop below.
+ */
+const INFO_GATHERING_TOOL_NAMES: AiToolName[] = [
+  AI_TOOL_NAMES.SEARCH_AIRCRAFT,
+  AI_TOOL_NAMES.LOOKUP_AIRPORT,
+  AI_TOOL_NAMES.FIND_NEARBY_AIRPORTS,
+];
+
 /** Fallback content when the model returns an empty response. */
 const FALLBACK_RESPONSE =
   "I'm sorry, I wasn't able to generate a response. Please try again.";
@@ -199,12 +215,19 @@ export async function runChat(
   // answer or a cap is hit, executing each round's tool calls and feeding
   // the results back before asking again.
   const toolCallsData: IToolCall[] = [];
-  // Dedup cache for the whole turn: `${toolName}::${rawArgumentsJSON}` →
-  // previously computed result. Some models re-request an identical call
-  // they already made this turn (observed repeatedly in testing) — this
-  // answers the repeat from cache instead of re-executing (a wasted
-  // external call) or letting it silently consume the round/call budget.
-  const executedCalls = new Map<string, unknown>();
+  // Dedup cache, keyed by buildToolIdentityKey (see below) — a per-tool
+  // semantic identity (e.g. lookup_airport's `code`, search_aircraft's
+  // filter fields), not raw argument-string equality. Seeded from the
+  // conversation's own prior tool calls, not just this turn: the
+  // redundancy this catches shows up across turns too — e.g. the
+  // confirmation-ask turn (workflow step 6) re-calling
+  // lookup_airport/search_aircraft for a route already established two
+  // messages ago, which both wastes a call and re-renders the same
+  // aircraft/airport cards the customer already saw. A deduped call is
+  // answered from the earlier result and — critically — NOT pushed into
+  // toolCallsData again (see the `if (!deduped)` guard below), so the
+  // card doesn't reappear either.
+  const executedCalls = new Map<string, unknown>(buildHistoricalToolCallCache(priorHistory));
   let finalContent = "";
   let finalLatencyMs = 0;
   let finalUsage: ITokenUsage | undefined;
@@ -275,6 +298,19 @@ export async function runChat(
         });
       }
 
+      // Guard: never let submit_quote_request execute in the same round
+      // as a fresh aircraft/airport lookup (see INFO_GATHERING_TOOL_NAMES
+      // above). That combination means the customer-confirmation step was
+      // skipped — the model went straight from gathering info to
+      // submitting without a turn in between where the customer actually
+      // said yes. Rather than trust the prompt alone to prevent this, the
+      // submit call is intercepted here and answered with an explanatory
+      // result instead of being executed, which forces at least one more
+      // round where the model must ask for confirmation in plain text.
+      const isGatheringInfoThisRound = requestedCalls.some((tc) =>
+        INFO_GATHERING_TOOL_NAMES.includes(tc.function.name as AiToolName)
+      );
+
       if (onEvent) {
         onEvent({ type: "tool_status", label: buildToolStatusLabel(requestedCalls.map((tc) => tc.function.name)) });
       }
@@ -305,7 +341,25 @@ export async function runChat(
             });
           }
 
-          const dedupeKey = `${toolName}::${tc.function.arguments}`;
+          // Blocked: this exact tool call is a submit_quote_request that
+          // arrived bundled with fresh info-gathering calls this same
+          // round — see the guard comment above. Answer it with an
+          // explanatory pseudo-result (every requested functionCall part
+          // needs a matching functionResponse) instead of ever reaching
+          // executeTool, so nothing is actually submitted.
+          if (toolName === AI_TOOL_NAMES.SUBMIT_QUOTE_REQUEST && isGatheringInfoThisRound) {
+            logger.warn("Blocked submit_quote_request: bundled with info-gathering tools in the same round — confirmation step was skipped", {
+              toolsThisRound: requestedCalls.map((c) => c.function.name),
+            });
+            const blockedResult = {
+              success: false,
+              message:
+                "Not submitted. Before calling submit_quote_request, you must first send the customer a short summary of the trip and explicitly ask them to confirm, in a message with no tool calls. Only call submit_quote_request again after the customer's own next message confirms.",
+            };
+            return { id: tc.id, name: toolName, parsedArgs, result: blockedResult, deduped: false };
+          }
+
+          const dedupeKey = `${toolName}::${buildToolIdentityKey(toolName, parsedArgs)}`;
           if (executedCalls.has(dedupeKey)) {
             logger.debug("Skipped duplicate tool call this turn — reusing cached result", { tool: toolName });
             return { id: tc.id, name: toolName, parsedArgs, result: executedCalls.get(dedupeKey), deduped: true };
@@ -454,6 +508,104 @@ export async function runChat(
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Builds a dedupe-cache seed from the conversation's prior assistant
+ * turns, keyed the same way as the live per-turn dedupe cache in
+ * runChat's tool loop (`${toolName}::${argumentsJSON}`). See the seeding
+ * call site for why this exists and its matching caveat.
+ */
+function buildHistoricalToolCallCache(
+  history: Array<{ role: string; toolCalls?: IToolCall[] }>
+): Map<string, unknown> {
+  const cache = new Map<string, unknown>();
+  for (const msg of history) {
+    if (msg.role !== MESSAGE_ROLES.ASSISTANT || !msg.toolCalls?.length) continue;
+    for (const tc of msg.toolCalls) {
+      const key = `${tc.name}::${buildToolIdentityKey(tc.name as AiToolName, tc.arguments)}`;
+      // Keep the earliest result for a given key — a later, presumably
+      // identical repeat isn't more authoritative than the first.
+      if (!cache.has(key)) cache.set(key, tc.result);
+    }
+  }
+  return cache;
+}
+
+/**
+ * Computes a stable identity key for a tool call from its PARSED
+ * arguments, used for both the live per-turn dedupe and the
+ * history-seeded cache above — sharing one function is what makes the
+ * two key spaces actually comparable (a previous version computed the
+ * live key from the raw, unparsed arguments string and the seeded key
+ * from a re-serialized one, which rarely matched even for identical
+ * calls).
+ *
+ * Per-tool identity fields, rather than the full argument object, so an
+ * incidental extra/omitted field (e.g. missionType present on a later
+ * search_aircraft call but absent on an earlier one) doesn't defeat
+ * deduping when the fields that actually determine "is this the same
+ * real-world lookup" are unchanged. Field lists are taken directly from
+ * AI_TOOL_DEFINITIONS' parameter schemas.
+ */
+function buildToolIdentityKey(toolName: AiToolName, args: Record<string, unknown>): string {
+  // undefined/null and an omitted key should produce the same identity,
+  // so a field that's explicitly undefined on one call and absent on
+  // another still dedupes correctly.
+  const has = (key: string): boolean => args[key] !== undefined && args[key] !== null;
+  const norm = (key: string): unknown => {
+    const v = args[key];
+    return typeof v === "string" ? v.trim().toLowerCase() : v;
+  };
+
+  switch (toolName) {
+    case AI_TOOL_NAMES.LOOKUP_AIRPORT: {
+      // code is the authoritative identity when present (ICAO/IATA is
+      // unambiguous); only fall back to the free-text query when no
+      // code was given.
+      if (has("code")) return `code:${String(norm("code")).toUpperCase()}`;
+      return `query:${has("query") ? norm("query") : ""}`;
+    }
+    case AI_TOOL_NAMES.FIND_NEARBY_AIRPORTS: {
+      return `ref:${has("referenceCode") ? String(norm("referenceCode")).toUpperCase() : ""}`;
+    }
+    case AI_TOOL_NAMES.SEARCH_AIRCRAFT: {
+      const fields = [
+        "passengerCount",
+        "missionType",
+        "category",
+        "minRangeNm",
+        "petFriendly",
+        "wifiAvailable",
+        "shortRunwayCapable",
+        "region",
+      ];
+      return JSON.stringify(fields.map((f) => (has(f) ? norm(f) : null)));
+    }
+    case AI_TOOL_NAMES.SEARCH_KNOWLEDGE: {
+      return `q:${has("query") ? norm("query") : ""}|c:${has("category") ? norm("category") : ""}`;
+    }
+    case AI_TOOL_NAMES.GET_COMPANY_INFO: {
+      // No parameters — every call is identical by definition.
+      return "static";
+    }
+    default: {
+      // submit_quote_request is intentionally never deduped (each
+      // submission should genuinely execute, and it's excluded from
+      // INFO_GATHERING_TOOL_NAMES so it never reaches this path via the
+      // normal flow anyway) — and any future tool not special-cased above
+      // falls back to a fully sorted, nullish-stripped JSON of its args
+      // rather than raw insertion order.
+      const sorted = Object.keys(args)
+        .filter((k) => has(k))
+        .sort()
+        .reduce<Record<string, unknown>>((acc, k) => {
+          acc[k] = norm(k);
+          return acc;
+        }, {});
+      return JSON.stringify(sorted);
+    }
+  }
+}
 
 /**
  * Persists a single assistant message and returns it as a normal

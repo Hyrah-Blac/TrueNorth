@@ -17,6 +17,17 @@ import { submitCharterRequest } from "@/features/quote/actions/quote.actions";
 
 const STEPS = ["Trip Details", "Mission & Aircraft", "Requirements", "Contact", "Review"];
 
+// Heading + one-line description shown above each step's fields. Kept
+// alongside STEPS (same index) rather than duplicated inside each Step
+// component, so there's one place that owns the step copy.
+const STEP_META: { title: string; description: string }[] = [
+  { title: "Trip details", description: "Where and when you'd like to fly." },
+  { title: "Mission & aircraft", description: "What this trip is for, and any aircraft preference." },
+  { title: "Requirements", description: "Special requests, equipment, or cargo we should know about." },
+  { title: "Contact", description: "How our team should reach you with a quote." },
+  { title: "Review", description: "Check everything over before you send it." },
+];
+
 // Fields validated before advancing past each step — keeps errors
 // scoped to what's visible instead of surfacing step-5 errors on step 1.
 const STEP_FIELDS: (keyof CreateQuoteInput)[][] = [
@@ -83,6 +94,17 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
     setStep((current) => Math.max(current - 1, 1));
   }
 
+  // All 5 steps share one <form>, so pressing Enter in any field (e.g.
+  // typing a passenger count) would otherwise implicitly submit the whole
+  // form immediately — not just advance to the next step. Block that on
+  // every step except the last, where Enter submitting is the expected
+  // behavior.
+  function handleKeyDown(event: React.KeyboardEvent<HTMLFormElement>) {
+    if (event.key === "Enter" && step < STEPS.length) {
+      event.preventDefault();
+    }
+  }
+
   function onSubmit(data: CreateQuoteInput) {
     setSubmitError(null);
 
@@ -121,17 +143,24 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
           the white card wrapper on the request-charter page, which already
           supplies the card chrome. Keeping this bare avoids a nested
           double-card look. */}
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 sm:mt-10">
-        <div key={step} className="animate-fade-up-editorial">
-          {step === 1 ? <TripDetailsStep register={register} errors={errors} watch={watch} /> : null}
-          {step === 2 ? (
-            <MissionAircraftStep register={register} errors={errors} aircraftOptions={aircraftOptions} />
-          ) : null}
-          {step === 3 ? (
-            <RequirementsStep register={register} errors={errors} watch={watch} setValue={setValue} />
-          ) : null}
-          {step === 4 ? <ContactStep register={register} errors={errors} /> : null}
-          {step === 5 ? <ReviewStep values={getValues()} aircraftOptions={aircraftOptions} /> : null}
+      <form onSubmit={handleSubmit(onSubmit)} onKeyDown={handleKeyDown} className="mt-6 sm:mt-7">
+        <div key={step}>
+          <h2 className="font-editorial text-[1.375rem] font-light text-navy-900 sm:text-2xl">
+            {STEP_META[step - 1].title}
+          </h2>
+          <p className="mt-1.5 text-sm text-slate-500">{STEP_META[step - 1].description}</p>
+
+          <div className="mt-5 sm:mt-6">
+            {step === 1 ? <TripDetailsStep register={register} errors={errors} watch={watch} /> : null}
+            {step === 2 ? (
+              <MissionAircraftStep register={register} errors={errors} aircraftOptions={aircraftOptions} />
+            ) : null}
+            {step === 3 ? (
+              <RequirementsStep register={register} errors={errors} watch={watch} setValue={setValue} />
+            ) : null}
+            {step === 4 ? <ContactStep register={register} errors={errors} /> : null}
+            {step === 5 ? <ReviewStep values={getValues()} aircraftOptions={aircraftOptions} /> : null}
+          </div>
         </div>
 
         {submitError ? (
@@ -140,7 +169,7 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
           </p>
         ) : null}
 
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-6 sm:mt-10 sm:pt-8">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-5 sm:mt-7 sm:pt-6">
           <Button
             type="button"
             variant="ghost"

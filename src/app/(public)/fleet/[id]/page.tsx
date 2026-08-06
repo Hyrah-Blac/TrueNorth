@@ -122,16 +122,16 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
             </div>
           </div>
 
-          <aside className="h-fit rounded-xl border border-slate-200 p-7 shadow-soft lg:sticky lg:top-28">
-            <div className="border-b border-slate-100 pb-6">
+          <aside className="h-fit rounded-2xl border border-slate-200/70 bg-white p-6 shadow-soft lg:sticky lg:top-28">
+            <div className="border-b border-slate-100 pb-5">
               <SpecStrip aircraft={aircraft} size="lg" />
             </div>
 
-            <div className="mt-6 space-y-4">
+            <div className="mt-5 space-y-3">
               <Button
                 href={`/request-charter?aircraft=${aircraft.slug}`}
                 variant="primary"
-                size="md"
+                size="sm"
                 className="w-full"
               >
                 Request Charter
@@ -143,8 +143,8 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
                 categoryLabel={AIRCRAFT_CATEGORY_LABELS[aircraft.category]}
                 variant="inline"
               />
-              <p className="flex items-center gap-2 text-xs text-slate-500">
-                <CalendarCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <p className="flex items-center gap-2 text-[0.6875rem] text-slate-500">
+                <CalendarCheck className="h-3 w-3 shrink-0" aria-hidden="true" />
                 We&apos;ll confirm availability for your dates in the quote.
               </p>
             </div>

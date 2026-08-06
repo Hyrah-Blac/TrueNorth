@@ -10,7 +10,7 @@ interface ContactStepProps {
 
 export function ContactStep({ register, errors }: ContactStepProps) {
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-5">
       <FormField
         label="Full name"
         htmlFor="contactInfo.fullName"

@@ -60,7 +60,7 @@ export function RequirementsStep({ register, errors, watch, setValue }: Requirem
   const attachments = watch("attachments") ?? [];
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-5 sm:space-y-6">
       <FormField
         label="Special requests"
         htmlFor="specialRequests"

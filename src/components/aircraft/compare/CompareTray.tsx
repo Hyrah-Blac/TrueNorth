@@ -60,19 +60,19 @@ export function CompareTray() {
           <button
             type="button"
             onClick={clear}
-            className="text-xs font-medium text-slate-400 transition-colors hover:text-slate-600"
+            className="text-[0.6875rem] font-medium text-slate-400 transition-colors hover:text-slate-600"
           >
             Clear
           </button>
           <Link
             href={items.length >= 2 ? compareHref : "#"}
             aria-disabled={items.length < 2}
-            className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-500 bg-navy-900 px-6 py-3 text-sm font-medium text-white transition-colors duration-300 ${
-              items.length >= 2 ? "hover:bg-sky-500" : "pointer-events-none opacity-40"
+            className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-blue-500 bg-blue-500 px-5 py-2.5 text-xs font-medium text-white transition-colors duration-300 ${
+              items.length >= 2 ? "hover:border-blue-700 hover:bg-blue-700" : "pointer-events-none opacity-40"
             }`}
           >
             Compare {items.length > 1 ? `(${items.length})` : ""}
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            <ArrowRight className="h-3 w-3" aria-hidden="true" />
           </Link>
         </div>
       </div>

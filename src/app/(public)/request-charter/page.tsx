@@ -4,6 +4,7 @@ import { Container } from "@/components/layout/container/Container";
 import { CharterRequestForm } from "@/components/quote/CharterRequestForm";
 import { getAircraftOptions, getAircraftByIdOrSlug } from "@/features/aircraft/lib/getAircraft";
 import { getSiteSettings } from "@/lib/config/siteSettings";
+import { siteConfig } from "@/lib/config/site";
 import { recordQuoteStart } from "@/lib/ai/analytics";
 import type { CreateQuoteInput } from "@/features/quote/schemas/quote.schema";
 
@@ -40,9 +41,10 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
     await recordQuoteStart();
   }
 
-  const [aircraftOptions, prefillAircraft] = await Promise.all([
+  const [aircraftOptions, prefillAircraft, settings] = await Promise.all([
     getAircraftOptions(),
     params.aircraft ? getAircraftByIdOrSlug(params.aircraft) : Promise.resolve(null),
+    getSiteSettings(),
   ]);
 
   const passengerCount = params.passengers ? Number.parseInt(params.passengers, 10) : undefined;
@@ -63,21 +65,14 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
   return (
     <section className="relative flex min-h-screen items-center overflow-hidden bg-navy-950 py-28 lg:py-20">
       <div className="absolute inset-0" aria-hidden="true">
-        <Image
-          src="/images/hero/true.jpg"
-          alt=""
-          fill
-          priority
-          className="animate-zoom-slow object-cover"
-          sizes="100vw"
-        />
+        <Image src="/images/destinations/nairobi.jpg" alt="" fill priority className="object-cover" sizes="100vw" />
         <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-navy-950/70 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-navy-950/85 via-navy-950/40 to-navy-950/30" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_55%,rgba(9,21,33,0.45),transparent_70%)]" />
       </div>
 
       <Container className="relative">
-        <div className="grid items-center gap-12 lg:grid-cols-[1fr_minmax(0,480px)] lg:gap-16">
+        <div className="grid items-center gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
           <div>
             <p className="font-mono text-[0.625rem] font-medium uppercase tracking-[0.5em] text-white/50">
               Charter Request
@@ -90,10 +85,34 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
               Fill in your route, dates, and requirements. Our operations team typically responds
               with aircraft recommendations and pricing within a few hours.
             </p>
+
+            <dl className="mt-10 flex max-w-md flex-wrap gap-x-8 gap-y-5 border-t border-white/10 pt-8">
+              <div>
+                <dt className="font-mono text-[0.5625rem] uppercase tracking-[0.2em] text-white/40">Based at</dt>
+                <dd className="mt-1.5 text-sm text-white/90">
+                  {settings.city}, {settings.country}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[0.5625rem] uppercase tracking-[0.2em] text-white/40">Dispatch</dt>
+                <dd className="mt-1.5 text-sm text-white/90">24/7</dd>
+              </div>
+            </dl>
+
+            <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-[0.6875rem] font-medium uppercase tracking-[0.08em] text-white/50">
+              {siteConfig.certifications.map((cert, index) => (
+                <span key={cert} className="flex items-center gap-3">
+                  {index > 0 ? <span className="text-white/20">·</span> : null}
+                  {cert}
+                </span>
+              ))}
+            </div>
           </div>
 
-          <div className="rounded-2xl bg-white p-6 shadow-2xl sm:p-8 lg:p-10">
-            <CharterRequestForm aircraftOptions={aircraftOptions} defaultValues={defaultValues} />
+          <div className="min-w-0 overflow-hidden rounded-[28px] bg-gradient-to-b from-white to-slate-50/80 shadow-lifted ring-1 ring-black/[0.04]">
+            <div className="p-6 sm:p-7 lg:p-8">
+              <CharterRequestForm aircraftOptions={aircraftOptions} defaultValues={defaultValues} />
+            </div>
           </div>
         </div>
       </Container>

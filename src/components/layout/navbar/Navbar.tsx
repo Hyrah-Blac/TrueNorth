@@ -60,7 +60,7 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // sense. Every other route (contact, about, etc.) opens straight into a
 // white page background, so the bar needs to start solid there or its
 // white text and logo disappear against the page underneath it.
-const HERO_ROUTES = ["/", "/fleet", "/destinations", "/about"];
+const HERO_ROUTES = ["/", "/fleet", "/destinations", "/about", "/request-charter"];
 
 export function Navbar({ phone }: { phone: string }) {
   const pathname = usePathname();

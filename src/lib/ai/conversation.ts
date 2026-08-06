@@ -65,10 +65,20 @@ export async function getConversationHistory(
 
   // Fetch most recent `limit` messages, then reverse so the array is
   // oldest-first — which is the order the model expects.
+  //
+  // toolCalls is now included in the projection — it was previously
+  // omitted here, which meant chat.service.ts's cross-turn dedupe cache
+  // (buildHistoricalToolCallCache) was silently seeding from an array of
+  // messages that all had `toolCalls: undefined`, regardless of what was
+  // actually in the database. That made the "don't re-show a card the
+  // customer already saw" fix a no-op in practice. formatHistoryForPrompt
+  // below still only sends role/content to the model, so this doesn't
+  // change prompt size — it only makes the field available to the
+  // dedupe cache builder.
   const messages = await Message.find({ conversation: conversationId })
     .sort({ createdAt: -1 })
     .limit(limit)
-    .select("role content createdAt updatedAt")
+    .select("role content toolCalls createdAt updatedAt")
     .lean();
 
   return messages.reverse() as unknown as MessageDocument[];

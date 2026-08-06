@@ -4,6 +4,7 @@ import { TypingIndicator } from "./TypingIndicator";
 import { ErrorState } from "./ErrorState";
 import { FollowUpSuggestions } from "./FollowUpSuggestions";
 import { CompassWatermark } from "./CompassWatermark";
+import { hasSubmittedQuote, isPendingConfirmation } from "../lib/quoteStatus";
 import type { ConciergeError, ConciergeMessage } from "../types";
 
 interface MessageListProps {
@@ -24,7 +25,18 @@ export function MessageList({ messages, isSending, toolStatusLabel, error, onRet
   // once the streaming placeholder has content, the growing bubble
   // itself is the "in progress" signal, so the indicator steps aside.
   const showTypingIndicator = isSending && lastMessage?.status === "streaming" && !lastMessage.content;
-  const showFollowUps = !isSending && !error && lastMessage?.role === "assistant" && lastMessage.status === "sent";
+  // Follow-up chips ("Compare with another aircraft", "Get a quotation")
+  // don't make sense right after the quote has just been submitted, or
+  // right under a direct yes/no confirmation question — both cases
+  // suppress this row so the customer's attention stays on the actual
+  // decision in front of them.
+  const showFollowUps =
+    !isSending &&
+    !error &&
+    lastMessage?.role === "assistant" &&
+    lastMessage.status === "sent" &&
+    !hasSubmittedQuote(lastMessage.toolCalls) &&
+    !isPendingConfirmation(lastMessage.content);
 
   return (
     // relative wrapper holds the watermark fixed in place; the scroll

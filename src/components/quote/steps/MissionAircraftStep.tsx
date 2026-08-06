@@ -20,7 +20,7 @@ interface MissionAircraftStepProps {
 
 export function MissionAircraftStep({ register, errors, aircraftOptions }: MissionAircraftStepProps) {
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-5">
       <FormField label="Mission type" htmlFor="missionType" required error={errors.missionType?.message}>
         <Select id="missionType" hasError={Boolean(errors.missionType)} defaultValue="" {...register("missionType")}>
           <option value="" disabled>

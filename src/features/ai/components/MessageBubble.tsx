@@ -2,6 +2,7 @@ import { memo, useMemo } from "react";
 import { AlertTriangle, Headset } from "lucide-react";
 import { formatTime } from "@/utils/date";
 import { renderMarkdown } from "../lib/markdown";
+import { hasSubmittedQuote } from "../lib/quoteStatus";
 import { ToolResultRail } from "./cards/ToolResultRail";
 import type { ConciergeMessage } from "../types";
 
@@ -73,7 +74,11 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
         ) : null}
       </div>
 
-      {message.toolCalls.length > 0 ? (
+      {/* Result cards suppressed once this message includes a submitted
+          quote — re-showing the aircraft/airport cards the customer just
+          saw a moment ago underneath "your quote has been submitted"
+          reads as clutter, not help. See hasSubmittedQuote. */}
+      {message.toolCalls.length > 0 && !hasSubmittedQuote(message.toolCalls) ? (
         <div className="pl-8">
           <ToolResultRail toolCalls={message.toolCalls} />
         </div>

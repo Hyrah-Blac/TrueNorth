@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "outline-light" | "ghost" | "blue";
-type ButtonSize = "md" | "lg";
+type ButtonSize = "sm" | "md" | "lg";
 
 interface BaseProps {
   children: ReactNode;
@@ -33,7 +33,12 @@ const variantStyles: Record<ButtonVariant, string> = {
   blue: "border border-blue-500 bg-blue-500 text-white transition-colors hover:bg-blue-700 hover:border-blue-700",
 };
 
+// "sm" is for compact, dense contexts — a sidebar stacked above other
+// controls, a card footer — where the "lg"/"md" scale (built for a CTA
+// standing alone in open space) reads oversized next to smaller
+// surrounding type.
 const sizeStyles: Record<ButtonSize, string> = {
+  sm: "px-5 py-2.5 text-[0.6875rem]",
   md: "px-7 py-3 text-xs",
   lg: "px-9 py-4 text-sm",
 };

@@ -42,7 +42,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
       >
         {/* Header row: photo, name, remove, CTA */}
         <div className="sticky left-0 z-10 flex items-end bg-slate-50 p-5">
-          <p className="text-xs font-medium text-slate-500">Fleet comparison</p>
+          <p className="text-[0.6875rem] font-medium text-slate-500">Fleet comparison</p>
         </div>
         {aircraft.map((item) => (
           <div key={item._id} className="border-l border-slate-100 bg-slate-50 p-5">
@@ -63,13 +63,15 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
                 <Minus className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
-            <p className="mt-3 text-xs font-medium text-sky-600">{AIRCRAFT_CATEGORY_LABELS[item.category]}</p>
-            <h3 className="mt-1 font-display text-lg font-semibold text-navy-900">{item.name}</h3>
+            <p className="mt-3 text-[0.625rem] font-medium uppercase tracking-[0.2em] text-slate-400">
+              {AIRCRAFT_CATEGORY_LABELS[item.category]}
+            </p>
+            <h3 className="mt-1 font-display text-base font-semibold text-navy-900">{item.name}</h3>
             <Button
               href={`/fleet/${item.slug}`}
               variant="outline"
-              size="md"
-              className="mt-3 w-full hover:!-translate-y-0 hover:!border-slate-300 hover:!text-navy-900"
+              size="sm"
+              className="mt-3 w-full !text-[10px] hover:!-translate-y-0 hover:!border-slate-300 hover:!text-navy-900"
             >
               View
             </Button>
@@ -80,7 +82,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
         {SPEC_ROWS.map((row, rowIndex) => (
           <Fragment key={row.label}>
             <div
-              className={`sticky left-0 z-10 flex items-center px-5 py-3.5 text-sm text-slate-500 ${
+              className={`sticky left-0 z-10 flex items-center px-5 py-3.5 text-xs text-slate-500 ${
                 rowIndex % 2 === 1 ? "bg-slate-50" : "bg-white"
               }`}
             >
@@ -89,7 +91,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
             {aircraft.map((item) => (
               <div
                 key={`${row.label}-${item._id}`}
-                className={`flex items-center border-l border-slate-100 px-5 py-3.5 text-sm font-medium text-navy-900 ${
+                className={`flex items-center border-l border-slate-100 px-5 py-3.5 text-xs font-medium text-navy-900 ${
                   rowIndex % 2 === 1 ? "bg-slate-50" : "bg-white"
                 }`}
               >
@@ -102,7 +104,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
         {/* Recommended missions */}
         {allMissions.length > 0 ? (
           <>
-            <div className="sticky left-0 z-10 border-t-2 border-slate-200 bg-slate-50 px-5 py-3.5 text-sm font-medium text-navy-900">
+            <div className="sticky left-0 z-10 border-t-2 border-slate-200 bg-slate-50 px-5 py-3.5 text-xs font-medium text-navy-900">
               Mission fit
             </div>
             {aircraft.map((item) => (
@@ -111,7 +113,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
             {allMissions.map((mission, index) => (
               <Fragment key={mission}>
                 <div
-                  className={`sticky left-0 z-10 px-5 py-3 pl-8 text-sm text-slate-500 ${index % 2 === 1 ? "bg-slate-50" : "bg-white"}`}
+                  className={`sticky left-0 z-10 px-5 py-3 pl-8 text-xs text-slate-500 ${index % 2 === 1 ? "bg-slate-50" : "bg-white"}`}
                 >
                   {MISSION_TYPE_LABELS[mission]}
                 </div>
@@ -123,9 +125,9 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
                     }`}
                   >
                     {item.recommendedMissions.includes(mission) ? (
-                      <Check className="h-4 w-4 text-sky-600" aria-hidden="true" />
+                      <Check className="h-3.5 w-3.5 text-navy-900" aria-hidden="true" />
                     ) : (
-                      <Minus className="h-3.5 w-3.5 text-slate-200" aria-hidden="true" />
+                      <Minus className="h-3 w-3 text-slate-200" aria-hidden="true" />
                     )}
                   </div>
                 ))}
@@ -137,7 +139,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
         {/* Amenities */}
         {allAmenities.length > 0 ? (
           <>
-            <div className="sticky left-0 z-10 border-t-2 border-slate-200 bg-slate-50 px-5 py-3.5 text-sm font-medium text-navy-900">
+            <div className="sticky left-0 z-10 border-t-2 border-slate-200 bg-slate-50 px-5 py-3.5 text-xs font-medium text-navy-900">
               Amenities
             </div>
             {aircraft.map((item) => (
@@ -146,7 +148,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
             {allAmenities.map((amenity, index) => (
               <Fragment key={amenity}>
                 <div
-                  className={`sticky left-0 z-10 px-5 py-3 pl-8 text-sm text-slate-500 ${index % 2 === 1 ? "bg-slate-50" : "bg-white"}`}
+                  className={`sticky left-0 z-10 px-5 py-3 pl-8 text-xs text-slate-500 ${index % 2 === 1 ? "bg-slate-50" : "bg-white"}`}
                 >
                   {amenity}
                 </div>
@@ -158,9 +160,9 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
                     }`}
                   >
                     {item.amenities.includes(amenity) ? (
-                      <Check className="h-4 w-4 text-sky-600" aria-hidden="true" />
+                      <Check className="h-3.5 w-3.5 text-navy-900" aria-hidden="true" />
                     ) : (
-                      <Minus className="h-3.5 w-3.5 text-slate-200" aria-hidden="true" />
+                      <Minus className="h-3 w-3 text-slate-200" aria-hidden="true" />
                     )}
                   </div>
                 ))}

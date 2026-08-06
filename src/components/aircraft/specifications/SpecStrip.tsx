@@ -13,16 +13,16 @@ export function SpecStrip({ aircraft, size = "sm" }: SpecStripProps) {
     { icon: Gauge, value: aircraft.cruisingSpeedKts.toLocaleString(), unit: "KTS CRUISE" },
   ];
 
-  const valueSize = size === "lg" ? "text-xl" : "text-sm";
+  const valueSize = size === "lg" ? "text-base" : "text-xs";
 
   return (
     <dl className="flex items-center divide-x divide-slate-200">
       {items.map((item, index) => (
-        <div key={item.unit} className={`flex items-center gap-2 ${index === 0 ? "pr-4" : "px-4"}`}>
-          <item.icon className="h-3.5 w-3.5 shrink-0 text-sky-500" aria-hidden="true" />
+        <div key={item.unit} className={`flex items-center gap-1.5 ${index === 0 ? "pr-3" : "px-3"}`}>
+          <item.icon className="h-3 w-3 shrink-0 text-navy-900" aria-hidden="true" />
           <div>
             <dd className={`font-semibold text-navy-900 ${valueSize}`}>{item.value}</dd>
-            <dt className="text-[10px] uppercase tracking-wide text-slate-500">{item.unit}</dt>
+            <dt className="text-[9px] uppercase tracking-wide text-slate-500">{item.unit}</dt>
           </div>
         </div>
       ))}

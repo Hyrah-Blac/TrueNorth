@@ -43,23 +43,23 @@ export function SpecificationsTable({ aircraft }: SpecificationsTableProps) {
     <div className="space-y-8">
       {groups.map((group) => (
         <div key={group.title}>
-          <p className="mb-3 text-xs font-medium uppercase tracking-wide text-slate-500">{group.title}</p>
+          <p className="mb-3 text-[0.625rem] font-medium uppercase tracking-[0.2em] text-slate-400">{group.title}</p>
           <dl className="overflow-hidden rounded-lg border border-slate-200">
             {group.rows.map((row, index) => (
               <div
                 key={row.label}
-                className={`group flex items-center justify-between gap-4 px-5 py-3.5 transition-colors duration-300 hover:bg-sky-100/40 ${
+                className={`group flex items-center justify-between gap-4 px-5 py-3 transition-colors duration-300 hover:bg-slate-100 ${
                   index % 2 === 1 ? "bg-slate-50" : "bg-white"
                 }`}
               >
-                <dt className="flex items-center gap-2.5 text-sm text-slate-500">
+                <dt className="flex items-center gap-2.5 text-xs text-slate-500">
                   <row.icon
-                    className="h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors duration-300 group-hover:text-sky-500"
+                    className="h-3 w-3 shrink-0 text-slate-300 transition-colors duration-300 group-hover:text-navy-700"
                     aria-hidden="true"
                   />
                   {row.label}
                 </dt>
-                <dd className="text-sm font-medium text-navy-900">{row.value}</dd>
+                <dd className="text-xs font-medium text-navy-900">{row.value}</dd>
               </div>
             ))}
           </dl>

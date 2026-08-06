@@ -56,7 +56,7 @@ export function GalleryLightbox({ images, activeIndex, onIndexChange, onClose, a
           type="button"
           onClick={onClose}
           aria-label="Close gallery"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white transition-colors duration-300 hover:border-sky-400 hover:bg-white/10"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white transition-colors duration-300 hover:border-champagne-400 hover:bg-white/10"
         >
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -68,7 +68,7 @@ export function GalleryLightbox({ images, activeIndex, onIndexChange, onClose, a
             type="button"
             onClick={goPrev}
             aria-label="Previous image"
-            className="absolute left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 text-white transition-all duration-300 hover:border-sky-400 hover:bg-white/10 sm:left-6"
+            className="absolute left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 text-white transition-all duration-300 hover:border-champagne-400 hover:bg-white/10 sm:left-6"
           >
             <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -92,7 +92,7 @@ export function GalleryLightbox({ images, activeIndex, onIndexChange, onClose, a
             type="button"
             onClick={goNext}
             aria-label="Next image"
-            className="absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 text-white transition-all duration-300 hover:border-sky-400 hover:bg-white/10 sm:right-6"
+            className="absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 text-white transition-all duration-300 hover:border-champagne-400 hover:bg-white/10 sm:right-6"
           >
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -100,7 +100,7 @@ export function GalleryLightbox({ images, activeIndex, onIndexChange, onClose, a
       </div>
 
       {current?.caption ? (
-        <p className="pb-6 text-center text-sm text-white/60">{current.caption}</p>
+        <p className="pb-6 text-center text-xs text-white/60">{current.caption}</p>
       ) : null}
 
       {images.length > 1 ? (
@@ -113,7 +113,7 @@ export function GalleryLightbox({ images, activeIndex, onIndexChange, onClose, a
               aria-label={`View image ${index + 1} of ${images.length}`}
               aria-current={index === activeIndex}
               className={`relative h-12 w-18 shrink-0 overflow-hidden rounded-md border-2 transition-all duration-300 ${
-                index === activeIndex ? "border-sky-400" : "border-transparent opacity-50 hover:opacity-90"
+                index === activeIndex ? "border-champagne-400" : "border-transparent opacity-50 hover:opacity-90"
               }`}
               style={{ width: "4.5rem" }}
             >

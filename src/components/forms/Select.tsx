@@ -19,10 +19,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       <select
         ref={ref}
         {...props}
-        className={`peer w-full appearance-none rounded-md border bg-white px-3.5 pb-2.5 pt-6 text-sm text-slate-900 transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-sky-500 ${
+        className={`peer w-full appearance-none rounded-md border bg-white px-3.5 pb-2.5 pt-6 text-sm text-slate-900 outline-none transition-colors duration-200 ${
           hasError
-            ? "border-red-300 focus:shadow-[0_0_0_3px_rgb(176_62_52_/_0.14)]"
-            : "border-slate-200 hover:border-slate-300 focus:border-sky-500 focus:shadow-focus-ring"
+            ? "border-red-300 focus:border-red-400"
+            : "border-slate-200 hover:border-slate-300 focus:border-sky-500"
         } ${className}`}
       >
         {children}

@@ -37,16 +37,16 @@ export function CompareButton({ slug, name, imageUrl, categoryLabel, variant = "
         onClick={handleClick}
         disabled={disabled}
         aria-pressed={selected}
-        className={`inline-flex w-full items-center justify-center gap-2 rounded-md border px-5 py-3 text-sm font-medium transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-40 ${
+        className={`inline-flex w-full items-center justify-center gap-1.5 rounded-full border px-4 py-2.5 text-xs font-medium transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-40 ${
           selected
-            ? "border-sky-500 bg-sky-100/70 text-sky-700"
-            : "border-slate-300 text-navy-900 hover:border-sky-500 hover:text-sky-600"
+            ? "border-navy-900 bg-navy-50 text-navy-900"
+            : "border-slate-300 text-navy-900 hover:border-navy-900"
         }`}
       >
         {selected ? (
-          <Check className="h-3.5 w-3.5" aria-hidden="true" />
+          <Check className="h-3 w-3" aria-hidden="true" />
         ) : (
-          <Scale className="h-3.5 w-3.5" aria-hidden="true" />
+          <Scale className="h-3 w-3" aria-hidden="true" />
         )}
         {selected ? "Added to compare" : "Add to compare"}
       </button>
@@ -62,7 +62,7 @@ export function CompareButton({ slug, name, imageUrl, categoryLabel, variant = "
       aria-label={selected ? `Remove ${name} from comparison` : `Add ${name} to comparison`}
       title={disabled ? "You can compare up to 4 aircraft" : selected ? "Remove from comparison" : "Add to comparison"}
       className={`absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-40 ${
-        selected ? "bg-sky-500 text-white" : "bg-white/90 text-navy-900 hover:bg-sky-500 hover:text-white"
+        selected ? "bg-navy-900 text-white" : "bg-white/90 text-navy-900 hover:bg-navy-900 hover:text-white"
       }`}
     >
       {selected ? <Check className="h-4 w-4" aria-hidden="true" /> : <Scale className="h-4 w-4" aria-hidden="true" />}
