@@ -12,6 +12,12 @@ interface GalleryTab {
   images: IAircraftImage[];
 }
 
+// Aircraft photography is naturally wide (a side-profile shot loses a lot
+// when squeezed narrow), but a fixed wide ratio crops too aggressively on
+// phones. Stepping the ratio up by breakpoint keeps the framing sensible
+// at every width instead of picking one compromise for all of them.
+const GALLERY_ASPECT = "aspect-[4/3] sm:aspect-[16/10] lg:aspect-[16/9]";
+
 export function AircraftGallery({
   aircraftName,
   exteriorImages,
@@ -45,7 +51,9 @@ export function AircraftGallery({
 
   if (tabs.length === 0) {
     return (
-      <div className="flex aspect-[16/10] w-full flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-br from-navy-900 to-navy-950 text-slate-400">
+      <div
+        className={`flex ${GALLERY_ASPECT} w-full flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-br from-navy-900 to-navy-950 text-slate-400`}
+      >
         <ImageOff className="h-8 w-8" aria-hidden="true" />
         <p className="text-sm">Photography coming soon</p>
       </div>
@@ -54,7 +62,7 @@ export function AircraftGallery({
 
   return (
     <div>
-      <div className="group relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-navy-950">
+      <div className={`group relative ${GALLERY_ASPECT} w-full overflow-hidden rounded-xl bg-navy-950`}>
         {!mainImageLoaded ? <Skeleton className="absolute inset-0 h-full w-full rounded-xl" /> : null}
 
         {currentTab?.images.map((image, index) => (
@@ -69,7 +77,7 @@ export function AircraftGallery({
               src={image.url}
               alt={image.caption ?? `${aircraftName} photo`}
               fill
-              className="object-cover"
+              className="object-cover object-center"
               sizes="(min-width: 1024px) 60vw, 100vw"
               priority={index === 0}
               onLoad={() => markLoaded(image.publicId)}
@@ -118,13 +126,13 @@ export function AircraftGallery({
               onClick={() => setActiveImage(index)}
               aria-label={`View image ${index + 1} of ${currentTab.images.length}`}
               aria-current={index === activeImage}
-              className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-md border-2 transition-all duration-300 ease-editorial ${
+              className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-md border-2 transition-all duration-300 ease-editorial sm:h-16 sm:w-24 ${
                 index === activeImage
-                  ? "border-sky-500 shadow-soft"
+                  ? "border-navy-900 shadow-soft"
                   : "border-transparent opacity-70 hover:opacity-100"
               }`}
             >
-              <Image src={image.url} alt="" fill className="object-cover" sizes="96px" />
+              <Image src={image.url} alt="" fill className="object-cover object-center" sizes="96px" />
             </button>
           ))}
         </div>

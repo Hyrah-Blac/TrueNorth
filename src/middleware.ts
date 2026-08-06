@@ -4,9 +4,6 @@ import { getRoleFromSessionClaims } from "@/lib/auth/session";
 import { ROLES } from "@/database/constants/roles";
 import { buildCspHeader } from "@/lib/security/headers";
 
-// Everything NOT listed here requires sign-in by default once it hits
-// a protected matcher below. Keep this list in sync with the (public)
-// route group as new public pages are added.
 const isPublicRoute = createRouteMatcher([
   "/",
   "/about",
@@ -15,6 +12,7 @@ const isPublicRoute = createRouteMatcher([
   "/fleet(.*)",
   "/request-charter",
   "/robots.txt",
+   "/api/health",
   "/sitemap.xml",
   "/sign-in(.*)",
   "/sign-up(.*)",
@@ -22,8 +20,7 @@ const isPublicRoute = createRouteMatcher([
   // *before* a session cookie exists yet. Without this, middleware sees
   // userId === null on this route and bounces the request back to
   // /sign-in via redirectToSignIn() before <AuthenticateWithRedirectCallback />
-  // ever gets a chance to mount and finish establishing the session —
-  // this was the actual cause of Google sign-in "bouncing back" to /sign-in.
+  // ever gets a chance to mount and finish establishing the session.
   "/sso-callback(.*)",
   "/api/webhooks(.*)",
   "/api/aircraft(.*)",
@@ -33,24 +30,30 @@ const isPublicRoute = createRouteMatcher([
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 
 export default clerkMiddleware(async (authFn, req) => {
-  // One nonce per request. It's threaded two ways: as the nonce inside
-  // the Content-Security-Policy response header (what the browser
-  // actually enforces), and as an `x-nonce` request header so Server
-  // Components downstream can read it via `headers()` and stamp it on
-  // any inline <script> they render — see src/components/shared/JsonLd.tsx.
-  // Next.js picks this same nonce up automatically for its own inline
-  // bootstrap/hydration scripts once it sees it in the CSP header, no
-  // extra wiring needed for those.
+  // One nonce per request, used for the Content-Security-Policy header
+  // and forwarded as `x-nonce` so Server Components can stamp it on
+  // inline <script> elements they render.
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const cspHeader = buildCspHeader(nonce);
 
+  // A stable, opaque ID for this request. Forwarded as both a request
+  // header (so server actions / route handlers can include it in log
+  // lines) and a response header (so client-side error reporters and
+  // support tooling can correlate a user-facing failure back to a
+  // specific server log entry without exposing internal detail).
+  const requestId = crypto.randomUUID();
+
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("x-request-id", requestId);
 
   const next = () => NextResponse.next({ request: { headers: requestHeaders } });
 
   const respond = (response: NextResponse) => {
     response.headers.set("Content-Security-Policy", cspHeader);
+    // Expose the request ID on the response so the browser (and any
+    // error-tracking SDK) can record it alongside client-side errors.
+    response.headers.set("X-Request-ID", requestId);
     return response;
   };
 
@@ -75,7 +78,6 @@ export default clerkMiddleware(async (authFn, req) => {
 
 export const config = {
   matcher: [
-    // Skip static assets and Next internals, always run on API/tRPC routes.
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",
   ],

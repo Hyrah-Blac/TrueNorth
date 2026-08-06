@@ -1,5 +1,15 @@
 import "server-only";
 import { timingSafeEqual } from "crypto";
+import { logger } from "@/lib/logging/logger";
+
+// Warn at startup (module load time) if the secret is missing so it
+// doesn't silently expose cron endpoints in a misconfigured deployment.
+if (!process.env.CRON_SECRET) {
+  logger.warn(
+    "CRON_SECRET is not set — all cron endpoints will return 401. " +
+    "Set this env var to enable scheduled jobs."
+  );
+}
 
 /**
  * Verifies the Authorization header on cron routes against

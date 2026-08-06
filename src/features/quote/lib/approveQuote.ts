@@ -12,6 +12,7 @@ import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
 import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
+import { auditLog } from "@/lib/security/audit";
 import QuoteApproved from "@/emails/QuoteApproved";
 import AdminNewBooking from "@/emails/AdminNewBooking";
 import type { ApproveQuoteInput } from "../schemas/quote.schema";
@@ -67,6 +68,21 @@ export async function approveQuoteById(
   quote.reviewedAt = new Date();
   quote.convertedBooking = booking._id;
   await quote.save();
+
+  auditLog({
+    action: "quote.approve",
+    actorClerkId: adminClerkId,
+    resourceId: String(quote._id),
+    resourceType: "quote",
+    meta: {
+      quoteNumber: quote.quoteNumber,
+      bookingId: String(booking._id),
+      bookingNumber: booking.bookingNumber,
+      aircraftId: String(aircraft._id),
+      quotedAmount: data.quotedAmount,
+      quotedCurrency: data.quotedCurrency,
+    },
+  });
 
   const settings = await getSiteSettings();
   const contact = toEmailContact(settings);

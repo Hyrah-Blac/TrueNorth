@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Section } from "@/components/layout/section/Section";
+import Image from "next/image";
 import { Container } from "@/components/layout/container/Container";
 import { CharterRequestForm } from "@/components/quote/CharterRequestForm";
 import { getAircraftOptions, getAircraftByIdOrSlug } from "@/features/aircraft/lib/getAircraft";
@@ -61,29 +61,42 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
       : undefined;
 
   return (
-    <>
-      <div className="relative overflow-hidden bg-slate-50 py-14 sm:py-20 lg:py-28">
-        <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_0%,rgba(15,42,67,0.05),transparent)]"
-          aria-hidden="true"
+    <section className="relative flex min-h-screen items-center overflow-hidden bg-navy-950 py-28 lg:py-20">
+      <div className="absolute inset-0" aria-hidden="true">
+        <Image
+          src="/images/hero/true.jpg"
+          alt=""
+          fill
+          priority
+          className="animate-zoom-slow object-cover"
+          sizes="100vw"
         />
-
-        <Container className="relative">
-          <h1 className="font-editorial max-w-2xl text-[1.75rem] font-light leading-[1.15] tracking-tight text-navy-900 sm:text-4xl lg:text-5xl">
-            {prefillAircraft ? `Request the ${prefillAircraft.name}` : "Tell us about your mission"}
-          </h1>
-          <p className="mt-4 max-w-2xl text-xs leading-relaxed text-slate-600 sm:mt-5 sm:text-sm">
-            Fill in your route, dates, and requirements. Our operations team typically responds
-            with aircraft recommendations and pricing within a few hours.
-          </p>
-        </Container>
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-navy-950/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy-950/85 via-navy-950/40 to-navy-950/30" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_55%,rgba(9,21,33,0.45),transparent_70%)]" />
       </div>
 
-      <Section tone="white" className="!pt-8 sm:!pt-12">
-        <div className="mx-auto max-w-2xl">
-          <CharterRequestForm aircraftOptions={aircraftOptions} defaultValues={defaultValues} />
+      <Container className="relative">
+        <div className="grid items-center gap-12 lg:grid-cols-[1fr_minmax(0,480px)] lg:gap-16">
+          <div>
+            <p className="font-mono text-[0.625rem] font-medium uppercase tracking-[0.5em] text-white/50">
+              Charter Request
+            </p>
+            <h1 className="font-editorial mt-5 max-w-xl text-[1.75rem] font-light leading-[1.15] tracking-tight text-white sm:text-4xl lg:text-5xl">
+              {prefillAircraft ? `Request the ${prefillAircraft.name}` : "Tell us about your mission"}
+            </h1>
+            <div className="mt-6 h-px w-12 bg-white/20" />
+            <p className="mt-6 max-w-md text-xs leading-relaxed text-slate-200 sm:text-sm">
+              Fill in your route, dates, and requirements. Our operations team typically responds
+              with aircraft recommendations and pricing within a few hours.
+            </p>
+          </div>
+
+          <div className="rounded-2xl bg-white p-6 shadow-2xl sm:p-8 lg:p-10">
+            <CharterRequestForm aircraftOptions={aircraftOptions} defaultValues={defaultValues} />
+          </div>
         </div>
-      </Section>
-    </>
+      </Container>
+    </section>
   );
 }

@@ -70,7 +70,7 @@ export function ConciergePanel({ open, onClose, welcomeMessage, starterPrompts }
         aria-labelledby="concierge-panel-title"
         tabIndex={-1}
         className={`absolute inset-0 flex flex-col overflow-hidden rounded-none bg-white shadow-lifted ring-1 ring-glass-border transition-all duration-500 ease-editorial
-          sm:inset-auto sm:bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:right-6 sm:h-[540px] sm:w-[440px] sm:rounded-2xl sm:shadow-[var(--shadow-lifted),var(--shadow-glow)]
+          sm:inset-auto sm:bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:right-6 sm:h-[min(600px,calc(100vh-7rem))] sm:w-[440px] sm:rounded-2xl sm:shadow-[var(--shadow-lifted),var(--shadow-glow)]
           ${open ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0 pointer-events-none"}`}
       >
         <ConciergeHeader

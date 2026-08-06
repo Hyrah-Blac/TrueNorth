@@ -8,6 +8,7 @@ import { requireAuth, getCurrentUserOrThrow } from "@/middleware/auth";
 import { requireAdmin } from "@/middleware/admin";
 import { isAppError } from "@/lib/errors/AppError";
 import { logger } from "@/lib/logging/logger";
+import { auditLog } from "@/lib/security/audit";
 import { updateProfileSchema, updateUserRoleSchema } from "../schemas/user.schema";
 import type { UpdateProfileFormValues, UpdateUserRoleFormValues } from "../schemas/user.schema";
 import type { ActionResult } from "../types";
@@ -70,7 +71,7 @@ export async function updateUserRole(
   values: UpdateUserRoleFormValues
 ): Promise<ActionResult<IUser>> {
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
     const parsed = updateUserRoleSchema.safeParse(values);
 
     if (!parsed.success) {
@@ -94,6 +95,14 @@ export async function updateUserRole(
       publicMetadata: { role: parsed.data.role },
     });
 
+    auditLog({
+      action: "user.role_change",
+      actorClerkId: admin.clerkId,
+      resourceId: String(user._id),
+      resourceType: "user",
+      meta: { newRole: parsed.data.role, targetClerkId: user.clerkId },
+    });
+
     revalidatePath("/admin/customers");
     return { success: true, data: JSON.parse(JSON.stringify(user)) };
   } catch (error) {
@@ -114,7 +123,7 @@ export async function toggleUserActive(
   isActive: boolean
 ): Promise<ActionResult<IUser>> {
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
     await connectToDatabase();
 
     const user = await User.findByIdAndUpdate(userId, { isActive }, { new: true });
@@ -122,6 +131,14 @@ export async function toggleUserActive(
     if (!user) {
       return { success: false, error: "User not found" };
     }
+
+    auditLog({
+      action: isActive ? "user.activate" : "user.deactivate",
+      actorClerkId: admin.clerkId,
+      resourceId: userId,
+      resourceType: "user",
+      meta: { targetClerkId: user.clerkId },
+    });
 
     revalidatePath("/admin/customers");
     revalidatePath(`/admin/customers/${userId}`);

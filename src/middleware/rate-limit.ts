@@ -50,8 +50,21 @@ export const RATE_LIMITS = {
   PUBLIC_WRITE: { windowMs: 60_000, max: 5 },
   /** Public browsing: fleet listing/search. */
   PUBLIC_READ: { windowMs: 60_000, max: 60 },
+  /** Signed-in reads: dashboard data, search, etc. */
+  AUTHENTICATED_READ: { windowMs: 60_000, max: 120 },
   /** Signed-in mutations: profile updates, booking actions. */
   AUTHENTICATED_WRITE: { windowMs: 60_000, max: 30 },
+  /**
+   * AI chat completions. Tighter than AUTHENTICATED_WRITE because each
+   * call incurs real per-token cost at the provider.
+   * Note: this is per-instance on Vercel serverless — see module comment.
+   */
+  AI_CHAT: { windowMs: 60_000, max: 20 },
+  /**
+   * Signed Cloudinary upload credential issuance. Tighter still because
+   * a credential unlocks a direct upload to our storage account.
+   */
+  UPLOAD_SIGNATURE: { windowMs: 60_000, max: 5 },
 } as const;
 
 export function getRequestKey(req: Request, discriminator: string): string {

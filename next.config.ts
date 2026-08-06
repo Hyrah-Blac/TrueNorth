@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 import { securityHeaders } from "./src/lib/security/headers";
 
 const nextConfig: NextConfig = {
@@ -13,9 +14,15 @@ const nextConfig: NextConfig = {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
   eslint: {
-    // Linting is run separately in CI; don't let it block `next build`.
     ignoreDuringBuilds: false,
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: "true-north-charters",
+  project: "javascript-nextjs",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  hideSourceMaps: true,
+  silent: !process.env.CI,
+  disableLogger: true,
+});

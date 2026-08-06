@@ -1,8 +1,13 @@
 import "server-only";
 import { logger } from "@/lib/logging/logger";
+import { withRetry } from "./retry";
 
 const isProduction = (process.env.MPESA_ENVIRONMENT ?? "production") === "production";
 const BASE_URL = isProduction ? "https://api.safaricom.co.ke" : "https://sandbox.safaricom.co.ke";
+
+/** Timeout for all Daraja HTTP calls. Vercel's default function timeout
+ *  is 10s on Hobby and 60s on Pro — keep this well inside either. */
+const MPESA_TIMEOUT_MS = 8_000;
 
 interface CachedToken {
   token: string;
@@ -16,11 +21,7 @@ interface CachedToken {
 // on a cold start.
 let cachedToken: CachedToken | null = null;
 
-async function getAccessToken(): Promise<string> {
-  if (cachedToken && cachedToken.expiresAt > Date.now()) {
-    return cachedToken.token;
-  }
-
+async function fetchAccessToken(): Promise<string> {
   const consumerKey = process.env.MPESA_CONSUMER_KEY;
   const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
 
@@ -33,6 +34,7 @@ async function getAccessToken(): Promise<string> {
   const response = await fetch(`${BASE_URL}/oauth/v1/generate?grant_type=client_credentials`, {
     headers: { Authorization: `Basic ${credentials}` },
     cache: "no-store",
+    signal: AbortSignal.timeout(MPESA_TIMEOUT_MS),
   });
 
   if (!response.ok) {
@@ -51,6 +53,19 @@ async function getAccessToken(): Promise<string> {
   };
 
   return cachedToken.token;
+}
+
+async function getAccessToken(): Promise<string> {
+  if (cachedToken && cachedToken.expiresAt > Date.now()) {
+    return cachedToken.token;
+  }
+
+  // Token fetches are idempotent — safe to retry on transient failures.
+  return withRetry(fetchAccessToken, {
+    attempts: 3,
+    baseDelayMs: 300,
+    label: "M-Pesa token fetch",
+  });
 }
 
 function buildTimestamp(): string {
@@ -96,6 +111,11 @@ export interface StkPushResponse {
   CustomerMessage: string;
 }
 
+/**
+ * Initiates an STK push. NOT wrapped in withRetry — this is a payment
+ * charge and must never be sent twice for the same request. The caller
+ * (initiateBookingPayment) owns retry logic at the business level if needed.
+ */
 export async function initiateStkPush(params: StkPushParams): Promise<StkPushResponse> {
   const shortcode = process.env.MPESA_SHORTCODE;
   const callbackUrl = process.env.MPESA_CALLBACK_URL;
@@ -128,6 +148,7 @@ export async function initiateStkPush(params: StkPushParams): Promise<StkPushRes
       TransactionDesc: params.transactionDesc.slice(0, 13),
     }),
     cache: "no-store",
+    signal: AbortSignal.timeout(MPESA_TIMEOUT_MS),
   });
 
   const data = await response.json();
@@ -150,39 +171,44 @@ export interface StkPushQueryResponse {
 }
 
 /**
- * Queries Daraja directly for a payment's outcome — used as a
- * fallback when the async callback hasn't arrived (network issues,
- * or the customer checking status sooner than the callback lands).
+ * Queries Daraja directly for a payment's outcome — used as a fallback
+ * when the async callback hasn't arrived. Idempotent — safe to retry.
  */
 export async function queryStkPushStatus(checkoutRequestId: string): Promise<StkPushQueryResponse> {
   const shortcode = process.env.MPESA_SHORTCODE;
   if (!shortcode) throw new Error("M-Pesa shortcode is not configured");
 
-  const token = await getAccessToken();
-  const timestamp = buildTimestamp();
-  const password = buildPassword(timestamp);
+  return withRetry(
+    async () => {
+      const token = await getAccessToken();
+      const timestamp = buildTimestamp();
+      const password = buildPassword(timestamp);
 
-  const response = await fetch(`${BASE_URL}/mpesa/stkpushquery/v1/query`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+      const response = await fetch(`${BASE_URL}/mpesa/stkpushquery/v1/query`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          BusinessShortCode: shortcode,
+          Password: password,
+          Timestamp: timestamp,
+          CheckoutRequestID: checkoutRequestId,
+        }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(MPESA_TIMEOUT_MS),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        logger.error("M-Pesa STK push query failed", { status: response.status, data });
+        throw new Error(data?.errorMessage || "Failed to check M-Pesa payment status");
+      }
+
+      return data as StkPushQueryResponse;
     },
-    body: JSON.stringify({
-      BusinessShortCode: shortcode,
-      Password: password,
-      Timestamp: timestamp,
-      CheckoutRequestID: checkoutRequestId,
-    }),
-    cache: "no-store",
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    logger.error("M-Pesa STK push query failed", { status: response.status, data });
-    throw new Error(data?.errorMessage || "Failed to check M-Pesa payment status");
-  }
-
-  return data as StkPushQueryResponse;
+    { attempts: 3, baseDelayMs: 500, label: "M-Pesa status query" }
+  );
 }

@@ -16,10 +16,6 @@ import type {
 
 const GEMINI_TIMEOUT_MS = 30_000;
 
-// Production-tuned generation defaults for a deterministic aviation
-// concierge: lower temperature and a wide-but-bounded output budget favour
-// consistent, tool-driven answers over open-ended creativity. These are
-// used whenever a caller doesn't specify its own value.
 const DEFAULT_TEMPERATURE = 0.4;
 const DEFAULT_TOP_P = 0.95;
 const DEFAULT_MAX_OUTPUT_TOKENS = 4096;
@@ -36,30 +32,14 @@ function getConfig(): { apiKey: string; model: string } {
   return { apiKey, model };
 }
 
-/**
- * Thinking-mode configuration differs by Gemini generation and is NOT
- * interchangeable: Gemini 3.x models use the semantic `thinkingLevel` field
- * and reject `thinkingBudget`-only requests' sibling field with an error if
- * mismatched, while Gemini 2.5 models only understand the older
- * token-based `thinkingBudget` and reject `thinkingLevel` outright. This
- * picks the right field for the resolved model instead of hardcoding one,
- * so a "medium" level of reasoning effort is applied safely either way.
- */
 function buildThinkingConfig(model: string): ThinkingConfig {
   const isGemini3 = /gemini-3/i.test(model);
   if (isGemini3) {
     return { thinkingLevel: ThinkingLevel.MEDIUM };
   }
-  // Moderate fixed budget on 2.x models approximates "medium" thinking
-  // while keeping latency and token usage bounded and responses
-  // consistent (a 0 budget on some 2.5 Flash versions unreliably still
-  // emits thought tokens, so a small positive budget is safer than off).
   return { thinkingBudget: 512 };
 }
 
-// The SDK client is stateless/cheap to reuse across invocations — cache it
-// per API key so we don't reconstruct it on every request in a warm
-// serverless instance.
 let cachedClient: GoogleGenAI | null = null;
 let cachedApiKey: string | null = null;
 
@@ -88,10 +68,6 @@ export interface CompletionResult {
   latencyMs: number;
 }
 
-// Runtime-only shape used by chat.service.ts's second (post tool-call)
-// completion request. Not part of the public OpenRouterMessage union, but
-// objects with this shape are passed into `messages` at runtime — see
-// chat.service.ts's `ToolResultMessage`.
 interface WireToolResultMessage {
   role: "tool";
   tool_call_id: string;
@@ -99,52 +75,20 @@ interface WireToolResultMessage {
   content: string;
 }
 
-// Mirrors chat.service.ts's `AssistantToolCallMessage` — the turn where
-// the model requested tool calls, carrying the real tool_calls array
-// (including any thoughtSignature) rather than plain text.
 interface WireAssistantToolCallMessage {
   role: "assistant";
   content: string;
   tool_calls?: OpenRouterToolCall[];
 }
 
-// ── Request mapping: OpenRouter-shaped messages → Gemini `contents` ───────────
+// ── Request mapping ───────────────────────────────────────────────────────────
 
-/**
- * Converts the flat OpenRouter-style message array (as built by
- * chat.service.ts) into Gemini's `systemInstruction` + `contents` shape.
- *
- * Notes on fidelity:
- * - The system message becomes `systemInstruction` (Gemini's idiomatic
- *   equivalent), rather than a turn in the conversation.
- * - The turn where the model requested tool calls (an "assistant" message
- *   carrying `tool_calls`, see WireAssistantToolCallMessage) is
- *   reconstructed as real `functionCall` parts — one per call, each
- *   carrying its `thoughtSignature` if the model returned one. Gemini 3.x
- *   thinking models REQUIRE that signature echoed back verbatim on this
- *   turn; omitting it (or, as before, dropping the turn/call entirely and
- *   describing the result as plain text instead) is a documented cause of
- *   spurious "malformed_function_call" failures on the following turn.
- *   See https://ai.google.dev/gemini-api/docs/thought-signatures.
- * - "tool" role messages (the corresponding results, see
- *   WireToolResultMessage) are reconstructed as real `functionResponse`
- *   parts for the same reason, bundling consecutive ones into a single
- *   "user" turn — closer to how Gemini's own multi-functionResponse turns
- *   are shaped than a run of several separate same-role turns.
- * - A plain-text assistant turn with no tool calls and no content
- *   (shouldn't normally occur) gets a minimal placeholder rather than
- *   being dropped — Gemini rejects empty parts outright, and dropping the
- *   turn instead of placeholding it breaks strict user/model alternation.
- */
 function toGeminiContents(messages: OpenRouterMessage[]): {
   systemInstruction?: string;
   contents: Content[];
 } {
   let systemInstruction: string | undefined;
   const contents: Content[] = [];
-  // Tracks whether the previous pushed turn was a tool-result turn, so
-  // consecutive tool results get bundled into one "user" turn (multiple
-  // parts) instead of a run of several separate same-role turns.
   let lastWasToolResult = false;
 
   for (const raw of messages) {
@@ -166,9 +110,7 @@ function toGeminiContents(messages: OpenRouterMessage[]): {
       } catch {
         responseData = { result: toolMsg.content };
       }
-      // Gemini requires functionResponse.response to be a JSON object —
-      // wrap anything else (a bare string, number, array, or null) so
-      // tool results that aren't already object-shaped are still valid.
+
       const response =
         responseData && typeof responseData === "object" && !Array.isArray(responseData)
           ? (responseData as Record<string, unknown>)
@@ -199,8 +141,7 @@ function toGeminiContents(messages: OpenRouterMessage[]): {
           try {
             args = JSON.parse(tc.function.arguments) as Record<string, unknown>;
           } catch {
-            // Leave empty — mirrors executor.ts's own tolerant handling
-            // of unparsable tool arguments.
+            // Leave empty — mirrors executor.ts's own tolerant handling.
           }
           parts.push({
             functionCall: { name: tc.function.name, args },
@@ -212,8 +153,6 @@ function toGeminiContents(messages: OpenRouterMessage[]): {
         continue;
       }
 
-      // No tool calls — plain text turn (or, in the rare case of a truly
-      // empty one, a minimal placeholder; see doc comment above).
       const text = assistantMsg.content || "One moment — checking on that.";
       contents.push({ role: "model", parts: [{ text }] });
       lastWasToolResult = false;
@@ -232,18 +171,11 @@ function toFunctionDeclaration(tool: AiToolDefinition): FunctionDeclaration {
   return {
     name: tool.function.name,
     description: tool.function.description,
-    // The Gemini SDK accepts a raw JSON-Schema object here, which is
-    // exactly the shape AI_TOOL_DEFINITIONS already produces — no
-    // conversion needed.
     parametersJsonSchema: tool.function.parameters,
   };
 }
 
-// AI_TOOL_DEFINITIONS is a static module-level constant — chat.service.ts
-// passes the exact same array reference on every call. Memoize the mapped
-// Gemini tool declarations against that reference so we're not rebuilding
-// and reallocating the same objects on every single request.
-const toolsCache = new WeakMap<
+const toolsCache = new WeakMap
   AiToolDefinition[],
   [{ functionDeclarations: FunctionDeclaration[] }]
 >();
@@ -261,34 +193,16 @@ function getGeminiTools(
   return wrapped;
 }
 
-// Fixed, reused config object — function-calling mode never varies per
-// request, so there's no reason to allocate a fresh object every call.
 const AUTO_FUNCTION_CALLING = {
   functionCallingConfig: { mode: FunctionCallingConfigMode.AUTO },
 } as const;
 
-// Used on a follow-up completion where the caller wants the model to
-// compose its final answer rather than call anything further (e.g.
-// chat.service.ts's post-tool-execution pass). Declaring the tools with
-// calling explicitly disallowed — rather than omitting `tools` entirely —
-// keeps the schema Gemini has already "seen" in this session consistent
-// across turns. Dropping it abruptly is what lets some Gemini 3.x models
-// still attempt a function call out of habit from the prior turn, which
-// then fails validation (there's nothing to validate against) and comes
-// back as finishReason "malformed_function_call" with no usable text.
 const NO_FUNCTION_CALLING = {
   functionCallingConfig: { mode: FunctionCallingConfigMode.NONE },
 } as const;
 
-// ── Response mapping: Gemini response → OpenRouterResponse shape ──────────────
+// ── Response mapping ──────────────────────────────────────────────────────────
 
-/**
- * Maps a Gemini finish reason to the OpenRouter-style string chat.service.ts
- * inspects. Gemini does not have a dedicated "the model wants to call a
- * function" finish reason (it typically reports STOP either way), so tool
- * calls are detected directly from the response's function-call parts and
- * take priority over the raw finish reason.
- */
 function mapFinishReason(rawFinishReason: string | undefined, hasToolCalls: boolean): string {
   if (hasToolCalls) return "tool_calls";
   switch (rawFinishReason) {
@@ -304,29 +218,6 @@ function mapFinishReason(rawFinishReason: string | undefined, hasToolCalls: bool
 
 // ── Client ────────────────────────────────────────────────────────────────────
 
-/**
- * The single point of contact between this application and the Gemini API.
- * No other file may call the Gemini SDK directly.
- *
- * Callers (chat.service.ts) speak the same OpenRouter-shaped wire format as
- * before this migration — this function is the adapter boundary that
- * translates to/from Gemini underneath. Everything above this file remains
- * provider-agnostic.
- *
- * Streaming: the request always uses Gemini's streaming endpoint under the
- * hood. If an `onChunk` callback is supplied, each real text delta is
- * forwarded to it the moment it arrives — callers that don't care about
- * live output can simply omit it and use the fully-accumulated result in
- * the returned CompletionResult, exactly as before.
- *
- * Handles:
- * - Timeout via AbortController (30 s default, now covering the whole
- *   stream — a stalled stream mid-way through is just as fatal as a
- *   stalled request)
- * - Network failures
- * - Non-2xx / SDK ApiError responses (re-thrown as AppError)
- * - Malformed / empty responses
- */
 export async function createCompletion(
   options: CompletionOptions,
   onChunk?: (delta: string) => void
@@ -353,39 +244,22 @@ export async function createCompletion(
     streaming: Boolean(onChunk),
   });
 
-  // Timeout guard — Vercel serverless functions have a hard wall-clock
-  // limit; without this the function hangs until platform timeout which
-  // produces a 504 with no useful error message. This now covers the
-  // whole stream, not just the initial call — a stalled stream mid-way
-  // through is just as fatal as a stalled request.
-const controller = new AbortController();
+  // Build a single AbortController that fires on whichever comes first:
+  // the hard timeout, or the caller's own cancellation signal (e.g. client
+  // disconnect from chat.service.ts). Both sources abort the same
+  // controller so the Gemini SDK stream is torn down cleanly in either case.
+  const controller = new AbortController();
 
-// Forward cancellation from chat.service.ts
-if (options.signal) {
-  options.signal.addEventListener(
-    "abort",
-    () => controller.abort(),
-    { once: true }
-  );
-}
+  const timeoutId = setTimeout(() => {
+    controller.abort(new DOMException("Gemini request timed out", "TimeoutError"));
+  }, GEMINI_TIMEOUT_MS);
 
-const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  // Forward caller's cancellation (e.g. client disconnect) into our controller.
+  options.signal?.addEventListener("abort", () => controller.abort(options.signal!.reason), {
+    once: true,
+  });
 
   let accumulatedText = "";
-  // Gemini's stream repeats/refines usage metadata, response id, model
-  // version, and finish reason as it progresses — the LAST chunk carries
-  // the authoritative values for those, so `latestChunk` is kept for them.
-  // Function-call parts are NOT repeated this way: they appear only in the
-  // specific chunk(s) that actually contain them, and a later text-only
-  // refinement chunk carries none. Reading functionCalls off `latestChunk`
-  // alone would silently lose the tool call the moment any chunk arrives
-  // after it — so function calls are captured separately, the moment they
-  // appear, and never overwritten by a later empty chunk.
-  //
-  // Captured from the raw response parts rather than the SDK's simplified
-  // `chunk.functionCalls` convenience getter, because that getter strips
-  // the `thoughtSignature` field — required by Gemini 3.x thinking models
-  // and threaded back through on the next turn by toGeminiContents above.
   let latestChunk: Awaited<ReturnType<typeof ai.models.generateContent>> | undefined;
   let capturedFunctionCallParts: Array<{
     id?: string;
@@ -408,7 +282,8 @@ const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
         ...(tools
           ? {
               tools,
-              toolConfig: options.toolChoice === "none" ? NO_FUNCTION_CALLING : AUTO_FUNCTION_CALLING,
+              toolConfig:
+                options.toolChoice === "none" ? NO_FUNCTION_CALLING : AUTO_FUNCTION_CALLING,
             }
           : {}),
       },
@@ -420,19 +295,15 @@ const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
       const chunkParts = chunk.candidates?.[0]?.content?.parts;
       const chunkFunctionCallParts = chunkParts?.filter((part) => part.functionCall) ?? [];
       if (chunkFunctionCallParts.length > 0) {
-        capturedFunctionCallParts = chunkFunctionCallParts.map((part) => ({
+        capturedFunctionCallParts = chunkFunctionCallParts.map((part, index) => ({
           id: part.functionCall!.id,
           name: part.functionCall!.name ?? "",
           args: (part.functionCall!.args ?? {}) as Record<string, unknown>,
-          thoughtSignature: part.thoughtSignature,
+          thoughtSignature:
+            part.thoughtSignature ?? capturedFunctionCallParts[index]?.thoughtSignature,
         }));
       }
 
-      // Only chunks whose candidate actually contains a text part have
-      // real text. Reading `.text` on a functionCall-only chunk is what
-      // triggers the SDK's "there are non-text parts functionCall..."
-      // console warning — this check avoids that noise as well as any
-      // risk of pulling in the wrong data.
       const hasTextPart = chunkParts?.some(
         (part) => typeof part.text === "string" && part.text.length > 0
       );
@@ -454,8 +325,14 @@ const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
   } catch (error) {
     clearTimeout(timeoutId);
 
-    const isTimeout = error instanceof Error && error.name === "AbortError";
+    const isTimeout =
+      error instanceof Error &&
+      (error.name === "AbortError" || error.name === "TimeoutError");
+
     if (isTimeout) {
+      // Don't report a timeout if the caller themselves cancelled — that's
+      // expected (client disconnect, navigation) and logged separately.
+      if (options.signal?.aborted) throw error;
       logger.error("Gemini error", { model, type: "timeout" });
       throw new AppError("AI service timed out. Please try again.", 503, true);
     }
@@ -508,9 +385,6 @@ const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
       model,
       latencyMs,
       tools: toolCalls.map((tc) => tc.function.name),
-      // Visibility into whether the required-for-3.x signature was
-      // actually present — a `false` here for a Gemini 3.x model is a
-      // strong signal something's about to fail on the next turn.
       hasThoughtSignature: toolCalls.map((tc) => Boolean(tc.thoughtSignature)),
     });
   }

@@ -32,13 +32,13 @@ export function FollowUpSuggestions({ message }: { message: ConciergeMessage }) 
   if (isSending) return null;
 
   return (
-    <div className="flex flex-wrap gap-2 pl-8">
+    <div className="flex flex-wrap gap-1.5 pl-8">
       {followUpsFor(message).map((suggestion) => (
         <button
           key={suggestion}
           type="button"
           onClick={() => void sendMessage(suggestion)}
-          className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-600 transition-all duration-300 ease-editorial hover:-translate-y-0.5 hover:border-sky-400 hover:text-sky-600"
+          className="rounded-lg border border-slate-200 px-2.5 py-1 font-body text-[11px] text-slate-600 transition-colors duration-300 ease-editorial hover:border-sky-400 hover:text-sky-600"
         >
           {suggestion}
         </button>

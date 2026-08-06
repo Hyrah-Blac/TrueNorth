@@ -27,8 +27,27 @@ import type {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-/** Maximum tool calls per turn. Prevents infinite agentic loops. */
+/**
+ * Hard cap on total individual tool *executions* in a single turn — a
+ * deduped repeat (see MAX_TOOL_ROUNDS below and the dedup cache in the
+ * loop) doesn't count against this, only genuinely new name+argument
+ * combinations do. Prevents runaway cost if the model asks for many
+ * distinct lookups in one turn.
+ */
 const MAX_TOOL_CALLS_PER_TURN = 5;
+
+/**
+ * Hard cap on model↔tool round-trips in a single turn, independent of
+ * MAX_TOOL_CALLS_PER_TURN. Some models (observed with gemini-3.5-flash-lite)
+ * reliably want to make sequential single-tool-call rounds for an ordinary
+ * multi-part request (e.g. look up the departure airport, then the
+ * destination, then search aircraft) — that's legitimate and the loop
+ * below supports it, but this bounds total latency/cost even in a
+ * pathological case where a model keeps finding "just one more" reason
+ * to call something every round without ever reaching MAX_TOOL_CALLS_PER_TURN
+ * (e.g. because most of those rounds turn out to be deduped repeats).
+ */
+const MAX_TOOL_ROUNDS = 4;
 
 /** Fallback content when the model returns an empty response. */
 const FALLBACK_RESPONSE =
@@ -91,10 +110,10 @@ interface AssistantToolCallMessage {
  *   1. Resolve or create conversation
  *   2. Persist the user message
  *   3. Build the full prompt (system + history + user turn)
- *   4. Call OpenRouter via the centralised client
- *   5. Execute tool calls (capped at MAX_TOOL_CALLS_PER_TURN)
- *   6. Re-prompt the model with tool results
- *   7. Persist and return the final assistant message
+ *   4. Loop: call the model, execute any requested tools, feed results
+ *      back, repeat — until the model stops requesting tools or the
+ *      round/call caps are hit (see MAX_TOOL_ROUNDS, MAX_TOOL_CALLS_PER_TURN)
+ *   5. Persist and return the final assistant message
  */
 export async function runChat(
   params: RunChatParams,
@@ -120,45 +139,47 @@ export async function runChat(
 
   // Fetched once per turn and reused everywhere below (buildSystemPrompt,
   // the enabled check, the conversation-length check) — never re-fetched.
-// Fetched once per turn and reused everywhere below (buildSystemPrompt,
-// the enabled check, the conversation-length check) — never re-fetched.
-const settings = await getSiteSettings();
+  const settings = await getSiteSettings();
 
-if (!settings.ai.enabled) {
-  return respondWithoutCallingModel(
-    conversationId,
-    params.sessionId,
-    "The AI Concierge is temporarily unavailable. Please contact our operations team directly and they'll be glad to help.",
-    onEvent,
-    params.signal
-  );
-}
+  if (!settings.ai.enabled) {
+    return respondWithoutCallingModel(
+      conversationId,
+      params.sessionId,
+      "The AI Concierge is temporarily unavailable. Please contact our operations team directly and they'll be glad to help.",
+      onEvent,
+      params.signal
+    );
+  }
 
-if (conversation.messageCount >= settings.ai.maxConversationLength) {
-  return respondWithoutCallingModel(
-    conversationId,
-    params.sessionId,
-    "We've covered a lot in this conversation — to keep things running smoothly, please start a new conversation, or reach out to our operations team directly for anything further.",
-    onEvent,
-    params.signal
-  );
-}
+  if (conversation.messageCount >= settings.ai.maxConversationLength) {
+    return respondWithoutCallingModel(
+      conversationId,
+      params.sessionId,
+      "We've covered a lot in this conversation — to keep things running smoothly, please start a new conversation, or reach out to our operations team directly for anything further.",
+      onEvent,
+      params.signal
+    );
+  }
 
   // 2. Persist user message
   await saveUserMessage(conversationId, sanitizedMessage);
 
   // 3. Build prompt — system prompt and history fetched in parallel
-// 3. Build prompt — system prompt and history fetched in parallel
-const [systemPrompt, history] = await Promise.all([
-  buildSystemPrompt(params.pageContext, settings),
-  getConversationHistory(conversationId, 20),
-]);
+  const [systemPrompt, history] = await Promise.all([
+    buildSystemPrompt(params.pageContext, settings),
+    getConversationHistory(conversationId, 20),
+  ]);
 
   // The history contains the user message we just saved. Remove it —
   // we add it explicitly so it is always the final message in the array.
   const priorHistory = history.slice(0, -1);
 
-  const messages: OpenRouterMessage[] = [
+  // Running thread for the whole turn — extended in place as tool-calling
+  // rounds happen below. Using a wider type here because "tool" role is
+  // an OpenRouter extension not included in our public OpenRouterMessage
+  // union, and the tool-call turn itself needs to carry the real
+  // tool_calls array (see AssistantToolCallMessage).
+  const thread: Array<OpenRouterMessage | AssistantToolCallMessage | ToolResultMessage> = [
     { role: MESSAGE_ROLES.SYSTEM, content: systemPrompt },
     ...formatHistoryForPrompt(priorHistory),
     { role: MESSAGE_ROLES.USER, content: sanitizedMessage },
@@ -170,209 +191,226 @@ const [systemPrompt, history] = await Promise.all([
   // expected cancellation rather than a real error.
   params.signal?.throwIfAborted();
 
-  // 4. First completion — streams real text deltas straight to the client
-  // as they arrive from Gemini. In practice a tool-calling turn produces
-  // no text alongside the function call, so this is safe even though the
-  // outcome (tool call vs. direct answer) isn't known until the stream
-  // finishes.
-  const { response: firstResponse, latencyMs: firstLatency } = await createCompletion(
-    {
-      model,
-      messages,
-      tools: AI_TOOL_DEFINITIONS,
-      temperature: 0.4,
-      maxTokens: 4096,
-      signal: params.signal,
-    },
-    onEvent ? (delta) => onEvent({ type: "chunk", delta }) : undefined
-  );
-
-  const firstChoice = firstResponse.choices[0];
-  // client.ts already validates choices.length > 0, so this is a
-  // belt-and-suspenders guard against a race at the type boundary.
-  if (!firstChoice) {
-    throw new Error("OpenRouter returned no choices — this should have been caught in client.ts");
-  }
-
+  // 4. Model ↔ tool loop. Some models (observed with gemini-3.5-flash-lite)
+  // reliably want a second, third, etc. tool call for an ordinary
+  // multi-part request — e.g. look up the departure airport, then the
+  // destination, then search aircraft — rather than asking for everything
+  // in one round. This loop keeps going until the model produces a real
+  // answer or a cap is hit, executing each round's tool calls and feeding
+  // the results back before asking again.
   const toolCallsData: IToolCall[] = [];
-  let finalContent: string;
-  let finalLatencyMs = firstLatency;
+  // Dedup cache for the whole turn: `${toolName}::${rawArgumentsJSON}` →
+  // previously computed result. Some models re-request an identical call
+  // they already made this turn (observed repeatedly in testing) — this
+  // answers the repeat from cache instead of re-executing (a wasted
+  // external call) or letting it silently consume the round/call budget.
+  const executedCalls = new Map<string, unknown>();
+  let finalContent = "";
+  let finalLatencyMs = 0;
   let finalUsage: ITokenUsage | undefined;
 
-  // 5+6. Tool execution + second completion
-  if (
-    firstChoice.finish_reason === "tool_calls" &&
-    firstChoice.message.tool_calls?.length
-  ) {
-    // Don't kick off tool calls (each of which may hit external APIs) for
-    // a client that's already disconnected.
+  for (let round = 1; ; round++) {
     params.signal?.throwIfAborted();
 
-    // Cap the number of tool calls to prevent runaway cost in edge cases
-    // where the model requests more tools than intended.
-    const requestedCalls = firstChoice.message.tool_calls.slice(0, MAX_TOOL_CALLS_PER_TURN);
+    // Tools are only offered while both caps still allow another real
+    // round of calling. Once either is exhausted, this round is
+    // structurally final — the model has nothing left to call, so
+    // whatever it says (or fails to say) here is treated as the answer,
+    // even if it still tries to request a tool anyway (observed to
+    // happen occasionally even with no tools declared — see the
+    // `finish_reason === "tool_calls"` guard below, which is ANDed with
+    // `toolsOffered` specifically to ignore that case rather than act on
+    // a call that was never actually offered).
+    const toolsOffered = round <= MAX_TOOL_ROUNDS && toolCallsData.length < MAX_TOOL_CALLS_PER_TURN;
 
-    if (firstChoice.message.tool_calls.length > MAX_TOOL_CALLS_PER_TURN) {
-      logger.warn("Model requested more tool calls than allowed; truncating", {
-        requested: firstChoice.message.tool_calls.length,
-        allowed: MAX_TOOL_CALLS_PER_TURN,
-      });
-    }
-
-    if (onEvent) {
-      onEvent({ type: "tool_status", label: buildToolStatusLabel(requestedCalls.map((tc) => tc.function.name)) });
-    }
-
-    // Build the thread: original messages + assistant's tool-call turn
-    // Using a wider type here because "tool" role is an OpenRouter
-    // extension not included in our public OpenRouterMessage union.
-    const extendedMessages: Array<OpenRouterMessage | AssistantToolCallMessage | ToolResultMessage> = [
-      ...messages,
-      {
-        role: MESSAGE_ROLES.ASSISTANT,
-        content: firstChoice.message.content ?? "",
-        // Preserved (including any thoughtSignature) so client.ts can
-        // reconstruct this as a real functionCall turn rather than a
-        // stripped-down placeholder — see AssistantToolCallMessage.
-        tool_calls: firstChoice.message.tool_calls,
-      },
-    ];
-
-    // Execute all tool calls in parallel, collecting results.
-    // Promise.allSettled ensures one failed tool doesn't block the others.
-    const settled = await Promise.allSettled(
-      requestedCalls.map(async (tc) => {
-        const toolName = tc.function.name as AiToolName;
-
-        let parsedArgs: Record<string, unknown> = {};
-        try {
-          parsedArgs = JSON.parse(tc.function.arguments) as Record<string, unknown>;
-        } catch {
-          logger.warn("Failed to parse tool arguments — using empty args", {
-            tool: toolName,
-            raw: tc.function.arguments,
-          });
-        }
-
-        let result: unknown;
-        try {
-          result = await executeTool(toolName, parsedArgs);
-        } catch (toolError) {
-          logger.error("Tool execution error", { tool: toolName, error: String(toolError) });
-          // Return a structured error the model can reason about rather
-          // than letting the entire request fail.
-          result = { error: "Tool execution failed. No data available for this query." };
-        }
-
-        toolCallsData.push({ name: toolName, arguments: parsedArgs, result });
-
-        return { id: tc.id, name: toolName, result };
-      })
-    );
-
-    // Append each tool result message to the thread.
-    // Fulfilled and rejected results are both handled — a rejected
-    // Promise.allSettled result means our own error handler above
-    // threw, which should not normally happen given the try/catch.
-    for (const s of settled) {
-      if (s.status === "fulfilled") {
-        const { id, name, result } = s.value;
-        const toolResultMsg: ToolResultMessage = {
-          role: "tool",
-          tool_call_id: id,
-          name,
-          // Tool content must be a string per OpenRouter spec
-          content: JSON.stringify(result),
-        };
-        extendedMessages.push(toolResultMsg);
-      } else {
-        logger.error("Unexpected tool settlement failure", { reason: String(s.reason) });
-      }
-    }
-
-    // Tool calls may have taken a while (external APIs) — don't fire off
-    // the second, also-billed completion if the client left in the
-    // meantime.
-    params.signal?.throwIfAborted();
-
-    // Second completion — model reasons over the tool results and
-    // streams its final answer live. Tools are declared but explicitly
-    // disallowed (toolChoice: "none") rather than omitted — see
-    // NO_FUNCTION_CALLING in client.ts for why: dropping the schema
-    // abruptly on this pass is what lets some Gemini 3.x models still
-    // attempt (and fail) a function call out of habit from the prior
-    // turn, surfacing as finish_reason "malformed_function_call" with
-    // no usable text.
-    const secondCallOptions = {
+    const roundOptions = {
       model,
-      messages: extendedMessages as OpenRouterMessage[],
-      tools: AI_TOOL_DEFINITIONS,
-      toolChoice: "none" as const,
+      messages: thread as OpenRouterMessage[],
+      ...(toolsOffered ? { tools: AI_TOOL_DEFINITIONS } : {}),
       temperature: 0.4,
       maxTokens: 4096,
       signal: params.signal,
     };
 
-    const { response: secondResponse, latencyMs: secondLatency } = await createCompletion(
-      secondCallOptions,
+    // Streams real text deltas straight to the client as they arrive. In
+    // practice a tool-calling round produces no text alongside the
+    // function call, so this is safe even though the outcome (another
+    // tool call vs. a direct answer) isn't known until the stream ends.
+    const { response, latencyMs } = await createCompletion(
+      roundOptions,
       onEvent ? (delta) => onEvent({ type: "chunk", delta }) : undefined
     );
+    finalLatencyMs += latencyMs;
+    if (response.usage) {
+      finalUsage = mapUsage(response.usage);
+    }
 
-    let secondChoice = secondResponse.choices[0];
-    finalLatencyMs = firstLatency + secondLatency;
-    let usageSource = secondResponse.usage;
+    const choice = response.choices[0];
+    // client.ts already validates choices.length > 0, so this is a
+    // belt-and-suspenders guard against a race at the type boundary.
+    if (!choice) {
+      throw new Error("OpenRouter returned no choices — this should have been caught in client.ts");
+    }
 
-    const hasUsableText = Boolean(secondChoice?.message.content?.trim());
-    if (!hasUsableText && secondChoice?.finish_reason !== "stop") {
-      // The fix above resolves this in the vast majority of cases, but
-      // treat it as a transient model hiccup rather than a hard failure —
-      // one retry, same shape, before falling back.
-      logger.warn("Second completion produced no usable text — retrying once", {
-        finishReason: secondChoice?.finish_reason,
+    const wantsTools = toolsOffered && choice.finish_reason === "tool_calls" && Boolean(choice.message.tool_calls?.length);
+
+    if (wantsTools) {
+      // Don't kick off tool calls (each of which may hit external APIs)
+      // for a client that's already disconnected.
+      params.signal?.throwIfAborted();
+
+      // Cap to the remaining budget for this turn. Slicing here — before
+      // the assistant turn below is built — keeps the reconstructed
+      // functionCall parts limited to exactly the calls we're about to
+      // answer with a functionResponse; including calls we won't answer
+      // would leave a dangling functionCall part with nothing responding
+      // to it, which Gemini rejects.
+      const remainingBudget = MAX_TOOL_CALLS_PER_TURN - toolCallsData.length;
+      const requestedCalls = choice.message.tool_calls!.slice(0, remainingBudget);
+
+      if (choice.message.tool_calls!.length > requestedCalls.length) {
+        logger.warn("Model requested more tool calls than the remaining turn budget; truncating", {
+          requested: choice.message.tool_calls!.length,
+          remainingBudget,
+        });
+      }
+
+      if (onEvent) {
+        onEvent({ type: "tool_status", label: buildToolStatusLabel(requestedCalls.map((tc) => tc.function.name)) });
+      }
+
+      // Record the model's real tool-call turn (including any
+      // thoughtSignature) so client.ts can reconstruct it as genuine
+      // functionCall parts next round — see AssistantToolCallMessage.
+      thread.push({
+        role: MESSAGE_ROLES.ASSISTANT,
+        content: choice.message.content ?? "",
+        tool_calls: requestedCalls,
+      });
+
+      // Execute all (non-duplicate) tool calls in parallel, collecting
+      // results. Promise.allSettled ensures one failed tool doesn't
+      // block the others.
+      const settled = await Promise.allSettled(
+        requestedCalls.map(async (tc) => {
+          const toolName = tc.function.name as AiToolName;
+
+          let parsedArgs: Record<string, unknown> = {};
+          try {
+            parsedArgs = JSON.parse(tc.function.arguments) as Record<string, unknown>;
+          } catch {
+            logger.warn("Failed to parse tool arguments — using empty args", {
+              tool: toolName,
+              raw: tc.function.arguments,
+            });
+          }
+
+          const dedupeKey = `${toolName}::${tc.function.arguments}`;
+          if (executedCalls.has(dedupeKey)) {
+            logger.debug("Skipped duplicate tool call this turn — reusing cached result", { tool: toolName });
+            return { id: tc.id, name: toolName, parsedArgs, result: executedCalls.get(dedupeKey), deduped: true };
+          }
+
+          let result: unknown;
+          try {
+            result = await executeTool(toolName, parsedArgs);
+          } catch (toolError) {
+            logger.error("Tool execution error", { tool: toolName, error: String(toolError) });
+            // Return a structured error the model can reason about rather
+            // than letting the entire request fail.
+            result = { error: "Tool execution failed. No data available for this query." };
+          }
+          executedCalls.set(dedupeKey, result);
+
+          return { id: tc.id, name: toolName, parsedArgs, result, deduped: false };
+        })
+      );
+
+      // Append each tool result message to the thread. Fulfilled and
+      // rejected results are both handled — a rejected Promise.allSettled
+      // result means our own error handler above threw, which should not
+      // normally happen given the try/catch.
+      for (const s of settled) {
+        if (s.status === "fulfilled") {
+          const { id, name, parsedArgs, result, deduped } = s.value;
+          thread.push({
+            role: "tool",
+            tool_call_id: id,
+            name,
+            // Tool content must be a string per OpenRouter spec.
+            content: JSON.stringify(result),
+          });
+          // A deduped call already has an entry in toolCallsData from
+          // when it was first (really) executed — don't log it again.
+          if (!deduped) {
+            toolCallsData.push({ name, arguments: parsedArgs, result });
+          }
+        } else {
+          logger.error("Unexpected tool settlement failure", { reason: String(s.reason) });
+        }
+      }
+
+      // Tool calls may have taken a while (external APIs) — don't fire
+      // off another, also-billed completion if the client left in the
+      // meantime.
+      params.signal?.throwIfAborted();
+
+      continue;
+    }
+
+    // The model isn't asking for another tool call (or wasn't offered
+    // one this round) — this is meant to be the final answer.
+    const hasUsableText = Boolean(choice.message.content?.trim());
+
+    if (!hasUsableText && choice.finish_reason !== "stop") {
+      // Not a legitimate "wants more tools" case (handled above) and not
+      // a clean stop either — a genuine hiccup (e.g. a malformed
+      // function-call attempt that survived the toolsOffered guard).
+      // Retry this same round once before falling back.
+      logger.warn("Completion produced no usable text — retrying once", {
+        round,
+        finishReason: choice.finish_reason,
       });
 
       params.signal?.throwIfAborted();
 
       const retry = await createCompletion(
-        secondCallOptions,
+        roundOptions,
         onEvent ? (delta) => onEvent({ type: "chunk", delta }) : undefined
       );
-
-      secondChoice = retry.response.choices[0];
       finalLatencyMs += retry.latencyMs;
-      usageSource = retry.response.usage ?? usageSource;
-    }
+      if (retry.response.usage) {
+        finalUsage = mapUsage(retry.response.usage);
+      }
 
-    const modelText = secondChoice?.message.content?.trim();
-    if (modelText) {
-      finalContent = modelText;
-    } else {
+      const retryText = retry.response.choices[0]?.message.content?.trim();
+      if (retryText) {
+        finalContent = retryText;
+        break;
+      }
       // Even the retry came back without usable text. Fall back to a
-      // message built from the tool results themselves — most
+      // message built from the tool results gathered so far — most
       // importantly a successful submit_quote_request's real reference
-      // number — rather than a generic apology, so anything already
-      // accomplished this turn isn't lost to the user just because the
-      // closing prose failed. This wasn't streamed live like the model's
-      // own text would have been, so relay it the same way the canned
-      // short-circuit responses below do.
+      // number, or a confirmed-empty search — rather than a generic
+      // apology, so anything already accomplished this turn isn't lost
+      // just because the closing prose failed. This wasn't streamed live
+      // like the model's own text would have been, so relay it the same
+      // way the canned short-circuit responses below do.
       finalContent = buildFallbackContent(toolCallsData);
       if (onEvent) {
         await streamContentToClient(finalContent, onEvent, params.signal);
       }
+      break;
     }
 
-    if (usageSource) {
-      finalUsage = mapUsage(usageSource);
+    finalContent = hasUsableText ? choice.message.content!.trim() : buildFallbackContent(toolCallsData);
+    if (!hasUsableText && onEvent) {
+      await streamContentToClient(finalContent, onEvent, params.signal);
     }
-  } else {
-    finalContent = firstChoice.message.content?.trim() || FALLBACK_RESPONSE;
-
-    if (firstResponse.usage) {
-      finalUsage = mapUsage(firstResponse.usage);
-    }
+    break;
   }
 
-  // 7. Persist the assistant message with telemetry
+  // 5. Persist the assistant message with telemetry
   // Persisted even for an aborted client (the signal only stops the
   // provider calls above, not everything downstream) — the conversation
   // history should stay accurate for when the user comes back, and this
@@ -481,6 +519,28 @@ function buildFallbackContent(toolCalls: IToolCall[]): string {
     return "Here's what I found — take a look below. Let me know if you'd like more detail or the next step.";
   }
 
+  // Nothing came back with content, but a search may still have run
+  // successfully and simply confirmed there's no match — that's real,
+  // correct information (see EmptyResultCard, which renders independently
+  // of this text from the same empty result), not a failure. Naming it
+  // specifically reads far better than a generic "I wasn't able to
+  // generate a response" sitting right above a card that clearly did.
+  const isEmptyAirportSearch = otherCalls.some(
+    (tc) =>
+      (tc.name === AI_TOOL_NAMES.LOOKUP_AIRPORT || tc.name === AI_TOOL_NAMES.FIND_NEARBY_AIRPORTS) &&
+      isEmptySearchResult(tc.result)
+  );
+  if (isEmptyAirportSearch) {
+    return "That airport isn't one we currently operate to. Take a look at the options below, or contact our operations team and they can confirm availability directly.";
+  }
+
+  const isEmptyAircraftSearch = otherCalls.some(
+    (tc) => tc.name === AI_TOOL_NAMES.SEARCH_AIRCRAFT && isEmptySearchResult(tc.result)
+  );
+  if (isEmptyAircraftSearch) {
+    return "Nothing in the fleet fits those exact requirements. Take a look at the options below, or contact our operations team and they can find the right alternative.";
+  }
+
   return FALLBACK_RESPONSE;
 }
 
@@ -490,6 +550,11 @@ function hasMeaningfulResult(value: unknown): boolean {
   if (isToolErrorResult(value)) return false;
   if (Array.isArray(value)) return value.length > 0;
   return true;
+}
+
+/** A search tool that ran successfully and confirmed zero matches — distinct from a tool error, and worth naming specifically (see buildFallbackContent) rather than folding into a generic apology. */
+function isEmptySearchResult(value: unknown): boolean {
+  return Array.isArray(value) && value.length === 0;
 }
 
 function isToolErrorResult(value: unknown): boolean {

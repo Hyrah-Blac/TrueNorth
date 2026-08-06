@@ -117,10 +117,11 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
     <div>
       <StepIndicator steps={STEPS} currentStep={step} />
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="mt-8 rounded-xl border border-slate-200 p-5 shadow-soft sm:mt-10 sm:p-8 lg:p-10"
-      >
+      {/* No border/shadow/bg here — this form is only ever rendered inside
+          the white card wrapper on the request-charter page, which already
+          supplies the card chrome. Keeping this bare avoids a nested
+          double-card look. */}
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 sm:mt-10">
         <div key={step} className="animate-fade-up-editorial">
           {step === 1 ? <TripDetailsStep register={register} errors={errors} watch={watch} /> : null}
           {step === 2 ? (

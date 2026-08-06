@@ -69,10 +69,10 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
         ])}
       />
 
-      <div className="border-b border-slate-200 bg-slate-50 py-14 lg:py-16">
+      <div className="border-b border-slate-200 bg-slate-50 pb-14 pt-28 lg:pb-16 lg:pt-32">
         <Container>
-          <h1 className="font-display text-4xl font-semibold text-navy-900 lg:text-5xl">{aircraft.name}</h1>
-          {aircraft.tagline ? <p className="mt-3 text-lg text-slate-600">{aircraft.tagline}</p> : null}
+          <h1 className="font-display text-2xl font-semibold text-navy-900 lg:text-3xl">{aircraft.name}</h1>
+          {aircraft.tagline ? <p className="mt-2 text-xs text-slate-600 sm:text-sm">{aircraft.tagline}</p> : null}
         </Container>
       </div>
 
@@ -87,15 +87,15 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
             />
 
             <div className="mt-12">
-              <h2 className="font-display text-2xl font-semibold text-navy-900">The aircraft</h2>
-              <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-slate-600">
+              <h2 className="font-display text-lg font-semibold text-navy-900">The aircraft</h2>
+              <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">
                 {aircraft.description}
               </p>
             </div>
 
             {aircraft.recommendedMissions.length > 0 ? (
               <div className="mt-12">
-                <h2 className="font-display text-2xl font-semibold text-navy-900">Recommended for</h2>
+                <h2 className="font-display text-lg font-semibold text-navy-900">Recommended for</h2>
                 <div className="mt-5">
                   <RecommendedMissions missions={aircraft.recommendedMissions} />
                 </div>
@@ -104,7 +104,7 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
 
             {aircraft.amenities.length > 0 ? (
               <div className="mt-12">
-                <h2 className="font-display text-2xl font-semibold text-navy-900">Amenities</h2>
+                <h2 className="font-display text-lg font-semibold text-navy-900">Amenities</h2>
                 <div className="mt-5">
                   <AmenitiesList amenities={aircraft.amenities} />
                 </div>
@@ -112,7 +112,7 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
             ) : null}
 
             <div className="mt-14 border-t border-slate-200 pt-10">
-              <h2 className="font-display text-2xl font-semibold text-navy-900">Specifications</h2>
+              <h2 className="font-display text-lg font-semibold text-navy-900">Specifications</h2>
               <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-6">
                 <PerformanceBars rangeNm={aircraft.rangeNm} cruisingSpeedKts={aircraft.cruisingSpeedKts} />
               </div>
