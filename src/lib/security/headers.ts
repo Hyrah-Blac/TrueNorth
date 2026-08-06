@@ -82,7 +82,7 @@ export function buildCspHeader(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://res.cloudinary.com https://img.clerk.com",
     "font-src 'self' data:",
-    "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com https://challenges.cloudflare.com https://api.cloudinary.com",
+    `connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com https://challenges.cloudflare.com https://api.cloudinary.com https://o4511865337872384.ingest.us.sentry.io`,
     "frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com",
     "object-src 'none'",
     "base-uri 'self'",
