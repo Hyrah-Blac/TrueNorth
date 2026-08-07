@@ -13,14 +13,28 @@ import { logger } from "@/lib/logging/logger";
 export async function cleanupExpiredQuotes(): Promise<{ expired: number }> {
   await connectToDatabase();
 
-  const result = await Quote.updateMany(
-    {
-      status: { $in: [QUOTE_STATUSES.PENDING, QUOTE_STATUSES.REVIEWING] },
-      departureDate: { $lt: new Date() },
-    },
-    { $set: { status: QUOTE_STATUSES.EXPIRED } }
-  );
+  const now = new Date();
 
-  logger.info("Expired-quote cleanup complete", { expired: result.modifiedCount });
-  return { expired: result.modifiedCount };
+  const [unpriced, unaccepted] = await Promise.all([
+    Quote.updateMany(
+      {
+        status: { $in: [QUOTE_STATUSES.PENDING, QUOTE_STATUSES.REVIEWING] },
+        departureDate: { $lt: now },
+      },
+      { $set: { status: QUOTE_STATUSES.EXPIRED } }
+    ),
+    // Priced quotes the customer never accepted/declined before their
+    // quoted validity window closed — no longer safe to accept.
+    Quote.updateMany(
+      {
+        status: QUOTE_STATUSES.APPROVED,
+        validUntil: { $exists: true, $ne: null, $lt: now },
+      },
+      { $set: { status: QUOTE_STATUSES.EXPIRED } }
+    ),
+  ]);
+
+  const expired = unpriced.modifiedCount + unaccepted.modifiedCount;
+  logger.info("Expired-quote cleanup complete", { expired });
+  return { expired };
 }

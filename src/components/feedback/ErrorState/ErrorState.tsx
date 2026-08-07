@@ -31,21 +31,21 @@ export function ErrorState({
     >
       <span
         className={`flex h-12 w-12 items-center justify-center rounded-full ${
-          isDark ? "bg-white/10 text-sky-400" : "bg-red-50 text-red-500"
+          isDark ? "bg-white/10 text-champagne-400" : "bg-red-50 text-red-500"
         }`}
       >
         <AlertTriangle className="h-5 w-5" aria-hidden="true" />
       </span>
-      <h1 className={`font-display text-2xl font-semibold ${isDark ? "text-white" : "text-navy-900"}`}>{title}</h1>
-      <p className={`max-w-sm text-sm leading-relaxed ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+      <h1 className={`font-display text-xl font-semibold ${isDark ? "text-white" : "text-navy-900"}`}>{title}</h1>
+      <p className={`max-w-sm text-xs leading-relaxed ${isDark ? "text-slate-300" : "text-slate-600"}`}>
         {description}
       </p>
       {error.digest ? (
-        <p className={`spec-readout text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+        <p className={`spec-readout text-[0.6875rem] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
           Reference: {error.digest}
         </p>
       ) : null}
-      <Button variant={isDark ? "secondary" : "outline"} onClick={reset} className="mt-2">
+      <Button variant={isDark ? "secondary" : "outline"} size="sm" onClick={reset} className="mt-2">
         Try Again
       </Button>
     </div>

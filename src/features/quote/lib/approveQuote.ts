@@ -1,26 +1,31 @@
 import "server-only";
 import connectToDatabase from "@/database/connection";
 import Quote, { type QuoteDocument } from "@/database/models/Quote";
-import Booking, { type BookingDocument } from "@/database/models/Booking";
 import Aircraft from "@/database/models/Aircraft";
 import { resolveDbUserId } from "@/middleware/auth";
 import { AppError, NotFoundError } from "@/lib/errors/AppError";
 import { QUOTE_STATUSES, QUOTE_TERMINAL_STATUSES } from "@/database/constants/quote-status";
-import { BOOKING_STATUSES } from "@/database/constants/booking-status";
-import { sendEmail, getAdminNotificationEmail } from "@/lib/api/resend";
+import { sendEmail } from "@/lib/api/resend";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
 import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
 import { auditLog } from "@/lib/security/audit";
 import QuoteApproved from "@/emails/QuoteApproved";
-import AdminNewBooking from "@/emails/AdminNewBooking";
 import type { ApproveQuoteInput } from "../schemas/quote.schema";
 
+/**
+ * Admin action: prices a charter request and sends it to the customer
+ * for review. This does NOT create a booking — the quote moves to
+ * "approved" and sits there until the customer explicitly accepts it
+ * (see acceptQuoteById) or declines it. This keeps the customer's
+ * acceptance as the actual point of sale, matching the charter
+ * lifecycle: Request -> Quote -> Customer accepts -> Booking -> Payment.
+ */
 export async function approveQuoteById(
   data: ApproveQuoteInput,
   adminClerkId: string
-): Promise<{ quote: QuoteDocument; booking: BookingDocument }> {
+): Promise<{ quote: QuoteDocument }> {
   await connectToDatabase();
 
   const quote = await Quote.findById(data.quoteId);
@@ -32,7 +37,7 @@ export async function approveQuoteById(
 
   if (!quote.customer) {
     throw new AppError(
-      "This quote has no linked customer account and cannot be converted into a booking. Ask the requester to sign in, or link an account manually.",
+      "This quote has no linked customer account and cannot be sent for a decision. Ask the requester to sign in, or link an account manually.",
       409
     );
   }
@@ -42,31 +47,14 @@ export async function approveQuoteById(
 
   const adminDbId = await resolveDbUserId(adminClerkId);
 
-  const booking = await Booking.create({
-    quote: quote._id,
-    customer: quote.customer,
-    aircraft: aircraft._id,
-    passengerCount: quote.passengerCount,
-    departureAirportCode: quote.departureAirportCode,
-    destinationAirportCode: quote.destinationAirportCode,
-    departureDate: quote.departureDate,
-    returnDate: quote.returnDate,
-    isRoundTrip: quote.isRoundTrip,
-    missionType: quote.missionType,
-    totalAmount: data.quotedAmount,
-    currency: data.quotedCurrency,
-    specialRequests: quote.specialRequests,
-    status: BOOKING_STATUSES.PENDING,
-  });
-
-  quote.status = QUOTE_STATUSES.CONVERTED;
+  quote.status = QUOTE_STATUSES.APPROVED;
   quote.quotedAmount = data.quotedAmount;
   quote.quotedCurrency = data.quotedCurrency;
   quote.validUntil = data.validUntil;
   quote.adminNotes = data.adminNotes ?? quote.adminNotes;
+  quote.selectedAircraft = aircraft._id;
   quote.reviewedBy = adminDbId;
   quote.reviewedAt = new Date();
-  quote.convertedBooking = booking._id;
   await quote.save();
 
   auditLog({
@@ -76,8 +64,6 @@ export async function approveQuoteById(
     resourceType: "quote",
     meta: {
       quoteNumber: quote.quoteNumber,
-      bookingId: String(booking._id),
-      bookingNumber: booking.bookingNumber,
       aircraftId: String(aircraft._id),
       quotedAmount: data.quotedAmount,
       quotedCurrency: data.quotedCurrency,
@@ -87,34 +73,18 @@ export async function approveQuoteById(
   const settings = await getSiteSettings();
   const contact = toEmailContact(settings);
 
-  await Promise.all([
-    sendEmail({
-      to: quote.contactInfo.email,
-      subject: `Your charter quote ${quote.quoteNumber} is ready`,
-      react: QuoteApproved({
-        customerName: quote.contactInfo.fullName,
-        quoteNumber: quote.quoteNumber,
-        quotedAmount: formatCurrency(data.quotedAmount, data.quotedCurrency),
-        validUntil: data.validUntil ? formatDate(data.validUntil) : undefined,
-        dashboardUrl: `${siteConfig.url}/dashboard/bookings/${booking._id}`,
-        contact,
-      }),
+  await sendEmail({
+    to: quote.contactInfo.email,
+    subject: `Your charter quote ${quote.quoteNumber} is ready`,
+    react: QuoteApproved({
+      customerName: quote.contactInfo.fullName,
+      quoteNumber: quote.quoteNumber,
+      quotedAmount: formatCurrency(data.quotedAmount, data.quotedCurrency),
+      validUntil: data.validUntil ? formatDate(data.validUntil) : undefined,
+      quoteUrl: `${siteConfig.url}/dashboard/quotes/${quote._id}`,
+      contact,
     }),
-    sendEmail({
-      to: getAdminNotificationEmail(),
-      subject: `New booking created: ${booking.bookingNumber}`,
-      react: AdminNewBooking({
-        bookingNumber: booking.bookingNumber,
-        customerName: quote.contactInfo.fullName,
-        aircraftName: aircraft.name,
-        departureAirportCode: booking.departureAirportCode,
-        destinationAirportCode: booking.destinationAirportCode,
-        totalAmount: formatCurrency(booking.totalAmount, booking.currency),
-        adminUrl: `${siteConfig.url}/admin/bookings/${booking._id}`,
-        contact,
-      }),
-    }),
-  ]);
+  });
 
-  return { quote, booking };
+  return { quote };
 }

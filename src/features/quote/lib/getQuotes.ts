@@ -45,7 +45,7 @@ export async function getMyQuoteById(quoteId: string): Promise<IQuote> {
   const user = await getCurrentUserOrThrow();
   await connectToDatabase();
 
-  const quote = await Quote.findById(quoteId).populate("aircraftPreference");
+  const quote = await Quote.findById(quoteId).populate("aircraftPreference").populate("selectedAircraft");
   if (!quote) throw new NotFoundError("Quote not found");
 
   if (String(quote.customer) !== String(user._id)) {

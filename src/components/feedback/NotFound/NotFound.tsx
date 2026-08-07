@@ -17,9 +17,9 @@ export function NotFound({
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
         <PlaneLanding className="h-5 w-5" aria-hidden="true" />
       </span>
-      <h1 className="font-display text-2xl font-semibold text-navy-900">{title}</h1>
-      <p className="max-w-sm text-sm leading-relaxed text-slate-600">{description}</p>
-      <Button href={actionHref} variant="outline" className="mt-2">
+      <h1 className="font-display text-xl font-semibold text-navy-900">{title}</h1>
+      <p className="max-w-sm text-xs leading-relaxed text-slate-600">{description}</p>
+      <Button href={actionHref} variant="outline" size="sm" className="mt-2">
         {actionLabel}
       </Button>
     </div>

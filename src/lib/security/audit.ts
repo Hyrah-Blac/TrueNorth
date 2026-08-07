@@ -4,6 +4,8 @@ import { logger } from "@/lib/logging/logger";
 export type AuditAction =
   | "quote.approve"
   | "quote.reject"
+  | "quote.customer_accept"
+  | "quote.customer_decline"
   | "booking.cancel"
   | "booking.status_change"
   | "user.role_change"

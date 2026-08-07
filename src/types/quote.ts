@@ -75,6 +75,7 @@ export interface IQuote {
   rejectionReason?: string;
   reviewedBy?: string | IQuoteReviewer;
   reviewedAt?: string;
+  selectedAircraft?: string | IAircraft;
   convertedBooking?: string;
 
   createdAt: string;

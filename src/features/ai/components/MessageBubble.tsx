@@ -6,14 +6,36 @@ import { hasSubmittedQuote } from "../lib/quoteStatus";
 import { ToolResultRail } from "./cards/ToolResultRail";
 import type { ConciergeMessage } from "../types";
 
+interface MessageBubbleProps {
+  message: ConciergeMessage;
+  /**
+   * Aircraft/airport `_id`s already shown earlier in this conversation —
+   * forwarded to ToolResultRail so a card the customer already saw
+   * doesn't render again even if the underlying tool call legitimately
+   * re-ran with different arguments. See MessageList's seenIdsPerMessage
+   * and ToolResultRail's own doc comment for why this can't be solved by
+   * call-level dedup alone.
+   */
+  seenAircraftIds?: Set<string>;
+  seenAirportIds?: Set<string>;
+}
+
 /**
  * Memoized because message objects are never mutated in place (see
  * ConciergeContext) — every prior bubble's props stay referentially
  * identical across renders, so this skips re-parsing markdown and
  * re-rendering tool-result cards for the whole conversation every time a
- * new message arrives or the typing indicator toggles.
+ * new message arrives or the typing indicator toggles. seenAircraftIds/
+ * seenAirportIds are freshly-constructed Sets each render (see
+ * MessageList), so this memo comparison won't hold across a genuine
+ * change in what's been seen — only across re-renders where nothing
+ * about this message or the seen-sets actually changed.
  */
-export const MessageBubble = memo(function MessageBubble({ message }: { message: ConciergeMessage }) {
+export const MessageBubble = memo(function MessageBubble({
+  message,
+  seenAircraftIds,
+  seenAirportIds,
+}: MessageBubbleProps) {
   const isUser = message.role === "user";
   const renderedContent = useMemo(() => renderMarkdown(message.content), [message.content]);
 
@@ -77,10 +99,17 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
       {/* Result cards suppressed once this message includes a submitted
           quote — re-showing the aircraft/airport cards the customer just
           saw a moment ago underneath "your quote has been submitted"
-          reads as clutter, not help. See hasSubmittedQuote. */}
+          reads as clutter, not help. See hasSubmittedQuote. Beyond that,
+          ToolResultRail itself filters out any individual aircraft/
+          airport already shown earlier in the conversation via
+          seenAircraftIds/seenAirportIds. */}
       {message.toolCalls.length > 0 && !hasSubmittedQuote(message.toolCalls) ? (
         <div className="pl-8">
-          <ToolResultRail toolCalls={message.toolCalls} />
+          <ToolResultRail
+            toolCalls={message.toolCalls}
+            seenAircraftIds={seenAircraftIds}
+            seenAirportIds={seenAirportIds}
+          />
         </div>
       ) : null}
     </div>

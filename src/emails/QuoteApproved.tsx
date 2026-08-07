@@ -5,7 +5,7 @@ export interface QuoteApprovedProps {
   quoteNumber: string;
   quotedAmount: string;
   validUntil?: string;
-  dashboardUrl: string;
+  quoteUrl: string;
   contact?: EmailContact;
 }
 
@@ -14,7 +14,7 @@ export default function QuoteApproved({
   quoteNumber,
   quotedAmount,
   validUntil,
-  dashboardUrl,
+  quoteUrl,
   contact,
 }: QuoteApprovedProps) {
   return (
@@ -25,19 +25,19 @@ export default function QuoteApproved({
     >
       <EmailText>Hi {customerName},</EmailText>
       <EmailText>
-        Good news — your charter request has been reviewed and approved. A booking has been
-        created and is ready for payment.
+        Good news — your charter request has been reviewed and priced. Please review the details
+        below and let us know whether you&apos;d like to proceed.
       </EmailText>
 
       <EmailDetailRow label="Quote reference" value={quoteNumber} />
       <EmailDetailRow label="Quoted amount" value={quotedAmount} />
       {validUntil ? <EmailDetailRow label="Valid until" value={validUntil} /> : null}
 
-      <EmailButton href={dashboardUrl}>View Booking & Pay</EmailButton>
+      <EmailButton href={quoteUrl}>Review & Respond</EmailButton>
 
       <EmailText>
-        You can complete payment securely with M-Pesa from your dashboard. Your booking will be
-        confirmed automatically once payment is received.
+        Accepting the quote creates your booking and moves you to payment. If the terms
+        don&apos;t work for you, you can decline it from the same page.
       </EmailText>
     </EmailLayout>
   );

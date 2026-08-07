@@ -64,6 +64,12 @@ export interface QuoteDocument
   rejectionReason?: string;
   reviewedBy?: Types.ObjectId;
   reviewedAt?: Date;
+  // Aircraft chosen by the admin when the quote is priced/approved.
+  // Persisted so the customer's later acceptance can create the
+  // booking against the correct aircraft without asking the admin to
+  // re-select it, and without creating the booking before the
+  // customer has actually agreed to the quoted terms.
+  selectedAircraft?: Types.ObjectId;
   convertedBooking?: Types.ObjectId;
 
   createdAt: Date;
@@ -157,6 +163,7 @@ const QuoteSchema = new Schema<QuoteDocument>(
     rejectionReason: { type: String, trim: true, maxlength: 1000 },
     reviewedBy: { type: Schema.Types.ObjectId, ref: "User" },
     reviewedAt: { type: Date },
+    selectedAircraft: { type: Schema.Types.ObjectId, ref: "Aircraft" },
     convertedBooking: { type: Schema.Types.ObjectId, ref: "Booking" },
   },
   { timestamps: true }

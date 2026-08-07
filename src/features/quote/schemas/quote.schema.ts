@@ -92,6 +92,19 @@ export const rejectQuoteSchema = z.object({
 });
 
 export type RejectQuoteInput = z.infer<typeof rejectQuoteSchema>;
+
+export const acceptQuoteSchema = z.object({
+  quoteId: objectId,
+});
+
+export type AcceptQuoteInput = z.infer<typeof acceptQuoteSchema>;
+
+export const declineQuoteSchema = z.object({
+  quoteId: objectId,
+  reason: z.string().trim().max(1000).optional(),
+});
+
+export type DeclineQuoteInput = z.infer<typeof declineQuoteSchema>;
 export const linkQuoteCustomerSchema = z.object({
   quoteId: objectId,
   email: z.string().trim().toLowerCase().email("Enter a valid email address"),

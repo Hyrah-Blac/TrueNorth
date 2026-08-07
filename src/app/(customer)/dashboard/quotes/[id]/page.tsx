@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Calendar, Users, MapPin, Airplane, Paperclip, Warning } from "@phosphor-icons/react/dist/ssr";
 import { DetailHeader } from "@/components/admin/layout/DetailHeader";
 import { QuoteStatusBadge } from "@/components/quote/QuoteStatusBadge";
+import { QuoteDecisionPanel } from "@/components/quote/QuoteDecisionPanel";
 import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { Button } from "@/components/shared/buttons/Button";
 import { getMyQuoteById } from "@/features/quote/lib/getQuotes";
@@ -33,6 +34,18 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
   const aircraftName = typeof quote.aircraftPreference === "object" && quote.aircraftPreference
     ? quote.aircraftPreference.name
     : undefined;
+
+  // The aircraft actually assigned to the quote by the operations team,
+  // distinct from the customer's original preference above. Only set once
+  // a quote has been priced (approved or already converted to a booking).
+  const selectedAircraft =
+    typeof quote.selectedAircraft === "object" && quote.selectedAircraft ? quote.selectedAircraft : undefined;
+
+  // Defensive, client-independent check in case the daily cleanup job
+  // hasn't run yet — the server action re-checks this regardless, but the
+  // UI shouldn't offer to accept something that's effectively expired.
+  const isPastValidity = Boolean(quote.validUntil && new Date(quote.validUntil).getTime() < Date.now());
+  const canDecide = quote.status === QUOTE_STATUSES.APPROVED && !isPastValidity;
 
   const requirements = [
     { flagged: quote.hasMedicalEquipment, label: "Medical equipment", detail: quote.medicalEquipmentDetails },
@@ -149,29 +162,68 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.status === QUOTE_STATUSES.APPROVED || quote.status === QUOTE_STATUSES.CONVERTED ? (
-            <dl className="mt-4 space-y-2.5 border-b border-slate-100 pb-4 text-sm">
-              {quote.quotedAmount != null ? (
-                <div className="flex justify-between">
-                  <dt className="text-slate-500">Quoted amount</dt>
-                  <dd className="spec-readout font-semibold text-navy-900">
-                    {formatCurrency(quote.quotedAmount, quote.quotedCurrency ?? quote.currency)}
-                  </dd>
+            <>
+              {selectedAircraft ? (
+                <div className="mt-4 space-y-2.5 border-b border-slate-100 pb-4 text-sm">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Aircraft</p>
+                  <div className="flex justify-between">
+                    <dt className="text-slate-500">Aircraft</dt>
+                    <dd className="text-right font-medium text-navy-900">{selectedAircraft.name}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-slate-500">Manufacturer / model</dt>
+                    <dd className="text-right font-medium text-navy-900">
+                      {selectedAircraft.manufacturer} {selectedAircraft.model}
+                    </dd>
+                  </div>
+                  {selectedAircraft.registration ? (
+                    <div className="flex justify-between">
+                      <dt className="text-slate-500">Registration</dt>
+                      <dd className="spec-readout text-right font-medium text-navy-900">
+                        {selectedAircraft.registration}
+                      </dd>
+                    </div>
+                  ) : null}
+                  <div className="flex justify-between">
+                    <dt className="text-slate-500">Passenger capacity</dt>
+                    <dd className="text-right font-medium text-navy-900">
+                      {selectedAircraft.passengerCapacity}
+                    </dd>
+                  </div>
                 </div>
               ) : null}
-              {quote.validUntil ? (
-                <div className="flex justify-between">
-                  <dt className="text-slate-500">Valid until</dt>
-                  <dd className="spec-readout font-medium text-navy-900">{formatDate(quote.validUntil)}</dd>
-                </div>
-              ) : null}
-            </dl>
+
+              <dl className="mt-4 space-y-2.5 border-b border-slate-100 pb-4 text-sm">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Pricing</p>
+                {quote.quotedAmount != null ? (
+                  <div className="flex justify-between">
+                    <dt className="text-slate-500">Quoted amount</dt>
+                    <dd className="spec-readout font-semibold text-navy-900">
+                      {formatCurrency(quote.quotedAmount, quote.quotedCurrency ?? quote.currency)}
+                    </dd>
+                  </div>
+                ) : null}
+                {quote.validUntil ? (
+                  <div className="flex justify-between">
+                    <dt className="text-slate-500">Valid until</dt>
+                    <dd className="spec-readout font-medium text-navy-900">{formatDate(quote.validUntil)}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            </>
           ) : null}
 
-          {quote.status === QUOTE_STATUSES.APPROVED && quote.convertedBooking == null ? (
+          {quote.status === QUOTE_STATUSES.APPROVED && isPastValidity ? (
             <div className="mt-4">
-              <Button href="/contact" variant="outline" className="w-full justify-center">
-                Proceed with this quote
-              </Button>
+              <InlineAlert tone="neutral">
+                This quote&apos;s validity window has passed. Please request an updated quote.
+              </InlineAlert>
+            </div>
+          ) : null}
+
+          {canDecide ? (
+            <div className="mt-4">
+              <QuoteDecisionPanel quoteId={quote._id} quoteNumber={quote.quoteNumber} />
             </div>
           ) : null}
 

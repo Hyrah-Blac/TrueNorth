@@ -94,13 +94,14 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
     setStep((current) => Math.max(current - 1, 1));
   }
 
-  // All 5 steps share one <form>, so pressing Enter in any field (e.g.
-  // typing a passenger count) would otherwise implicitly submit the whole
-  // form immediately — not just advance to the next step. Block that on
-  // every step except the last, where Enter submitting is the expected
-  // behavior.
+  // Every button in this flow is type="button" — submission never happens
+  // via a native <form> submit event (no Enter-to-submit, no implicit
+  // submission, no risk of a same-node type="button" -> type="submit"
+  // swap misfiring a submit in some browsers when Continue turns into
+  // Submit on the last step). The only path to onSubmit running is the
+  // Review step's button explicitly calling handleSubmit(onSubmit).
   function handleKeyDown(event: React.KeyboardEvent<HTMLFormElement>) {
-    if (event.key === "Enter" && step < STEPS.length) {
+    if (event.key === "Enter" && event.target instanceof HTMLElement && event.target.tagName !== "TEXTAREA") {
       event.preventDefault();
     }
   }
@@ -143,7 +144,7 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
           the white card wrapper on the request-charter page, which already
           supplies the card chrome. Keeping this bare avoids a nested
           double-card look. */}
-      <form onSubmit={handleSubmit(onSubmit)} onKeyDown={handleKeyDown} className="mt-6 sm:mt-7">
+      <form onSubmit={(event) => event.preventDefault()} onKeyDown={handleKeyDown} className="mt-6 sm:mt-7">
         <div key={step}>
           <h2 className="font-editorial text-[1.375rem] font-light text-navy-900 sm:text-2xl">
             {STEP_META[step - 1].title}
@@ -181,13 +182,15 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
           </Button>
 
           {step < STEPS.length ? (
-            <Button type="button" variant="primary" onClick={goNext}>
+            <Button key="continue" type="button" variant="primary" onClick={goNext}>
               Continue
             </Button>
           ) : (
             <Button
-              type="submit"
+              key="submit"
+              type="button"
               variant="primary"
+              onClick={handleSubmit(onSubmit)}
               disabled={isPending}
               icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
             >

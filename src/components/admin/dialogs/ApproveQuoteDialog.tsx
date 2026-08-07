@@ -50,7 +50,7 @@ export function ApproveQuoteDialog({
     }
 
     onClose();
-    router.push(`/admin/bookings/${result.data.bookingId}`);
+    router.refresh();
   }
 
   return (
@@ -100,7 +100,7 @@ export function ApproveQuoteDialog({
             disabled={isSubmitting}
             icon={isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
           >
-            {isSubmitting ? "Approving…" : "Approve & Create Booking"}
+            {isSubmitting ? "Sending…" : "Approve & Send to Customer"}
           </Button>
         </div>
       </form>

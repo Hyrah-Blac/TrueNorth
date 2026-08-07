@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useAutoScroll } from "../hooks/useAutoScroll";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
@@ -5,6 +6,7 @@ import { ErrorState } from "./ErrorState";
 import { FollowUpSuggestions } from "./FollowUpSuggestions";
 import { CompassWatermark } from "./CompassWatermark";
 import { hasSubmittedQuote, isPendingConfirmation } from "../lib/quoteStatus";
+import { parseToolResults } from "../lib/toolResults";
 import type { ConciergeError, ConciergeMessage } from "../types";
 
 interface MessageListProps {
@@ -13,6 +15,29 @@ interface MessageListProps {
   toolStatusLabel: string | null;
   error: ConciergeError | null;
   onRetry: () => void;
+}
+
+/** Aircraft/airport `_id`s carried by a single message's tool results, in
+ *  the shape ToolResultRail already renders them as. Reuses the same
+ *  parseToolResults every card render goes through, rather than
+ *  reimplementing result-shape knowledge here. */
+function extractShownIds(message: ConciergeMessage): { aircraftIds: string[]; airportIds: string[] } {
+  if (!message.toolCalls.length) return { aircraftIds: [], airportIds: [] };
+
+  const results = parseToolResults(message.toolCalls);
+  const aircraftIds: string[] = [];
+  const airportIds: string[] = [];
+
+  for (const result of results) {
+    if (result.kind === "aircraft" && result.aircraft) {
+      aircraftIds.push(...result.aircraft.map((a) => a._id));
+    }
+    if (result.kind === "airport" && result.airports) {
+      airportIds.push(...result.airports.map((a) => a._id));
+    }
+  }
+
+  return { aircraftIds, airportIds };
 }
 
 export function MessageList({ messages, isSending, toolStatusLabel, error, onRetry }: MessageListProps) {
@@ -38,6 +63,28 @@ export function MessageList({ messages, isSending, toolStatusLabel, error, onRet
     !hasSubmittedQuote(lastMessage.toolCalls) &&
     !isPendingConfirmation(lastMessage.content);
 
+  // Per-message snapshot of every aircraft/airport `_id` already shown in
+  // an EARLIER message — passed to each MessageBubble so ToolResultRail
+  // can filter out a duplicate card even when the underlying tool call
+  // legitimately re-ran with different arguments (e.g. once mission type
+  // becomes known). Deliberately captures "seen before this message", not
+  // "seen including this message" — a message should never suppress its
+  // own new content, only repeats of what came earlier.
+  const seenIdsPerMessage = useMemo(() => {
+    const aircraftSeen = new Set<string>();
+    const airportSeen = new Set<string>();
+    const snapshots: Array<{ aircraftIds: Set<string>; airportIds: Set<string> }> = [];
+
+    for (const message of messages) {
+      snapshots.push({ aircraftIds: new Set(aircraftSeen), airportIds: new Set(airportSeen) });
+      const { aircraftIds, airportIds } = extractShownIds(message);
+      aircraftIds.forEach((id) => aircraftSeen.add(id));
+      airportIds.forEach((id) => airportSeen.add(id));
+    }
+
+    return snapshots;
+  }, [messages]);
+
   return (
     // relative wrapper holds the watermark fixed in place; the scroll
     // container inside is transparent so the compass reads as "behind
@@ -60,8 +107,13 @@ export function MessageList({ messages, isSending, toolStatusLabel, error, onRet
         className="relative h-full overflow-y-auto px-6 py-6 sm:px-10"
       >
         <div className="flex flex-col gap-6">
-          {messages.map((message) => (
-            <MessageBubble key={message._id} message={message} />
+          {messages.map((message, index) => (
+            <MessageBubble
+              key={message._id}
+              message={message}
+              seenAircraftIds={seenIdsPerMessage[index]?.aircraftIds}
+              seenAirportIds={seenIdsPerMessage[index]?.airportIds}
+            />
           ))}
           {showTypingIndicator ? <TypingIndicator label={toolStatusLabel} /> : null}
           {error ? <ErrorState error={error} onRetry={onRetry} /> : null}

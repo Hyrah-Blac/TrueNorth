@@ -10,9 +10,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = approveQuoteSchema.parse(body);
 
-    const { quote, booking } = await approveQuoteById(data, session.clerkId);
+    const { quote } = await approveQuoteById(data, session.clerkId);
 
-    return successResponse({ quote, booking });
+    return successResponse({ quote });
   } catch (error) {
     return handleApiError(error, "POST /api/quotes/approve");
   }

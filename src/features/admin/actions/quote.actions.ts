@@ -18,18 +18,17 @@ import { linkQuoteCustomer } from "@/features/quote/lib/linkQuoteCustomer";
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
 
-export async function adminApproveQuote(input: ApproveQuoteInput): Promise<ActionResult<{ bookingId: string }>> {
+export async function adminApproveQuote(input: ApproveQuoteInput): Promise<ActionResult<{ status: string }>> {
   try {
     const session = await requireAdmin();
     const data = approveQuoteSchema.parse(input);
 
-    const { booking } = await approveQuoteById(data, session.clerkId);
+    const { quote } = await approveQuoteById(data, session.clerkId);
 
     revalidatePath("/admin/quotes");
-    revalidatePath("/admin/bookings");
     revalidatePath(`/admin/quotes/${data.quoteId}`);
 
-    return { success: true, data: { bookingId: String(booking._id) } };
+    return { success: true, data: { status: quote.status } };
   } catch (error) {
     logger.error("adminApproveQuote failed", { error: String(error) });
     return { success: false, error: isAppError(error) ? error.message : "Failed to approve quote" };

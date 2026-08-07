@@ -44,7 +44,8 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
   }
 
   const aircraftOptions = await getAircraftOptions();
-  const canReview = !QUOTE_TERMINAL_STATUSES.includes(quote.status);
+  const canReview =
+    !QUOTE_TERMINAL_STATUSES.includes(quote.status) && quote.status !== QUOTE_STATUSES.APPROVED;
 
   const preferredAircraft = typeof quote.aircraftPreference === "object" ? quote.aircraftPreference : undefined;
   const preferredAircraftId = preferredAircraft ? preferredAircraft._id : (quote.aircraftPreference as string | undefined);
@@ -195,6 +196,12 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
 
               {quote.status === QUOTE_STATUSES.EXPIRED ? (
                 <p className="text-sm text-slate-600">This quote expired without a decision being made.</p>
+              ) : null}
+
+              {quote.status === QUOTE_STATUSES.APPROVED ? (
+                <p className="text-sm text-slate-600">
+                  Sent to the customer for review. Awaiting their decision to accept or decline.
+                </p>
               ) : null}
 
               {quote.quotedAmount ? (

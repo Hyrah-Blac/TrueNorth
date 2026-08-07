@@ -7,7 +7,6 @@ import { useFocusTrap } from "../hooks/useFocusTrap";
 import { ConciergeHeader } from "./ConciergeHeader";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { MessageList } from "./MessageList";
-import { QuoteProgress } from "./QuoteProgress";
 import { ChatInput } from "./ChatInput";
 import { ConfirmNewConversation } from "./ConfirmNewConversation";
 
@@ -86,16 +85,13 @@ export function ConciergePanel({ open, onClose, welcomeMessage, starterPrompts }
               onCancel={() => setConfirmingNewConversation(false)}
             />
           ) : hasConversation ? (
-            <>
-              <MessageList
-                messages={messages}
-                isSending={isSending}
-                toolStatusLabel={toolStatusLabel}
-                error={error}
-                onRetry={retryLastMessage}
-              />
-              <QuoteProgress />
-            </>
+            <MessageList
+              messages={messages}
+              isSending={isSending}
+              toolStatusLabel={toolStatusLabel}
+              error={error}
+              onRetry={retryLastMessage}
+            />
           ) : (
             <WelcomeScreen
               onSelect={(prompt) => void sendMessage(prompt)}
