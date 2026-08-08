@@ -42,6 +42,7 @@ export interface BookingDocument
 
   modificationRequested: boolean;
   modificationNotes?: string;
+  cancellationRequested: boolean;
   cancellationReason?: string;
 
   confirmedAt?: Date;
@@ -95,6 +96,7 @@ const BookingSchema = new Schema<BookingDocument>(
 
     modificationRequested: { type: Boolean, default: false },
     modificationNotes: { type: String, trim: true, maxlength: 1000 },
+    cancellationRequested: { type: Boolean, default: false },
     cancellationReason: { type: String, trim: true, maxlength: 1000 },
 
     confirmedAt: { type: Date },

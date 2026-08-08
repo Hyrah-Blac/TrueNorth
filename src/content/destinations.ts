@@ -68,6 +68,7 @@ export const destinations: Destination[] = [
     category: "remote",
     description: "Turkana County access point for NGO, government, and industrial missions.",
     flightTimeFromNairobi: "1 hr 30 min",
+    image: "/images/destinations/lodwar.jpg",
   },
   {
     slug: "kisumu",
@@ -77,6 +78,7 @@ export const destinations: Destination[] = [
     category: "urban",
     description: "Lake Victoria region business and government travel.",
     flightTimeFromNairobi: "50 min",
+    image: "/images/destinations/kisumu.jpg",
   },
   {
     slug: "zanzibar",
@@ -86,6 +88,7 @@ export const destinations: Destination[] = [
     category: "coastal",
     description: "Cross-border charter into Tanzania's islands, avoiding scheduled connections.",
     flightTimeFromNairobi: "2 hr",
+    image: "/images/destinations/zanzibar.jpg",
   },
   {
     slug: "kigali",
@@ -95,6 +98,7 @@ export const destinations: Destination[] = [
     category: "urban",
     description: "Direct regional business access into Rwanda.",
     flightTimeFromNairobi: "2 hr 15 min",
+    image: "/images/destinations/kigali.jpg",
   },
   {
     slug: "juba",
@@ -104,5 +108,6 @@ export const destinations: Destination[] = [
     category: "remote",
     description: "NGO and humanitarian mission support into South Sudan.",
     flightTimeFromNairobi: "1 hr 45 min",
+    image: "/images/destinations/juba.jpg",
   },
 ];

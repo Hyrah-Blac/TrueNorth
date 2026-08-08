@@ -18,24 +18,36 @@ export function MpesaButton({
   bookingId,
   amount,
   currency,
+  resumeCheckoutRequestId,
   onPaymentComplete,
 }: {
   bookingId: string;
   amount: number;
   currency: string;
+  /** Pass this when a payment is already pending/processing for the
+   *  booking (e.g. the customer reloaded the page mid-payment) so the
+   *  button resumes checking status instead of offering a fresh "Pay
+   *  Now" that would trip the server's duplicate-payment guard. */
+  resumeCheckoutRequestId?: string;
   onPaymentComplete?: () => void;
 }) {
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [state, setState] = useState<PaymentUiState>("idle");
-  const [message, setMessage] = useState<string | null>(null);
+  const [state, setState] = useState<PaymentUiState>(resumeCheckoutRequestId ? "polling" : "idle");
+  const [message, setMessage] = useState<string | null>(
+    resumeCheckoutRequestId
+      ? "A payment is already in progress. Check your phone and enter your M-Pesa PIN — this will update automatically."
+      : null
+  );
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollDeadline = useRef<number>(0);
 
   useEffect(() => {
+    if (resumeCheckoutRequestId) startPolling(resumeCheckoutRequestId);
     return () => {
       if (pollTimer.current) clearInterval(pollTimer.current);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeCheckoutRequestId]);
 
   function startPolling(checkoutRequestId: string) {
     setState("polling");

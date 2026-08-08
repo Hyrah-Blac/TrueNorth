@@ -87,8 +87,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     if ("cancellationReason" in body) {
       const data = cancelBookingSchema.parse(body);
-      const updated = await cancelBooking(booking, data.cancellationReason, dbUser._id);
-      return successResponse(updated);
+      booking.cancellationRequested = true;
+      booking.cancellationReason = data.cancellationReason;
+      await booking.save();
+      return successResponse(booking);
     }
 
     const data = requestModificationSchema.parse(body);

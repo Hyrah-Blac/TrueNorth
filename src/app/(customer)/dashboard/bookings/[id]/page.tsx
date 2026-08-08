@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Calendar, Users, MapPin } from "@phosphor-icons/react/dist/ssr";
+import { Calendar, Users, MapPin, Airplane, Receipt } from "@phosphor-icons/react/dist/ssr";
 import { DetailHeader } from "@/components/admin/layout/DetailHeader";
 import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStatusBadge";
 import { BookingTimeline } from "@/components/booking/BookingTimeline/BookingTimeline";
 import { BookingActionsPanel } from "@/components/booking/BookingSummary/BookingActionsPanel";
 import { MpesaButton } from "@/components/payment/MpesaButton/MpesaButton";
+import { PaymentStatusBadge } from "@/components/payment/PaymentCard/PaymentStatusBadge";
 import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { getMyBookingById } from "@/features/booking/lib/getBookings";
+import { getMyPaymentsForBooking } from "@/features/payment/lib/getPayments";
 import { formatCurrency, calculatePaymentProgress } from "@/utils/currency";
-import { formatDate } from "@/utils/date";
+import { formatDate, formatDateTime } from "@/utils/date";
 import { BOOKING_TERMINAL_STATUSES } from "@/database/constants/booking-status";
+import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { NotFoundError, ForbiddenError, isAppError } from "@/lib/errors/AppError";
 
 export const metadata: Metadata = { title: "Booking Details" };
@@ -33,8 +37,13 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
   }
 
   const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
+  const aircraft = typeof booking.aircraft === "object" ? booking.aircraft : undefined;
   const canCancel = !BOOKING_TERMINAL_STATUSES.includes(booking.status);
   const paymentProgress = calculatePaymentProgress(booking.totalAmount, booking.paidAmount);
+  const payments = await getMyPaymentsForBooking(booking._id);
+  const activePayment = payments.find(
+    (p) => p.status === PAYMENT_STATUSES.PENDING || p.status === PAYMENT_STATUSES.PROCESSING
+  );
 
   return (
     <div>
@@ -44,6 +53,7 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
         backLabel="Bookings"
         eyebrow={booking.bookingNumber}
         title={`${booking.departureAirportCode} → ${booking.destinationAirportCode}`}
+        subtitle={`Booked on ${formatDate(booking.createdAt)}`}
         status={<BookingStatusBadge status={booking.status} />}
       />
 
@@ -67,6 +77,17 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
               ) : null}
             </div>
 
+            {aircraft && (aircraft.model || aircraft.registration) ? (
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4 text-sm text-slate-600">
+                <Airplane className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                {aircraft.manufacturer ? `${aircraft.manufacturer} ` : ""}
+                {aircraft.model}
+                {aircraft.registration ? (
+                  <span className="spec-readout text-xs text-slate-400">{aircraft.registration}</span>
+                ) : null}
+              </div>
+            ) : null}
+
             {booking.specialRequests ? (
               <div className="mt-6 rounded-md bg-slate-50 p-4 text-sm text-slate-600">
                 <span className="font-medium text-navy-900">Special requests: </span>
@@ -88,6 +109,7 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
               <BookingActionsPanel
                 bookingId={booking._id}
                 canCancel={canCancel}
+                cancellationAlreadyRequested={booking.cancellationRequested}
                 modificationAlreadyRequested={booking.modificationRequested}
               />
             </div>
@@ -132,11 +154,46 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
 
           {booking.balanceAmount > 0 && canCancel ? (
             <div className="mt-4">
-              <MpesaButton bookingId={booking._id} amount={booking.balanceAmount} currency={booking.currency} />
+              <MpesaButton
+                bookingId={booking._id}
+                amount={booking.balanceAmount}
+                currency={booking.currency}
+                resumeCheckoutRequestId={activePayment?.mpesa.checkoutRequestId}
+              />
             </div>
           ) : booking.balanceAmount <= 0 ? (
             <div className="mt-4">
               <InlineAlert tone="success">This booking is fully paid.</InlineAlert>
+            </div>
+          ) : null}
+
+          {payments.length > 0 ? (
+            <div className="mt-6 border-t border-slate-100 pt-5">
+              <h4 className="text-xs font-medium uppercase tracking-wide text-slate-400">Payment history</h4>
+              <ul className="mt-3 space-y-3">
+                {payments.map((payment) => (
+                  <li key={payment._id} className="flex items-center justify-between gap-3 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-navy-900">
+                        {formatCurrency(payment.amount, payment.currency)}
+                      </p>
+                      <p className="text-xs text-slate-500">{formatDateTime(payment.createdAt)}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <PaymentStatusBadge status={payment.status} />
+                      {payment.status === PAYMENT_STATUSES.COMPLETED ? (
+                        <Link
+                          href={`/dashboard/payments/${payment._id}`}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-sky-600 hover:text-sky-700"
+                        >
+                          <Receipt className="h-3.5 w-3.5" aria-hidden="true" />
+                          Receipt
+                        </Link>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           ) : null}
         </aside>

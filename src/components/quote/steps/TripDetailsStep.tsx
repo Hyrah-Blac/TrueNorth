@@ -1,7 +1,7 @@
-import type { UseFormRegister, FieldErrors, UseFormWatch } from "react-hook-form";
+import type { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from "react-hook-form";
 import { FormField } from "@/components/forms/FormField";
 import { TextInput } from "@/components/forms/TextInput";
-import { Select } from "@/components/forms/Select";
+import { AirportCombobox } from "@/components/forms/AirportCombobox";
 import { ToggleSwitch } from "@/components/forms/ToggleSwitch";
 import { airports } from "@/content/airports";
 import type { CreateQuoteInput } from "@/features/quote/schemas/quote.schema";
@@ -10,15 +10,18 @@ interface TripDetailsStepProps {
   register: UseFormRegister<CreateQuoteInput>;
   errors: FieldErrors<CreateQuoteInput>;
   watch: UseFormWatch<CreateQuoteInput>;
+  setValue: UseFormSetValue<CreateQuoteInput>;
 }
 
-export function TripDetailsStep({ register, errors, watch }: TripDetailsStepProps) {
+export function TripDetailsStep({ register, errors, watch, setValue }: TripDetailsStepProps) {
   const isRoundTrip = watch("isRoundTrip");
+  const departureAirportCode = watch("departureAirportCode");
+  const destinationAirportCode = watch("destinationAirportCode");
   const today = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-5">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
         <FormField label="Passenger count" htmlFor="passengerCount" required error={errors.passengerCount?.message}>
           <TextInput
             id="passengerCount"
@@ -36,21 +39,13 @@ export function TripDetailsStep({ register, errors, watch }: TripDetailsStepProp
           required
           error={errors.departureAirportCode?.message}
         >
-          <Select
+          <AirportCombobox
             id="departureAirportCode"
+            airports={airports}
+            value={departureAirportCode ?? ""}
+            onChange={(code) => setValue("departureAirportCode", code, { shouldValidate: true })}
             hasError={Boolean(errors.departureAirportCode)}
-            defaultValue=""
-            {...register("departureAirportCode")}
-          >
-            <option value="" disabled>
-              Select airport
-            </option>
-            {airports.map((airport) => (
-              <option key={airport.code} value={airport.code}>
-                {airport.name} ({airport.code})
-              </option>
-            ))}
-          </Select>
+          />
         </FormField>
 
         <FormField
@@ -59,21 +54,13 @@ export function TripDetailsStep({ register, errors, watch }: TripDetailsStepProp
           required
           error={errors.destinationAirportCode?.message}
         >
-          <Select
+          <AirportCombobox
             id="destinationAirportCode"
+            airports={airports}
+            value={destinationAirportCode ?? ""}
+            onChange={(code) => setValue("destinationAirportCode", code, { shouldValidate: true })}
             hasError={Boolean(errors.destinationAirportCode)}
-            defaultValue=""
-            {...register("destinationAirportCode")}
-          >
-            <option value="" disabled>
-              Select airport
-            </option>
-            {airports.map((airport) => (
-              <option key={airport.code} value={airport.code}>
-                {airport.name} ({airport.code})
-              </option>
-            ))}
-          </Select>
+          />
         </FormField>
       </div>
 

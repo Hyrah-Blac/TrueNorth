@@ -33,3 +33,13 @@ export async function getMyPaymentById(paymentId: string): Promise<IPayment> {
 
   return serialize<IPayment>(payment);
 }
+
+/** Payment attempts (pending/failed/completed) for a single booking, most recent first. */
+export async function getMyPaymentsForBooking(bookingId: string): Promise<IPayment[]> {
+  const user = await getCurrentUserOrThrow();
+  await connectToDatabase();
+
+  const payments = await Payment.find({ booking: bookingId, customer: user._id }).sort({ createdAt: -1 });
+
+  return serialize<IPayment[]>(payments);
+}

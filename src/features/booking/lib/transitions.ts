@@ -125,6 +125,7 @@ export async function cancelBooking(
   changedBy?: Types.ObjectId
 ): Promise<BookingDocument> {
   booking.cancellationReason = reason;
+  booking.cancellationRequested = false;
   return transitionBookingStatus(booking, BOOKING_STATUSES.CANCELLED, {
     note: reason,
     changedBy,

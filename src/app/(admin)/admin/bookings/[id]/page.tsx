@@ -58,6 +58,13 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
               {aircraftName ? <div className="text-sm text-slate-600">{aircraftName}</div> : null}
             </div>
 
+            {booking.cancellationRequested ? (
+              <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm">
+                <span className="font-medium text-navy-900">Cancellation requested: </span>
+                <span className="text-slate-600">{booking.cancellationReason}</span>
+              </div>
+            ) : null}
+
             {booking.modificationRequested ? (
               <div className="mt-6 rounded-lg border border-gold-200 bg-gold-200/10 p-4 text-sm">
                 <span className="font-medium text-navy-900">Modification requested: </span>

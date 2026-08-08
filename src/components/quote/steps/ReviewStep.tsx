@@ -67,7 +67,7 @@ export function ReviewStep({
       </dl>
 
       {values.specialRequests ? (
-        <div className="mt-4 rounded-md bg-slate-50 p-3.5 text-xs leading-relaxed text-slate-600 sm:p-4 sm:text-sm">
+        <div className="mt-5 rounded-md bg-slate-50 p-3.5 text-xs leading-relaxed text-slate-600 sm:mt-6 sm:p-4 sm:text-sm">
           <span className="font-medium text-navy-900">Notes: </span>
           {values.specialRequests}
         </div>

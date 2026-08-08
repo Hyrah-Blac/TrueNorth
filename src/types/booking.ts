@@ -35,6 +35,7 @@ export interface IBooking {
 
   modificationRequested: boolean;
   modificationNotes?: string;
+  cancellationRequested: boolean;
   cancellationReason?: string;
 
   confirmedAt?: string;

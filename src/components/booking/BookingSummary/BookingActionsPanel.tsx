@@ -13,10 +13,12 @@ type PanelMode = "closed" | "cancel" | "modify";
 export function BookingActionsPanel({
   bookingId,
   canCancel,
+  cancellationAlreadyRequested,
   modificationAlreadyRequested,
 }: {
   bookingId: string;
   canCancel: boolean;
+  cancellationAlreadyRequested: boolean;
   modificationAlreadyRequested: boolean;
 }) {
   const [mode, setMode] = useState<PanelMode>("closed");
@@ -51,11 +53,19 @@ export function BookingActionsPanel({
   }
 
   if (mode === "closed") {
+    if (cancellationAlreadyRequested && modificationAlreadyRequested) return null;
+
     return (
-      <div className="flex flex-wrap gap-3">
-        <Button variant="ghost" onClick={() => setMode("cancel")}>
-          Request Cancellation
-        </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        {!cancellationAlreadyRequested ? (
+          <Button variant="ghost" onClick={() => setMode("cancel")}>
+            Request Cancellation
+          </Button>
+        ) : (
+          <InlineAlert tone="neutral">
+            Cancellation requested — our team will follow up shortly.
+          </InlineAlert>
+        )}
         {!modificationAlreadyRequested ? (
           <Button variant="ghost" onClick={() => setMode("modify")}>
             Request Modification

@@ -62,25 +62,26 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
 
   return (
     <section className="relative overflow-hidden bg-navy-950 lg:flex lg:min-h-screen lg:items-center lg:py-20">
-      {/* Full photo background + gradients — desktop/tablet only. On phones
-          we skip the hero entirely so the very first thing a customer sees
-          is the form itself, not a photo they have to scroll past. */}
-      <div className="absolute inset-0 hidden lg:block" aria-hidden="true">
+      {/* Background photo — now spans the whole section at every breakpoint
+          (not just a band up top), because the mobile form panel below is
+          a frosted-glass surface that needs the photo actually visible
+          behind it, not just peeking above it. */}
+      <div className="absolute inset-0" aria-hidden="true">
         <Image src="/images/destinations/nairobi.jpg" alt="" fill priority className="object-cover" sizes="100vw" />
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-navy-950/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-navy-950/85 via-navy-950/40 to-navy-950/30" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_55%,rgba(9,21,33,0.45),transparent_70%)]" />
-      </div>
 
-      {/* Mobile-only: the same hero photo, muted and faded to white at the
-          bottom — a subtle nod to the desktop hero rather than a flat
-          color block. The navbar (fixed, transparent on this route) sits
-          on the dark top edge, then the band fades to solid white right
-          where the form begins, so the two blend into one continuous
-          surface instead of a hard seam. */}
-      <div className="relative h-40 lg:hidden" aria-hidden="true">
-        <Image src="/images/destinations/nairobi.jpg" alt="" fill priority className="object-cover opacity-50" sizes="100vw" />
-        <div className="absolute inset-0 bg-gradient-to-b from-navy-950/75 via-navy-950/25 to-white" />
+        {/* Desktop treatment — darkens the LEFT side only, where the white
+            hero text sits, fading to fully transparent by the card's
+            column on the right so the photo stays bright and visible
+            behind the frosted card instead of being darkened along with
+            the text side. */}
+        <div className="absolute inset-x-0 top-0 hidden h-40 bg-gradient-to-b from-navy-950/70 to-transparent lg:block" />
+        <div className="absolute inset-0 hidden bg-gradient-to-r from-navy-950/80 via-navy-950/25 to-transparent lg:block" />
+
+        {/* Mobile treatment — just enough to keep the fixed navbar's
+            light-colored text legible at the very top. Nothing darkens
+            the rest of the photo, since it needs to read clearly through
+            the frosted form panel below. */}
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-navy-950/70 to-transparent lg:hidden" />
       </div>
 
       {/* Visually-hidden but still announced/indexed heading for mobile,
@@ -106,18 +107,21 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
 
           {/* -mx-6 cancels Container's own px-6 gutter below `lg`, so this
               panel runs edge-to-edge and fills the full mobile viewport —
-              a dedicated full-screen "sheet" for entering details, rather
-              than a small floating card. Height is 100dvh minus the h-40
-              muted-photo band above it, so together they fill exactly one
-              screen with no forced scrolling to reach the form. Content is
-              top-aligned (not centered) below `lg` — centering it inside a
-              near-full-screen-height box left a large dead gap above the
-              step indicator and pushed it up against the photo band. At
-              `lg` it reverts to a normal inset card sitting beside the
-              hero text, vertically centered as before. */}
+              a dedicated full-screen "sheet" for entering details. It's a
+              translucent white surface (bg-white/55, no blur) at every
+              breakpoint — enough opacity to keep text and fields clearly
+              legible, while still letting the photo tint through rather
+              than blocking it outright. The individual input fields keep
+              their own solid white background regardless, so legibility
+              there isn't affected either way. The fixed navbar sits
+              transparently on top of it too, so pt-28 pushes the actual
+              visible content (step indicator etc.) down clear of the bar
+              instead of starting underneath it. At `lg` it becomes an
+              inset rounded card (shadow, ring, corners) sitting beside
+              the hero text, instead of the full-bleed mobile sheet. */}
           <div className="-mx-6 lg:mx-0">
-            <div className="flex min-h-[calc(100dvh-10rem)] min-w-0 flex-col justify-start overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/95 lg:min-h-0 lg:justify-center lg:rounded-[28px] lg:shadow-lifted lg:ring-1 lg:ring-black/[0.04]">
-              <div className="px-6 py-8 sm:px-7 sm:py-10 lg:p-8">
+            <div className="flex min-h-[100dvh] min-w-0 flex-col justify-start bg-white/55 lg:min-h-0 lg:justify-center lg:overflow-hidden lg:rounded-[28px] lg:shadow-lifted lg:ring-1 lg:ring-black/[0.04]">
+              <div className="px-6 pb-8 pt-28 sm:px-7 sm:pb-10 sm:pt-32 lg:p-8">
                 <CharterRequestForm aircraftOptions={aircraftOptions} defaultValues={defaultValues} />
               </div>
             </div>

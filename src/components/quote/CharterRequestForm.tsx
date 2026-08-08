@@ -149,10 +149,12 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
           <h2 className="font-editorial text-[1.375rem] font-light text-navy-900 sm:text-2xl">
             {STEP_META[step - 1].title}
           </h2>
-          <p className="mt-1.5 text-sm text-slate-500">{STEP_META[step - 1].description}</p>
+          <p className="mt-1.5 text-sm text-slate-600">{STEP_META[step - 1].description}</p>
 
           <div className="mt-5 sm:mt-6">
-            {step === 1 ? <TripDetailsStep register={register} errors={errors} watch={watch} /> : null}
+            {step === 1 ? (
+              <TripDetailsStep register={register} errors={errors} watch={watch} setValue={setValue} />
+            ) : null}
             {step === 2 ? (
               <MissionAircraftStep register={register} errors={errors} aircraftOptions={aircraftOptions} />
             ) : null}
@@ -170,7 +172,7 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
           </p>
         ) : null}
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-5 sm:mt-7 sm:pt-6">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5 sm:mt-7 sm:pt-6">
           <Button
             type="button"
             variant="ghost"

@@ -4,16 +4,27 @@ import { revalidatePath } from "next/cache";
 import connectToDatabase from "@/database/connection";
 import Booking from "@/database/models/Booking";
 import { getCurrentUserOrThrow } from "@/middleware/auth";
-import { cancelBooking } from "../lib/transitions";
-import { ForbiddenError, NotFoundError, isAppError } from "@/lib/errors/AppError";
+import { ForbiddenError, NotFoundError, AppError, isAppError } from "@/lib/errors/AppError";
 import { cancelBookingSchema, requestModificationSchema } from "../schemas/booking.schema";
+import { sendEmail, getAdminNotificationEmail } from "@/lib/api/resend";
+import { siteConfig } from "@/lib/config/site";
+import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
+import AdminCancellationRequested from "@/emails/AdminCancellationRequested";
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
 
+/**
+ * Flags the booking for cancellation and notifies ops — it does NOT
+ * cancel the booking itself. A charter booking can have payments,
+ * scheduling, and refund implications, so the actual cancellation
+ * (see adminCancelBooking) stays a staff-reviewed action, the same way
+ * a modification request is a flag for the team to follow up on
+ * rather than something the customer can push through directly.
+ */
 export async function requestBookingCancellation(
   bookingId: string,
   input: { cancellationReason: string }
-): Promise<ActionResult<{ status: string }>> {
+): Promise<ActionResult<{ cancellationRequested: boolean }>> {
   try {
     const user = await getCurrentUserOrThrow();
     const data = cancelBookingSchema.parse(input);
@@ -25,13 +36,34 @@ export async function requestBookingCancellation(
     if (String(booking.customer) !== String(user._id)) {
       throw new ForbiddenError("You do not have access to this booking");
     }
+    if (booking.cancellationRequested) {
+      throw new AppError("A cancellation request is already pending for this booking", 409);
+    }
 
-    const updated = await cancelBooking(booking, data.cancellationReason, user._id);
+    booking.cancellationRequested = true;
+    booking.cancellationReason = data.cancellationReason;
+    await booking.save();
+
     revalidatePath(`/dashboard/bookings/${bookingId}`);
 
-    return { success: true, data: { status: updated.status } };
+    const settings = await getSiteSettings();
+    const contact = toEmailContact(settings);
+
+    await sendEmail({
+      to: getAdminNotificationEmail(),
+      subject: `Cancellation requested: ${booking.bookingNumber}`,
+      react: AdminCancellationRequested({
+        bookingNumber: booking.bookingNumber,
+        customerName: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email,
+        reason: data.cancellationReason,
+        adminUrl: `${siteConfig.url}/admin/bookings/${booking._id}`,
+        contact,
+      }),
+    });
+
+    return { success: true, data: { cancellationRequested: true } };
   } catch (error) {
-    const message = isAppError(error) ? error.message : "Failed to cancel booking";
+    const message = isAppError(error) ? error.message : "Failed to request cancellation";
     return { success: false, error: message };
   }
 }
