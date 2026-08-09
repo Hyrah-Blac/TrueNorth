@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Check, X } from "lucide-react";
+import { ArrowRight } from "@phosphor-icons/react";
 import { Modal } from "@/components/shared/modals/Modal";
 import { Button } from "@/components/shared/buttons/Button";
 import { Textarea } from "@/components/forms/Textarea";
@@ -38,11 +39,6 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
       return;
     }
 
-    // Take the customer straight to their new booking (where payment
-    // happens) instead of leaving them on the quote page to find it
-    // themselves. router.refresh() isn't enough on its own here since
-    // it wouldn't navigate anywhere — push does both: it lands them on
-    // the booking and picks up the fresh server data for that route.
     setDialog(null);
     router.push(`/dashboard/bookings/${result.data.bookingId}`);
     router.refresh();
@@ -67,31 +63,41 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
 
   return (
     <>
-      <div className="flex gap-3">
+      <div className="space-y-3">
         <Button
           variant="primary"
-          className="flex-1 justify-center"
+          size="lg"
+          className="w-full justify-center"
           onClick={() => setDialog("accept")}
-          icon={<Check className="h-4 w-4" />}
+          icon={<ArrowRight className="h-4 w-4" />}
         >
-          Accept &amp; Continue to Payment
+          Accept &amp; Proceed to Payment
         </Button>
-        <Button
-          variant="ghost"
-          className="flex-1 justify-center !text-red-600 hover:!bg-red-50"
+        <button
+          type="button"
+          className="w-full text-center text-sm text-slate-400 transition-colors hover:text-red-600"
           onClick={() => setDialog("decline")}
-          icon={<X className="h-4 w-4" />}
         >
-          Decline
-        </Button>
+          Decline this quote
+        </button>
       </div>
 
+      {/* Accept confirmation modal */}
       <Modal open={dialog === "accept"} onClose={closeDialog} title="Accept this charter quote?" maxWidth="md">
-        <p className="text-sm leading-relaxed text-slate-600">
-          By accepting quote {quoteNumber}, you confirm that you would like to proceed with the charter
-          under the quoted terms. Your booking will be created and you&apos;ll be taken to payment —
-          you won&apos;t be charged until you choose to pay with M-Pesa.
-        </p>
+        <div className="space-y-4">
+          <p className="text-sm leading-relaxed text-slate-600">
+            By accepting quote <span className="font-medium text-navy-900">{quoteNumber}</span>, you confirm
+            you&apos;d like to proceed with the charter under the quoted terms.
+          </p>
+          <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
+            <p className="font-medium">What happens next:</p>
+            <ul className="mt-2 space-y-1 list-disc list-inside">
+              <li>Your booking is created immediately.</li>
+              <li>You won&apos;t be charged just by accepting.</li>
+              <li>You&apos;ll be taken to the payment screen to pay via M-Pesa.</li>
+            </ul>
+          </div>
+        </div>
 
         {error ? (
           <div className="mt-4">
@@ -107,21 +113,23 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
             variant="primary"
             onClick={handleAccept}
             disabled={isPending}
-            icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            icon={
+              isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />
+            }
           >
-            {isPending ? "Accepting…" : "Continue to Payment"}
+            {isPending ? "Creating booking…" : "Accept & Continue"}
           </Button>
         </div>
       </Modal>
 
-      <Modal open={dialog === "decline"} onClose={closeDialog} title="Decline this charter quote?" maxWidth="md">
+      {/* Decline modal */}
+      <Modal open={dialog === "decline"} onClose={closeDialog} title="Decline this quote?" maxWidth="md">
         <p className="text-sm leading-relaxed text-slate-600">
-          Declining quote {quoteNumber} cannot be undone. Let us know why, if you&apos;d like — it helps
-          our team follow up.
+          Declining <span className="font-medium text-navy-900">{quoteNumber}</span> cannot be undone.
+          If you&apos;d like to revisit this in the future, please contact our team.
         </p>
-
         <div className="mt-5">
-          <FormField label="Reason" htmlFor="declineReason" hint="Optional">
+          <FormField label="Reason for declining" htmlFor="declineReason" hint="Optional — helps our team improve">
             <Textarea
               id="declineReason"
               rows={3}
@@ -140,13 +148,13 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
 
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="ghost" onClick={closeDialog} disabled={isPending}>
-            Cancel
+            Go back
           </Button>
           <Button
             variant="primary"
             onClick={handleDecline}
             disabled={isPending}
-            className="!bg-red-600 hover:!bg-red-700"
+            className="!bg-red-600 hover:!bg-red-700 !border-red-600 hover:!border-red-700"
             icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
           >
             {isPending ? "Declining…" : "Decline Quote"}

@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { sendConciergeMessage } from "../lib/api";
 import { usePageContext } from "../lib/pageContext";
@@ -28,6 +29,15 @@ import {
 import type { ConciergeError, ConciergeMessage } from "../types";
 
 const MAX_MESSAGE_LENGTH = 2000;
+
+// How long the "signing you in…" message stays on screen before the
+// redirect fires — long enough to actually read a short sentence,
+// short enough that it doesn't feel like a stall.
+const SIGN_IN_REDIRECT_DELAY_MS = 1800;
+
+const SIGN_IN_PROMPT_MESSAGE =
+  "You'll need to sign in to keep chatting with me — it just takes a moment. " +
+  "I'm taking you to the sign-in page now; come straight back here afterwards and we'll pick up right where we left off.";
 
 interface ConciergeContextValue {
   messages: ConciergeMessage[];
@@ -95,6 +105,7 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
   const conversationIdRef = useRef<string | undefined>(getStoredConversationId() ?? undefined);
   const lastFailedTextRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const signInRedirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Mirrors `isSending` synchronously so a second send fired before React
   // re-renders (e.g. a fast double Enter) is rejected deterministically,
   // rather than racing on a state value that's still stale in closure.
@@ -108,6 +119,7 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
   // last one should reset conversation state.
   const { isLoaded, user } = useUser();
   const clerkUserId = isLoaded ? user?.id ?? null : undefined;
+  const router = useRouter();
   const previousClerkUserIdRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
@@ -171,6 +183,53 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
     async (text: string) => {
       const trimmed = text.trim().slice(0, MAX_MESSAGE_LENGTH);
       if (!trimmed || isSendingRef.current) return;
+
+      // POST /api/ai/chat sits behind Clerk's middleware auth gate (it's
+      // not in the public-route matcher), so an anonymous request never
+      // actually reaches the concierge — the middleware 302s to sign-in
+      // before route.ts runs, which a `fetch()` call can't follow the way
+      // a full page navigation would, and the request just fails.
+      // Catch that here instead: if Clerk has finished loading and there's
+      // no signed-in user, show a friendly heads-up bubble (so the
+      // redirect isn't a surprise — the customer knows *why* they've
+      // landed on sign-in and that their message wasn't lost) and then
+      // send them to sign-in with a return path back to this page.
+      if (isLoaded && !clerkUserId) {
+        const now = new Date().toISOString();
+        const userMessage: ConciergeMessage = {
+          _id: createLocalId(),
+          conversationId: conversationIdRef.current,
+          role: "user",
+          content: trimmed,
+          toolCalls: [],
+          createdAt: now,
+          updatedAt: now,
+          status: "sent",
+        };
+        const signInPromptMessage: ConciergeMessage = {
+          _id: createLocalId(),
+          conversationId: conversationIdRef.current,
+          role: "assistant",
+          content: SIGN_IN_PROMPT_MESSAGE,
+          toolCalls: [],
+          createdAt: now,
+          updatedAt: now,
+          status: "sent",
+        };
+        persistMessages((prev) => [...prev, userMessage, signInPromptMessage]);
+
+        isSendingRef.current = true;
+        setIsSending(true);
+
+        const returnTo =
+          typeof window !== "undefined" ? `${window.location.pathname}${window.location.search}` : "/";
+        const signInTarget = `/sign-in?redirect_url=${encodeURIComponent(returnTo)}`;
+
+        // Give the customer a moment to actually read the message
+        // above before the page navigates out from under them.
+        signInRedirectTimeoutRef.current = setTimeout(() => router.push(signInTarget), SIGN_IN_REDIRECT_DELAY_MS);
+        return;
+      }
 
       isSendingRef.current = true;
       setIsSending(true);
@@ -289,7 +348,7 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
         controller.signal
       );
     },
-    [persistMessages]
+    [persistMessages, isLoaded, clerkUserId, router]
   );
 
   const retryLastMessage = useCallback(() => {
@@ -328,7 +387,10 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
   // panel closes and the lazy-loaded bundle tears down) rather than
   // leaving it to resolve into a component that no longer exists.
   useEffect(() => {
-    return () => abortRef.current?.abort();
+    return () => {
+      abortRef.current?.abort();
+      if (signInRedirectTimeoutRef.current) clearTimeout(signInRedirectTimeoutRef.current);
+    };
   }, []);
 
   const value = useMemo<ConciergeContextValue>(

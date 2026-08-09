@@ -1,6 +1,7 @@
 import "server-only";
 import connectToDatabase from "@/database/connection";
 import Booking from "@/database/models/Booking";
+import "@/database/models/Aircraft"; // ensure Aircraft schema is registered before any populate("aircraft") runs
 import { getCurrentUserOrThrow } from "@/middleware/auth";
 import { NotFoundError, ForbiddenError } from "@/lib/errors/AppError";
 import type { IBooking } from "@/types/booking";

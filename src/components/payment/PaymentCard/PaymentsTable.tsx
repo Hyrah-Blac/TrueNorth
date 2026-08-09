@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PaymentStatusBadge } from "./PaymentStatusBadge";
+import { CustomerPaymentStatusBadge } from "./CustomerPaymentStatusBadge";
 import { formatCurrency } from "@/utils/currency";
 import { formatDateTime } from "@/utils/date";
 import type { IPayment } from "@/types/payment";
@@ -37,7 +37,7 @@ export function PaymentsTable({ payments }: { payments: IPayment[] }) {
                 <td className="px-6 py-4 text-sm text-slate-600">{bookingNumber ?? "—"}</td>
                 <td className="px-6 py-4 text-sm text-slate-600">{formatDateTime(payment.createdAt)}</td>
                 <td className="px-6 py-4">
-                  <PaymentStatusBadge status={payment.status} />
+                  <CustomerPaymentStatusBadge status={payment.status} />
                 </td>
                 <td className="px-6 py-4 text-right">
                   <span className="spec-readout text-sm font-semibold text-navy-900">

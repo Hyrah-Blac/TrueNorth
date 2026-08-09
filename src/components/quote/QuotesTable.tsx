@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { QuoteStatusBadge } from "./QuoteStatusBadge";
+import { CustomerQuoteStatusBadge } from "./CustomerQuoteStatusBadge";
 import { formatDate } from "@/utils/date";
 import type { IQuote } from "@/types/quote";
 
@@ -38,7 +38,7 @@ export function QuotesTable({ quotes }: { quotes: IQuote[] }) {
               </td>
               <td className="px-6 py-4 text-sm text-slate-600">{formatDate(quote.departureDate)}</td>
               <td className="px-6 py-4">
-                <QuoteStatusBadge status={quote.status} />
+                <CustomerQuoteStatusBadge status={quote.status} />
               </td>
               <td className="px-6 py-4 text-right">
                 <span className="spec-readout text-sm font-semibold text-navy-900">

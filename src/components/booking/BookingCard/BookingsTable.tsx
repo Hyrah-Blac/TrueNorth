@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { BookingStatusBadge } from "./BookingStatusBadge";
+import { CustomerBookingStatusBadge } from "./CustomerBookingStatusBadge";
 import { formatCurrency, calculatePaymentProgress } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import type { IBooking } from "@/types/booking";
@@ -46,7 +46,7 @@ export function BookingsTable({ bookings }: { bookings: IBooking[] }) {
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-600">{formatDate(booking.departureDate)}</td>
                 <td className="px-6 py-4">
-                  <BookingStatusBadge status={booking.status} />
+                  <CustomerBookingStatusBadge status={booking.status} />
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">

@@ -53,6 +53,16 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // Quotes, Payments, Profile, Sign Out) plus Contact and auth, since
 // dashboards are admin-only and customers reach their own data through
 // this menu instead of a sidebar.
+//
+// The centered logo mark is suppressed while the bar is transparent, but
+// only on the home hero ("/") — that's the only page where the Hero
+// component renders its own logo over the "Adventure, above & beyond"
+// line, so showing it here too would double it up. Every other hero
+// route (fleet, destinations, about, request-charter) keeps the navbar
+// logo visible even while transparent, since nothing else on those pages
+// is showing it. It fades back in the moment the bar goes solid (scroll,
+// menu open, or a non-hero route), in sync with the same background-color
+// transition.
 // ---------------------------------------------------------------------------
 
 // Routes whose top section is a full-bleed dark/image hero — these are the
@@ -60,7 +70,7 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // sense. Every other route (contact, about, etc.) opens straight into a
 // white page background, so the bar needs to start solid there or its
 // white text and logo disappear against the page underneath it.
-const HERO_ROUTES = ["/", "/fleet", "/destinations", "/about", "/request-charter"];
+const HERO_ROUTES = ["/", "/fleet", "/destinations", "/about", "/request-charter", "/contact"];
 
 export function Navbar({ phone }: { phone: string }) {
   const pathname = usePathname();
@@ -132,6 +142,23 @@ export function Navbar({ phone }: { phone: string }) {
   const showSolid = !isHeroRoute || scrolled || menuOpen;
   const elevated = scrolled || menuOpen;
 
+  // Contact's hero sits on a light white/85 scrim over its background
+  // photo (see contact/page.tsx), not a dark image like the other hero
+  // routes — white nav text/logo would wash out against it. So on this
+  // route specifically, keep the bar transparent (showSolid still
+  // governs the background) but render the links/logo/hamburger in
+  // their dark "solid" colors even before the page scrolls.
+  const isContactPage = pathname === "/contact";
+  const darkText = showSolid || isContactPage;
+
+  // Only the home hero renders its own oversized logo over "Adventure,
+  // above & beyond" — the other hero routes (fleet, destinations, about,
+  // request-charter) don't duplicate it, so the navbar's own logo should
+  // stay visible on those even while the bar is transparent. It's only
+  // suppressed here on "/" while transparent, to avoid showing it twice.
+  const isHomeHero = pathname === "/";
+  const showLogo = !(isHomeHero && !showSolid);
+
   // --- render ----------------------------------------------------------------
 
   return (
@@ -147,23 +174,25 @@ export function Navbar({ phone }: { phone: string }) {
       <Container>
         <nav className={`relative flex h-24 items-center justify-between ${TRANSITION}`} aria-label="Primary">
           <div className="flex items-center gap-8">
-            <NavMenuTrigger open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} solid={showSolid} />
+            <NavMenuTrigger open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} solid={darkText} />
 
             <div className="hidden items-center gap-8 lg:flex">
-              <TopLink href="/fleet" active={pathname === "/fleet"} solid={showSolid}>
+              <TopLink href="/fleet" active={pathname === "/fleet"} solid={darkText}>
                 Fleet
               </TopLink>
-              <TopLink href="/destinations" active={pathname === "/destinations"} solid={showSolid}>
+              <TopLink href="/destinations" active={pathname === "/destinations"} solid={darkText}>
                 Destinations
               </TopLink>
             </div>
           </div>
 
-          <NavbarLogo logoError={logoError} onLogoError={() => setLogoError(true)} solid={showSolid} />
+          {showLogo && (
+            <NavbarLogo logoError={logoError} onLogoError={() => setLogoError(true)} solid={darkText} />
+          )}
 
           <div className="flex items-center gap-8">
             <div className="hidden lg:flex">
-              <TopLink href="/about" active={pathname === "/about"} solid={showSolid}>
+              <TopLink href="/about" active={pathname === "/about"} solid={darkText}>
                 About
               </TopLink>
             </div>

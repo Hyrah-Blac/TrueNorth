@@ -1,6 +1,8 @@
 import "server-only";
 import connectToDatabase from "@/database/connection";
 import Payment from "@/database/models/Payment";
+import "@/database/models/Aircraft"; // ensure Aircraft schema is registered before populate runs
+
 import Booking from "@/database/models/Booking";
 import User from "@/database/models/User";
 import { requireAdmin } from "@/middleware/admin";

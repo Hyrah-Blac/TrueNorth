@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Receipt as ReceiptIcon } from "lucide-react";
-import { PaymentStatusBadge } from "./PaymentStatusBadge";
+import { CustomerPaymentStatusBadge } from "./CustomerPaymentStatusBadge";
 import { formatCurrency } from "@/utils/currency";
 import { formatDateTime } from "@/utils/date";
 import type { IPayment } from "@/types/payment";
@@ -30,7 +30,7 @@ export function PaymentCard({ payment }: { payment: IPayment }) {
       </div>
 
       <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-4">
-        <PaymentStatusBadge status={payment.status} />
+        <CustomerPaymentStatusBadge status={payment.status} />
         {payment.status === "completed" ? (
           <Link
             href={`/dashboard/payments/${payment._id}`}

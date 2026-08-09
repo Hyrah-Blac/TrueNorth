@@ -1,6 +1,8 @@
 import "server-only";
 import connectToDatabase from "@/database/connection";
 import Quote from "@/database/models/Quote";
+import "@/database/models/Aircraft"; // ensure Aircraft schema is registered before populate runs
+
 import { getCurrentUserOrThrow } from "@/middleware/auth";
 import { NotFoundError, ForbiddenError } from "@/lib/errors/AppError";
 import { getSignedAttachmentUrl } from "@/lib/api/cloudinary";

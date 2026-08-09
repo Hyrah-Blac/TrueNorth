@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSignIn, useClerk } from "@clerk/nextjs";
 import type {
   EmailCodeFactor,
@@ -114,10 +114,23 @@ function GoogleIcon() {
   );
 }
 
+// Only ever follow a same-origin, relative path back — never let a
+// `redirect_url` query param send a freshly-authenticated session off
+// to an arbitrary external host (open-redirect protection). Anything
+// that doesn't look like an internal path (no leading "/", or a
+// protocol-relative "//host" trying to disguise itself as a path)
+// falls back to the homepage.
+function getSafeRedirectTarget(raw: string | null): string {
+  if (!raw) return "/";
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
+  return raw;
+}
+
 export function SignInForm({ companyName }: { companyName: string }) {
   const { signIn, setActive } = useSignIn();
   const clerk = useClerk();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isSignedIn, isLoaded: userLoaded } = useCurrentUser();
 
   const redirectedRef = useRef(false);
@@ -155,8 +168,8 @@ export function SignInForm({ companyName }: { companyName: string }) {
     if (!userLoaded || !isSignedIn) return;
     if (redirectedRef.current) return;
     redirectedRef.current = true;
-    router.replace("/");
-  }, [userLoaded, isSignedIn, router]);
+    router.replace(getSafeRedirectTarget(searchParams.get("redirect_url")));
+  }, [userLoaded, isSignedIn, router, searchParams]);
 
   // ── autofocus the OTP input the moment the verify screen mounts ─────────
   useEffect(() => {

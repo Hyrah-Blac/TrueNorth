@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 import connectToDatabase from "@/database/connection";
 import Quote from "@/database/models/Quote";
+import "@/database/models/Aircraft"; // ensure Aircraft schema is registered before populate runs
+
 import User from "@/database/models/User";
 import { requireAuth } from "@/middleware/auth";
 import { ROLES } from "@/database/constants/roles";
