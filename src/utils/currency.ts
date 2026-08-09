@@ -56,3 +56,45 @@ export function calculatePaymentProgress(totalAmount: number, paidAmount: number
   return Math.min(Math.round((paidAmount / totalAmount) * 100), 100);
 }
 
+export type BookingPaymentStatus = "unpaid" | "partially_paid" | "paid";
+
+export const BOOKING_PAYMENT_STATUS_VALUES: BookingPaymentStatus[] = ["unpaid", "partially_paid", "paid"];
+
+export const BOOKING_PAYMENT_STATUS_LABELS: Record<BookingPaymentStatus, string> = {
+  unpaid: "Unpaid",
+  partially_paid: "Partially Paid",
+  paid: "Paid",
+};
+
+/**
+ * A booking's financial state, kept distinct from its operational
+ * `status` (pending/confirmed/in_progress/...). There's no separate
+ * "payment status" field on Booking — this derives one from the same
+ * totalAmount/paidAmount already used for the balance, so the UI can
+ * show "Booking: Confirmed" and "Payment: Partially Paid" side by side
+ * without those two concepts ever being conflated.
+ */
+export function getBookingPaymentStatus(totalAmount: number, paidAmount: number): BookingPaymentStatus {
+  if (paidAmount <= 0) return "unpaid";
+  if (paidAmount >= totalAmount) return "paid";
+  return "partially_paid";
+}
+
+/**
+ * MongoDB filter equivalent of getBookingPaymentStatus, for server-side
+ * filtering (admin booking list) without loading every booking into
+ * memory just to compute a derived status in JS. The thresholds here
+ * must stay identical to getBookingPaymentStatus above — paidAmount<=0
+ * is unpaid, paidAmount>=totalAmount is paid, otherwise partial.
+ */
+export function getBookingPaymentStatusFilter(status: BookingPaymentStatus): Record<string, unknown> {
+  switch (status) {
+    case "unpaid":
+      return { paidAmount: { $lte: 0 } };
+    case "paid":
+      return { $expr: { $gte: ["$paidAmount", "$totalAmount"] } };
+    case "partially_paid":
+      return { paidAmount: { $gt: 0 }, $expr: { $lt: ["$paidAmount", "$totalAmount"] } };
+  }
+}
+

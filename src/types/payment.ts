@@ -1,5 +1,5 @@
 import type { PaymentStatus, PaymentMethod } from "@/database/constants/payment-status";
-import type { IBooking } from "./booking";
+import type { IBooking, IBookingCustomer } from "./booking";
 
 export interface IMpesaDetails {
   phoneNumber?: string;
@@ -15,7 +15,7 @@ export interface IPayment {
   _id: string;
   paymentNumber: string;
   booking: string | IBooking;
-  customer: string;
+  customer: string | IBookingCustomer;
 
   amount: number;
   currency: string;

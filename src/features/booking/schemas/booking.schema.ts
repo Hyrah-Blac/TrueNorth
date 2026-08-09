@@ -6,14 +6,6 @@ import { OBJECT_ID_REGEX } from "@/utils/validators";
 const statusEnum = z.enum(BOOKING_STATUS_VALUES as [BookingStatus, ...BookingStatus[]]);
 const objectId = z.string().regex(OBJECT_ID_REGEX, "Invalid ID");
 
-export const availabilityQuerySchema = z.object({
-  aircraftId: objectId,
-  departureDate: z.coerce.date(),
-  returnDate: z.coerce.date().optional(),
-});
-
-export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;
-
 export const createBookingSchema = z.object({
   customerId: objectId,
   aircraftId: objectId,

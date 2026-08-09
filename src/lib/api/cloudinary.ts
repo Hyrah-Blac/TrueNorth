@@ -1,6 +1,7 @@
 import "server-only";
 import { v2 as cloudinary } from "cloudinary";
 import { logger } from "@/lib/logging/logger";
+import { AVATAR_MAX_BYTES } from "@/lib/config/media";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -93,6 +94,15 @@ export function createQuoteAttachmentUploadSignature(folder: string): UploadSign
   return createUploadSignature(folder, ["jpg", "jpeg", "png", "pdf"], "authenticated");
 }
 
+/** Any signed-in user: their own profile avatar. Images only. Publicly
+ *  deliverable by design — avatars render in the navbar/dashboard, which
+ *  request them straight from Cloudinary's CDN. Scoped to a per-user
+ *  folder so one signature can never be replayed to overwrite another
+ *  user's avatar path. */
+export function createAvatarImageUploadSignature(folder: string): UploadSignature {
+  return createUploadSignature(folder, ["jpg", "jpeg", "png", "webp"]);
+}
+
 /**
  * Mints a short-lived signed URL for viewing an `authenticated`-type
  * attachment (e.g. a quote's uploaded PDF/image).
@@ -127,6 +137,43 @@ export async function deleteCloudinaryAsset(publicId: string, resourceType: "ima
     // Deletion failures shouldn't block the surrounding operation
     // (e.g. removing an image from a form) — log for cleanup, don't throw.
     logger.warn("Failed to delete Cloudinary asset", { publicId, error: String(error) });
+  }
+}
+
+/**
+ * Re-checks an already-uploaded asset's real size against a byte limit,
+ * using Cloudinary's own record (the Admin API `resource` lookup) rather
+ * than trusting anything the browser reported.
+ *
+ * This matters because the signed upload params (see createUploadSignature
+ * above) can't carry a file-size cap — Cloudinary doesn't support signing
+ * one — so the 5MB check in AvatarUploader.tsx is UX only: a client that
+ * skips our component and POSTs straight to Cloudinary with a valid
+ * signature could still land an oversized file. Calling this right after
+ * upload, before the asset is ever referenced from a User doc, is what
+ * actually enforces the limit.
+ *
+ * Returns true and deletes the asset if it's over the limit; false if
+ * it's within bounds (nothing is deleted) or if the lookup itself fails
+ * (fails open — a lookup failure shouldn't block a legitimately-sized
+ * upload from saving).
+ */
+export async function rejectIfOversized(
+  publicId: string,
+  maxBytes: number = AVATAR_MAX_BYTES
+): Promise<boolean> {
+  try {
+    const resource = await cloudinary.api.resource(publicId);
+
+    if (typeof resource.bytes === "number" && resource.bytes > maxBytes) {
+      await deleteCloudinaryAsset(publicId);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    logger.warn("Failed to verify Cloudinary asset size", { publicId, error: String(error) });
+    return false;
   }
 }
 

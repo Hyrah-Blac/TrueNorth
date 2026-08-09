@@ -12,6 +12,7 @@ import { siteConfig } from "@/lib/config/site";
 import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
 import BookingConfirmation from "@/emails/BookingConfirmation";
 import BookingCancelled from "@/emails/BookingCancelled";
+import BookingCompleted from "@/emails/BookingCompleted";
 
 const ALLOWED_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
   pending: ["confirmed", "cancelled"],
@@ -32,45 +33,94 @@ export async function getBookingOrThrow(bookingId: string): Promise<BookingDocum
  * Used by the admin bookings dashboard and API today, and by the
  * M-Pesa callback (pending -> confirmed on successful payment) — keep
  * transition rules here, not duplicated per caller.
+ *
+ * A transition INTO "confirmed" additionally requires the booking's
+ * balance to already be zero. This is the server-side half of the
+ * charter business rule that a booking is only confirmed once payment
+ * is complete — it must not be possible to talk a booking into
+ * "confirmed" from the admin UI (or a direct API/server-action call)
+ * while money is still owed, even though the generic pending->confirmed
+ * transition is otherwise allowed by ALLOWED_TRANSITIONS below. The
+ * automatic payment flow (applyMpesaResult) is unaffected by this: it
+ * only ever calls this with "confirmed" after paidAmount has already
+ * brought the balance to zero, so the guard is always already satisfied
+ * on that path. It also doubles as a safe admin *recovery* path for the
+ * rare case where a booking's balance reached zero but the automatic
+ * confirmation step didn't complete (e.g. a transient failure inside
+ * applyMpesaResult) — the balance check passes, so the transition is
+ * still allowed there.
+ *
+ * The actual write is a single conditional findOneAndUpdate guarded on
+ * the booking still being in the status it was read at (`fromStatus`),
+ * the same atomic-guard shape as Step 1's acceptQuoteById/declineQuoteById.
+ * That closes the race where two near-simultaneous requests (e.g. two
+ * admins both clicking "Confirm") could otherwise both pass validation
+ * against a stale in-memory read and both apply — only one wins here,
+ * so only one notification ever fires.
  */
 export async function transitionBookingStatus(
   booking: BookingDocument,
   nextStatus: BookingStatus,
-  options: { note?: string; changedBy?: Types.ObjectId } = {}
+  options: { note?: string; changedBy?: Types.ObjectId; extraSet?: Record<string, unknown> } = {}
 ): Promise<BookingDocument> {
-  if (BOOKING_TERMINAL_STATUSES.includes(booking.status)) {
-    throw new AppError(`Booking is already ${booking.status} and cannot be changed`, 409);
+  const fromStatus = booking.status;
+
+  if (BOOKING_TERMINAL_STATUSES.includes(fromStatus)) {
+    throw new AppError(`Booking is already ${fromStatus} and cannot be changed`, 409);
   }
 
-  const allowed = ALLOWED_TRANSITIONS[booking.status] ?? [];
+  const allowed = ALLOWED_TRANSITIONS[fromStatus] ?? [];
   if (!allowed.includes(nextStatus)) {
+    throw new AppError(`Cannot move booking from "${fromStatus}" to "${nextStatus}"`, 409);
+  }
+
+  if (nextStatus === BOOKING_STATUSES.CONFIRMED && booking.balanceAmount > 0) {
     throw new AppError(
-      `Cannot move booking from "${booking.status}" to "${nextStatus}"`,
+      "This booking has an outstanding balance and cannot be confirmed until payment is complete.",
       409
     );
   }
 
-  booking.status = nextStatus;
-  booking.timeline.push({
-    status: nextStatus,
-    note: options.note,
-    changedBy: options.changedBy,
-    changedAt: new Date(),
-  });
+  const timestampField =
+    nextStatus === BOOKING_STATUSES.CONFIRMED
+      ? "confirmedAt"
+      : nextStatus === BOOKING_STATUSES.COMPLETED
+        ? "completedAt"
+        : nextStatus === BOOKING_STATUSES.CANCELLED
+          ? "cancelledAt"
+          : undefined;
 
-  if (nextStatus === BOOKING_STATUSES.CONFIRMED) booking.confirmedAt = new Date();
-  if (nextStatus === BOOKING_STATUSES.COMPLETED) booking.completedAt = new Date();
-  if (nextStatus === BOOKING_STATUSES.CANCELLED) booking.cancelledAt = new Date();
+  const updated = await Booking.findOneAndUpdate(
+    { _id: booking._id, status: fromStatus },
+    {
+      $set: {
+        status: nextStatus,
+        ...(timestampField ? { [timestampField]: new Date() } : {}),
+        ...options.extraSet,
+      },
+      $push: {
+        timeline: { status: nextStatus, note: options.note, changedBy: options.changedBy, changedAt: new Date() },
+      },
+    },
+    { new: true }
+  );
 
-  await booking.save();
-
-  if (nextStatus === BOOKING_STATUSES.CONFIRMED) {
-    await notifyBookingConfirmed(booking);
-  } else if (nextStatus === BOOKING_STATUSES.CANCELLED) {
-    await notifyBookingCancelled(booking, options.note ?? booking.cancellationReason ?? "Not specified");
+  if (!updated) {
+    throw new AppError(
+      "This booking's status changed before this update could be applied. Please refresh and try again.",
+      409
+    );
   }
 
-  return booking;
+  if (nextStatus === BOOKING_STATUSES.CONFIRMED) {
+    await notifyBookingConfirmed(updated);
+  } else if (nextStatus === BOOKING_STATUSES.CANCELLED) {
+    await notifyBookingCancelled(updated, options.note ?? updated.cancellationReason ?? "Not specified");
+  } else if (nextStatus === BOOKING_STATUSES.COMPLETED) {
+    await notifyBookingCompleted(updated);
+  }
+
+  return updated;
 }
 
 async function notifyBookingConfirmed(booking: BookingDocument): Promise<void> {
@@ -119,16 +169,40 @@ async function notifyBookingCancelled(booking: BookingDocument, reason: string):
   });
 }
 
+async function notifyBookingCompleted(booking: BookingDocument): Promise<void> {
+  const [customer, aircraft] = await Promise.all([
+    User.findById(booking.customer).select("firstName lastName email"),
+    Aircraft.findById(booking.aircraft).select("name"),
+  ]);
+
+  if (!customer) return;
+
+  const settings = await getSiteSettings();
+
+  await sendEmail({
+    to: customer.email,
+    subject: `Booking ${booking.bookingNumber} is complete`,
+    react: BookingCompleted({
+      customerName: customer.firstName,
+      bookingNumber: booking.bookingNumber,
+      aircraftName: aircraft?.name ?? "Aircraft",
+      departureAirportCode: booking.departureAirportCode,
+      destinationAirportCode: booking.destinationAirportCode,
+      dashboardUrl: `${siteConfig.url}/dashboard/bookings/${booking._id}`,
+      contact: toEmailContact(settings),
+    }),
+  });
+}
+
 export async function cancelBooking(
   booking: BookingDocument,
   reason: string,
   changedBy?: Types.ObjectId
 ): Promise<BookingDocument> {
-  booking.cancellationReason = reason;
-  booking.cancellationRequested = false;
   return transitionBookingStatus(booking, BOOKING_STATUSES.CANCELLED, {
     note: reason,
     changedBy,
+    extraSet: { cancellationReason: reason, cancellationRequested: false },
   });
 }
 

@@ -12,6 +12,7 @@ import {
   requestModificationSchema,
 } from "@/features/booking/schemas/booking.schema";
 import { transitionBookingStatus, cancelBooking } from "@/features/booking/lib/transitions";
+import { auditLog } from "@/lib/security/audit";
 import { NotFoundError, ForbiddenError } from "@/lib/errors/AppError";
 
 interface RouteParams {
@@ -62,15 +63,31 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       if ("cancellationReason" in body) {
         const data = cancelBookingSchema.parse(body);
         const adminDbId = await resolveDbUserId(session.clerkId);
+        const previousStatus = booking.status;
         const updated = await cancelBooking(booking, data.cancellationReason, adminDbId);
+        auditLog({
+          action: "booking.cancel",
+          actorClerkId: session.clerkId,
+          resourceId: id,
+          resourceType: "booking",
+          meta: { bookingNumber: updated.bookingNumber, from: previousStatus, reason: data.cancellationReason },
+        });
         return successResponse(updated);
       }
 
       const data = updateBookingStatusSchema.parse(body);
       const adminDbId = await resolveDbUserId(session.clerkId);
+      const previousStatus = booking.status;
       const updated = await transitionBookingStatus(booking, data.status, {
         note: data.note,
         changedBy: adminDbId,
+      });
+      auditLog({
+        action: "booking.status_change",
+        actorClerkId: session.clerkId,
+        resourceId: id,
+        resourceType: "booking",
+        meta: { bookingNumber: updated.bookingNumber, from: previousStatus, to: updated.status, note: data.note },
       });
       return successResponse(updated);
     }

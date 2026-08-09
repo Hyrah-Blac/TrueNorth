@@ -6,11 +6,9 @@ import { formatDateTime } from "@/utils/date";
 import type { IPayment } from "@/types/payment";
 
 export function AdminPaymentRow({ payment }: { payment: IPayment }) {
-  const customer =
-    typeof payment.customer === "object" && payment.customer !== null
-      ? (payment.customer as unknown as { firstName?: string; lastName?: string })
-      : null;
-  const bookingNumber = typeof payment.booking === "object" ? payment.booking.bookingNumber : undefined;
+  const customer = typeof payment.customer === "object" && payment.customer !== null ? payment.customer : null;
+  const booking = typeof payment.booking === "object" && payment.booking !== null ? payment.booking : null;
+  const aircraftName = booking && typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
 
   return (
     <Link
@@ -25,9 +23,13 @@ export function AdminPaymentRow({ payment }: { payment: IPayment }) {
           <p className="spec-readout text-sm font-medium text-navy-900">{payment.paymentNumber}</p>
           <p className="mt-0.5 text-sm text-slate-600">
             {customer ? `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim() : "—"}
-            {bookingNumber ? ` · ${bookingNumber}` : ""}
+            {booking ? ` · ${booking.bookingNumber}` : ""}
+            {aircraftName ? ` · ${aircraftName}` : ""}
           </p>
-          <p className="mt-1 text-xs text-slate-500">{formatDateTime(payment.createdAt)}</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {formatDateTime(payment.createdAt)}
+            {payment.mpesa.mpesaReceiptNumber ? ` · Receipt ${payment.mpesa.mpesaReceiptNumber}` : ""}
+          </p>
         </div>
       </div>
 

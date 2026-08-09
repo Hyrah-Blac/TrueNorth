@@ -1,16 +1,15 @@
 import Link from "next/link";
 import { PlaneTakeoff, ArrowUpRight } from "lucide-react";
 import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStatusBadge";
-import { formatCurrency } from "@/utils/currency";
+import { BookingPaymentStatusBadge } from "@/components/booking/BookingCard/BookingPaymentStatusBadge";
+import { formatCurrency, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import type { IBooking } from "@/types/booking";
 
 export function AdminBookingRow({ booking }: { booking: IBooking }) {
-  const customer =
-    typeof booking.customer === "object" && booking.customer !== null
-      ? (booking.customer as unknown as { firstName?: string; lastName?: string })
-      : null;
+  const customer = typeof booking.customer === "object" && booking.customer !== null ? booking.customer : null;
   const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
+  const paymentStatus = getBookingPaymentStatus(booking.totalAmount, booking.paidAmount);
 
   return (
     <Link
@@ -33,9 +32,17 @@ export function AdminBookingRow({ booking }: { booking: IBooking }) {
       </div>
 
       <div className="flex items-center gap-4">
-        <p className="spec-readout text-sm font-semibold text-navy-900">
-          {formatCurrency(booking.totalAmount, booking.currency)}
-        </p>
+        <div className="text-right">
+          <p className="spec-readout text-sm font-semibold text-navy-900">
+            {formatCurrency(booking.totalAmount, booking.currency)}
+          </p>
+          {booking.balanceAmount > 0 ? (
+            <p className="spec-readout text-xs text-slate-500">
+              {formatCurrency(booking.balanceAmount, booking.currency)} due
+            </p>
+          ) : null}
+        </div>
+        <BookingPaymentStatusBadge status={paymentStatus} />
         <BookingStatusBadge status={booking.status} />
         <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-300" aria-hidden="true" />
       </div>

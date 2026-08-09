@@ -1,7 +1,7 @@
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from "react-hook-form";
 import { FormField } from "@/components/forms/FormField";
 import { TextInput } from "@/components/forms/TextInput";
-import { Select } from "@/components/forms/Select";
+import { SelectMenu } from "@/components/forms/SelectMenu";
 import { MISSION_TYPE_LABELS, MISSION_TYPE_VALUES } from "@/database/constants/mission-type";
 import type { CreateQuoteInput } from "@/features/quote/schemas/quote.schema";
 import type { MissionType } from "@/database/constants/mission-type";
@@ -15,46 +15,46 @@ export interface AircraftOption {
 interface MissionAircraftStepProps {
   register: UseFormRegister<CreateQuoteInput>;
   errors: FieldErrors<CreateQuoteInput>;
+  watch: UseFormWatch<CreateQuoteInput>;
+  setValue: UseFormSetValue<CreateQuoteInput>;
   aircraftOptions: AircraftOption[];
 }
 
-export function MissionAircraftStep({ register, errors, aircraftOptions }: MissionAircraftStepProps) {
+export function MissionAircraftStep({ register, errors, watch, setValue, aircraftOptions }: MissionAircraftStepProps) {
+  const missionType = watch("missionType");
+  const aircraftPreference = watch("aircraftPreference");
+
   return (
     <div className="space-y-4 sm:space-y-5">
-      <FormField label="Mission type" htmlFor="missionType" required error={errors.missionType?.message}>
-        <Select id="missionType" hasError={Boolean(errors.missionType)} defaultValue="" {...register("missionType")}>
-          <option value="" disabled>
-            Select mission type
-          </option>
-          {MISSION_TYPE_VALUES.map((mission: MissionType) => (
-            <option key={mission} value={mission}>
-              {MISSION_TYPE_LABELS[mission]}
-            </option>
-          ))}
-        </Select>
-      </FormField>
+      <SelectMenu
+        id="missionType"
+        label="Mission type"
+        required
+        error={errors.missionType?.message}
+        value={missionType ?? ""}
+        onChange={(value) => setValue("missionType", value as MissionType, { shouldValidate: true })}
+        options={MISSION_TYPE_VALUES.map((mission: MissionType) => ({
+          value: mission,
+          label: MISSION_TYPE_LABELS[mission],
+        }))}
+      />
 
-      <FormField
-        label="Preferred aircraft"
-        htmlFor="aircraftPreference"
-        hint="Optional — leave blank and we'll recommend the best fit"
-        error={errors.aircraftPreference?.message}
-      >
-        <Select
+      <div>
+        <SelectMenu
           id="aircraftPreference"
-          defaultValue=""
-          {...register("aircraftPreference", {
-            setValueAs: (value) => (value === "" ? undefined : value),
-          })}
-        >
-          <option value="">No preference — recommend for me</option>
-          {aircraftOptions.map((aircraft) => (
-            <option key={aircraft._id} value={aircraft._id}>
-              {aircraft.name}
-            </option>
-          ))}
-        </Select>
-      </FormField>
+          label="Preferred aircraft"
+          error={errors.aircraftPreference?.message}
+          value={aircraftPreference ?? ""}
+          onChange={(value) => setValue("aircraftPreference", value || undefined, { shouldValidate: true })}
+          options={[
+            { value: "", label: "No preference — recommend for me" },
+            ...aircraftOptions.map((aircraft) => ({ value: aircraft._id, label: aircraft.name })),
+          ]}
+        />
+        {!errors.aircraftPreference ? (
+          <p className="mt-1.5 text-xs text-slate-500">Optional — leave blank and we&rsquo;ll recommend the best fit</p>
+        ) : null}
+      </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
         <FormField

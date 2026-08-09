@@ -5,6 +5,7 @@ import { requireAdmin } from "@/middleware/admin";
 import { resolveDbUserId } from "@/middleware/auth";
 import { isAppError } from "@/lib/errors/AppError";
 import { logger } from "@/lib/logging/logger";
+import { auditLog } from "@/lib/security/audit";
 import { getBookingOrThrow, transitionBookingStatus, cancelBooking } from "@/features/booking/lib/transitions";
 import type { BookingStatus } from "@/database/constants/booking-status";
 
@@ -20,7 +21,16 @@ export async function adminUpdateBookingStatus(
     const adminDbId = await resolveDbUserId(session.clerkId);
 
     const booking = await getBookingOrThrow(bookingId);
+    const previousStatus = booking.status;
     const updated = await transitionBookingStatus(booking, status, { note, changedBy: adminDbId });
+
+    auditLog({
+      action: "booking.status_change",
+      actorClerkId: session.clerkId,
+      resourceId: bookingId,
+      resourceType: "booking",
+      meta: { bookingNumber: updated.bookingNumber, from: previousStatus, to: updated.status, note },
+    });
 
     revalidatePath("/admin/bookings");
     revalidatePath(`/admin/bookings/${bookingId}`);
@@ -41,7 +51,16 @@ export async function adminCancelBooking(
     const adminDbId = await resolveDbUserId(session.clerkId);
 
     const booking = await getBookingOrThrow(bookingId);
+    const previousStatus = booking.status;
     const updated = await cancelBooking(booking, reason, adminDbId);
+
+    auditLog({
+      action: "booking.cancel",
+      actorClerkId: session.clerkId,
+      resourceId: bookingId,
+      resourceType: "booking",
+      meta: { bookingNumber: updated.bookingNumber, from: previousStatus, reason },
+    });
 
     revalidatePath("/admin/bookings");
     revalidatePath(`/admin/bookings/${bookingId}`);

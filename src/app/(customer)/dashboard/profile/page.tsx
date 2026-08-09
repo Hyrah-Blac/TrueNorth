@@ -15,34 +15,32 @@ export default async function ProfilePage() {
 
   const { data: user } = result;
   const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase();
+  const memberSince = new Intl.DateTimeFormat("en-KE", { month: "long", year: "numeric" }).format(
+    new Date(user.createdAt)
+  );
 
   return (
     <div>
-   <PageHeader
-  variant="light"
-  title="Your Profile"
-  description="Keep your contact details current so we can reach you about bookings and quotes."
-/>
+      <PageHeader
+        variant="light"
+        title="Your Profile"
+        description="Keep your contact details current so we can reach you about bookings and quotes."
+      />
 
-      <div className="max-w-2xl rounded-xl border border-slate-200 bg-white p-7 shadow-soft sm:p-9">
-        <div className="mb-8 flex items-center gap-4 border-b border-slate-100 pb-7">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-sky-100 font-display text-lg font-semibold text-sky-600 ring-1 ring-inset ring-gold-500/30">
-            {initials || "?"}
-          </span>
-          <div>
-            <p className="font-display text-base font-semibold text-navy-900">
-              {user.firstName} {user.lastName}
-            </p>
-            <p className="text-sm text-slate-500">{user.email}</p>
-          </div>
-        </div>
-
+      <div className="max-w-2xl">
         <ProfileForm
+          initials={initials}
+          name={`${user.firstName} ${user.lastName}`.trim()}
+          email={user.email}
+          memberSince={memberSince}
+          updatedAt={user.updatedAt}
           defaultValues={{
             firstName: user.firstName,
             lastName: user.lastName,
             phone: user.phone ?? "",
             company: user.company ?? "",
+            avatarUrl: user.avatarUrl ?? "",
+            avatarPublicId: user.avatarPublicId ?? "",
           }}
         />
       </div>

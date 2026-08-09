@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { StepIndicator } from "./StepIndicator";
 import { TripDetailsStep } from "./steps/TripDetailsStep";
 import { MissionAircraftStep, type AircraftOption } from "./steps/MissionAircraftStep";
@@ -156,7 +156,13 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
               <TripDetailsStep register={register} errors={errors} watch={watch} setValue={setValue} />
             ) : null}
             {step === 2 ? (
-              <MissionAircraftStep register={register} errors={errors} aircraftOptions={aircraftOptions} />
+              <MissionAircraftStep
+                register={register}
+                errors={errors}
+                watch={watch}
+                setValue={setValue}
+                aircraftOptions={aircraftOptions}
+              />
             ) : null}
             {step === 3 ? (
               <RequirementsStep register={register} errors={errors} watch={watch} setValue={setValue} />
@@ -173,13 +179,7 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
         ) : null}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5 sm:mt-7 sm:pt-6">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={goBack}
-            className={step === 1 ? "invisible" : ""}
-            icon={<ArrowLeft className="h-4 w-4" />}
-          >
+          <Button type="button" variant="ghost" onClick={goBack} className={step === 1 ? "invisible" : ""}>
             Back
           </Button>
 

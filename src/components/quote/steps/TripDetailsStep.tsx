@@ -21,7 +21,31 @@ export function TripDetailsStep({ register, errors, watch, setValue }: TripDetai
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
+        <AirportCombobox
+          id="departureAirportCode"
+          label="Departure airport"
+          required
+          error={errors.departureAirportCode?.message}
+          airports={airports}
+          value={departureAirportCode ?? ""}
+          onChange={(code) => setValue("departureAirportCode", code, { shouldValidate: true })}
+          hasError={Boolean(errors.departureAirportCode)}
+        />
+
+        <AirportCombobox
+          id="destinationAirportCode"
+          label="Destination airport"
+          required
+          error={errors.destinationAirportCode?.message}
+          airports={airports}
+          value={destinationAirportCode ?? ""}
+          onChange={(code) => setValue("destinationAirportCode", code, { shouldValidate: true })}
+          hasError={Boolean(errors.destinationAirportCode)}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
         <FormField label="Passenger count" htmlFor="passengerCount" required error={errors.passengerCount?.message}>
           <TextInput
             id="passengerCount"
@@ -33,44 +57,7 @@ export function TripDetailsStep({ register, errors, watch, setValue }: TripDetai
           />
         </FormField>
 
-        <FormField
-          label="Departure airport"
-          htmlFor="departureAirportCode"
-          required
-          error={errors.departureAirportCode?.message}
-        >
-          <AirportCombobox
-            id="departureAirportCode"
-            airports={airports}
-            value={departureAirportCode ?? ""}
-            onChange={(code) => setValue("departureAirportCode", code, { shouldValidate: true })}
-            hasError={Boolean(errors.departureAirportCode)}
-          />
-        </FormField>
-
-        <FormField
-          label="Destination airport"
-          htmlFor="destinationAirportCode"
-          required
-          error={errors.destinationAirportCode?.message}
-        >
-          <AirportCombobox
-            id="destinationAirportCode"
-            airports={airports}
-            value={destinationAirportCode ?? ""}
-            onChange={(code) => setValue("destinationAirportCode", code, { shouldValidate: true })}
-            hasError={Boolean(errors.destinationAirportCode)}
-          />
-        </FormField>
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
-        <FormField
-          label="Departure date"
-          htmlFor="departureDate"
-          required
-          error={errors.departureDate?.message}
-        >
+        <FormField label="Departure date" htmlFor="departureDate" required error={errors.departureDate?.message}>
           <TextInput
             id="departureDate"
             type="date"
@@ -79,7 +66,9 @@ export function TripDetailsStep({ register, errors, watch, setValue }: TripDetai
             {...register("departureDate")}
           />
         </FormField>
+      </div>
 
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
         {isRoundTrip ? (
           <FormField label="Return date" htmlFor="returnDate" required error={errors.returnDate?.message}>
             <TextInput
@@ -92,22 +81,13 @@ export function TripDetailsStep({ register, errors, watch, setValue }: TripDetai
               })}
             />
           </FormField>
-        ) : (
-          <ToggleSwitch
-            label="This is a round trip"
-            description="We'll ask for a return date if enabled"
-            {...register("isRoundTrip")}
-          />
-        )}
-      </div>
-
-      {isRoundTrip ? (
+        ) : null}
         <ToggleSwitch
           label="This is a round trip"
           description="We'll ask for a return date if enabled"
           {...register("isRoundTrip")}
         />
-      ) : null}
+      </div>
     </div>
   );
 }

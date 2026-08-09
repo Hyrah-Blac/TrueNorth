@@ -103,14 +103,26 @@ export async function POST(req: Request) {
         const update: Record<string, unknown> = {
           firstName: data.first_name || "Customer",
           lastName: data.last_name || "",
-          avatarUrl: data.image_url,
         };
 
         if (primaryEmail) {
           update.email = primaryEmail;
         }
 
-        await User.findOneAndUpdate({ clerkId: data.id }, update);
+        // Only overwrite avatarUrl with Clerk's image if the user hasn't
+        // uploaded their own avatar (avatarPublicId unset). Otherwise a
+        // routine Clerk profile sync would silently clobber a photo the
+        // user picked on our own profile page. A single conditional
+        // update (rather than fetch-then-save) keeps this race-safe
+        // against a concurrent avatar upload.
+        await User.findOneAndUpdate(
+          { clerkId: data.id, avatarPublicId: { $exists: false } },
+          { ...update, avatarUrl: data.image_url }
+        );
+        await User.findOneAndUpdate(
+          { clerkId: data.id, avatarPublicId: { $exists: true } },
+          update
+        );
         logger.info("User synced from Clerk (updated)", { clerkId: data.id });
         break;
       }

@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CalendarDays, Users, Mail, Phone } from "lucide-react";
+import { CalendarDays, Users, Mail, Phone, Building2, Plane } from "lucide-react";
 import { DetailHeader } from "@/components/admin/layout/DetailHeader";
 import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStatusBadge";
+import { BookingPaymentStatusBadge } from "@/components/booking/BookingCard/BookingPaymentStatusBadge";
 import { BookingTimeline } from "@/components/booking/BookingTimeline/BookingTimeline";
 import { BookingStatusActions } from "@/components/admin/dialogs/BookingStatusActions";
 import { getBookingForAdmin } from "@/features/admin/lib/getBookingsForAdmin";
-import { formatCurrency } from "@/utils/currency";
-import { formatDate } from "@/utils/date";
+import { formatCurrency, getBookingPaymentStatus } from "@/utils/currency";
+import { formatDate, formatDateTime } from "@/utils/date";
+import { MISSION_TYPE_LABELS } from "@/database/constants/mission-type";
 import { NotFoundError, isAppError } from "@/lib/errors/AppError";
 
 export const metadata: Metadata = { title: "Booking Details" };
@@ -27,11 +29,9 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
     throw error;
   }
 
-  const customer =
-    typeof booking.customer === "object" && booking.customer !== null
-      ? (booking.customer as unknown as { firstName?: string; lastName?: string; email?: string; phone?: string })
-      : null;
-  const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
+  const customer = typeof booking.customer === "object" && booking.customer !== null ? booking.customer : null;
+  const aircraft = typeof booking.aircraft === "object" ? booking.aircraft : undefined;
+  const paymentStatus = getBookingPaymentStatus(booking.totalAmount, booking.paidAmount);
 
   return (
     <div>
@@ -40,6 +40,7 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
         backLabel="Bookings"
         eyebrow={booking.bookingNumber}
         title={`${booking.departureAirportCode} → ${booking.destinationAirportCode}`}
+        subtitle={`Created ${formatDateTime(booking.createdAt)} · Last updated ${formatDateTime(booking.updatedAt)}`}
         status={<BookingStatusBadge status={booking.status} />}
       />
 
@@ -50,13 +51,30 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <CalendarDays className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
                 {formatDate(booking.departureDate)}
+                {booking.returnDate ? ` – ${formatDate(booking.returnDate)}` : ""}
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Users className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
                 {booking.passengerCount} passengers
               </div>
-              {aircraftName ? <div className="text-sm text-slate-600">{aircraftName}</div> : null}
+              <div className="text-sm text-slate-600">{MISSION_TYPE_LABELS[booking.missionType]}</div>
             </div>
+
+            {aircraft ? (
+              <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-slate-100 pt-4 text-sm text-slate-600">
+                <Plane className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                <span className="font-medium text-navy-900">{aircraft.name}</span>
+                {aircraft.manufacturer || aircraft.model ? (
+                  <span>
+                    {aircraft.manufacturer} {aircraft.model}
+                  </span>
+                ) : null}
+                {aircraft.registration ? (
+                  <span className="spec-readout text-xs text-slate-400">{aircraft.registration}</span>
+                ) : null}
+                <span className="text-xs text-slate-400">· {aircraft.passengerCapacity} seats</span>
+              </div>
+            ) : null}
 
             {booking.cancellationRequested ? (
               <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm">
@@ -90,7 +108,11 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
           <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
             <h3 className="font-display text-base font-semibold text-navy-900">Update status</h3>
             <div className="mt-4">
-              <BookingStatusActions bookingId={booking._id} currentStatus={booking.status} />
+              <BookingStatusActions
+                bookingId={booking._id}
+                currentStatus={booking.status}
+                balanceAmount={booking.balanceAmount}
+              />
             </div>
           </div>
         </div>
@@ -117,6 +139,12 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
                     {customer.phone}
                   </div>
                 ) : null}
+                {customer.company ? (
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Building2 className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                    {customer.company}
+                  </div>
+                ) : null}
               </div>
             ) : (
               <p className="mt-4 text-sm text-slate-500">
@@ -126,7 +154,10 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-navy-950 to-navy-900 p-7 shadow-soft">
-            <h3 className="font-display text-base font-semibold text-white">Payment</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-base font-semibold text-white">Payment</h3>
+              <BookingPaymentStatusBadge status={paymentStatus} />
+            </div>
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <dt className="text-slate-400">Total</dt>

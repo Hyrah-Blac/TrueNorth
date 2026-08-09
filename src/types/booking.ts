@@ -9,11 +9,20 @@ export interface IBookingTimelineEntry {
   changedAt: string;
 }
 
+export interface IBookingCustomer {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  company?: string;
+}
+
 export interface IBooking {
   _id: string;
   bookingNumber: string;
   quote?: string;
-  customer: string;
+  customer: string | IBookingCustomer;
   aircraft: string | IAircraft;
 
   passengerCount: number;

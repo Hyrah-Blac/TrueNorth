@@ -12,6 +12,8 @@ export const updateProfileSchema = z.object({
     .optional()
     .or(z.literal("")),
   company: z.string().trim().max(100).optional().or(z.literal("")),
+  avatarUrl: z.string().trim().url().optional().or(z.literal("")),
+  avatarPublicId: z.string().trim().optional().or(z.literal("")),
 });
 
 export type UpdateProfileFormValues = z.infer<typeof updateProfileSchema>;

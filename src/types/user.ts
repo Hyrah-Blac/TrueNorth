@@ -11,6 +11,7 @@ export interface IUser {
   company?: string;
   role: Role;
   avatarUrl?: string;
+  avatarPublicId?: string;
   isActive: boolean;
   isDeleted: boolean;
   createdAt: string;

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Mail, Phone } from "lucide-react";
+import Link from "next/link";
+import { Mail, Phone, ArrowUpRight } from "lucide-react";
 import { DetailHeader } from "@/components/admin/layout/DetailHeader";
 import { PaymentStatusBadge } from "@/components/payment/PaymentCard/PaymentStatusBadge";
+import { Receipt } from "@/components/payment/Receipt/Receipt";
 import { RecheckPaymentButton } from "@/components/admin/dialogs/RecheckPaymentButton";
 import { getPaymentForAdmin } from "@/features/admin/lib/getPaymentsForAdmin";
 import { formatCurrency } from "@/utils/currency";
-import { formatDateTime } from "@/utils/date";
+import { formatDate, formatDateTime } from "@/utils/date";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { NotFoundError, isAppError } from "@/lib/errors/AppError";
 
@@ -27,17 +29,14 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
     throw error;
   }
 
-  const customer =
-    typeof payment.customer === "object" && payment.customer !== null
-      ? (payment.customer as unknown as { firstName?: string; lastName?: string; email?: string; phone?: string })
-      : null;
-  const bookingNumber = typeof payment.booking === "object" ? payment.booking.bookingNumber : undefined;
+  const customer = typeof payment.customer === "object" && payment.customer !== null ? payment.customer : null;
+  const booking = typeof payment.booking === "object" && payment.booking !== null ? payment.booking : null;
+  const aircraft = booking && typeof booking.aircraft === "object" ? booking.aircraft : undefined;
   const canRecheck =
     (payment.status === PAYMENT_STATUSES.PENDING || payment.status === PAYMENT_STATUSES.PROCESSING) &&
     Boolean(payment.mpesa.checkoutRequestId);
 
   const rows: { label: string; value: string }[] = [
-    ...(bookingNumber ? [{ label: "Booking", value: bookingNumber }] : []),
     { label: "Method", value: payment.method === "mpesa" ? "M-Pesa" : payment.method },
     { label: "Phone", value: payment.mpesa.phoneNumber ?? "—" },
     { label: "M-Pesa receipt", value: payment.mpesa.mpesaReceiptNumber ?? "—" },
@@ -84,15 +83,56 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
               </div>
             ) : null}
           </div>
+
+          {booking ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-base font-semibold text-navy-900">Booking</h3>
+                <Link
+                  href={`/admin/bookings/${booking._id}`}
+                  className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-sky-600 transition-colors hover:text-sky-700"
+                >
+                  View booking <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </div>
+              <dl className="mt-4 divide-y divide-slate-100 text-sm">
+                <div className="flex items-center justify-between py-3">
+                  <dt className="text-slate-500">Reference</dt>
+                  <dd className="spec-readout font-medium text-navy-900">{booking.bookingNumber}</dd>
+                </div>
+                <div className="flex items-center justify-between py-3">
+                  <dt className="text-slate-500">Route</dt>
+                  <dd className="spec-readout font-medium text-navy-900">
+                    {booking.departureAirportCode} → {booking.destinationAirportCode}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between py-3">
+                  <dt className="text-slate-500">Departure</dt>
+                  <dd className="spec-readout font-medium text-navy-900">{formatDate(booking.departureDate)}</dd>
+                </div>
+                {aircraft ? (
+                  <div className="flex items-center justify-between py-3">
+                    <dt className="text-slate-500">Aircraft</dt>
+                    <dd className="spec-readout font-medium text-navy-900">
+                      {aircraft.name}
+                      {aircraft.registration ? ` · ${aircraft.registration}` : ""}
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+            </div>
+          ) : null}
+
+          {payment.status === PAYMENT_STATUSES.COMPLETED ? <Receipt payment={payment} /> : null}
         </div>
 
         <aside className="h-fit rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
           <h3 className="font-display text-base font-semibold text-navy-900">Customer</h3>
           {customer ? (
             <div className="mt-4 space-y-3 text-sm">
-              <p className="font-medium text-navy-900">
+              <Link href={`/admin/customers/${customer._id}`} className="font-medium text-navy-900 hover:text-sky-600">
                 {customer.firstName} {customer.lastName}
-              </p>
+              </Link>
               {customer.email ? (
                 <div className="flex items-center gap-2 text-slate-600">
                   <Mail className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />

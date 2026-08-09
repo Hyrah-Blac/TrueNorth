@@ -69,7 +69,11 @@ const BookingTimelineEntrySchema = new Schema<BookingTimelineEntry>(
 const BookingSchema = new Schema<BookingDocument>(
   {
     bookingNumber: { type: String, unique: true, index: true },
-    quote: { type: Schema.Types.ObjectId, ref: "Quote" },
+    // unique+sparse: a quote can convert to at most one booking. This is a
+    // DB-level backstop behind the transaction in acceptQuoteById — even if
+    // that logic were ever called twice for the same quote, Mongo itself
+    // rejects the second booking insert instead of silently duplicating it.
+    quote: { type: Schema.Types.ObjectId, ref: "Quote", unique: true, sparse: true },
     customer: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     aircraft: { type: Schema.Types.ObjectId, ref: "Aircraft", required: true, index: true },
 

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Calendar, Users, MapPin, Airplane, Receipt } from "@phosphor-icons/react/dist/ssr";
+import { Calendar, Users, Airplane, Briefcase, Receipt } from "@phosphor-icons/react/dist/ssr";
 import { DetailHeader } from "@/components/admin/layout/DetailHeader";
 import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStatusBadge";
+import { BookingPaymentStatusBadge } from "@/components/booking/BookingCard/BookingPaymentStatusBadge";
 import { BookingTimeline } from "@/components/booking/BookingTimeline/BookingTimeline";
 import { BookingActionsPanel } from "@/components/booking/BookingSummary/BookingActionsPanel";
 import { MpesaButton } from "@/components/payment/MpesaButton/MpesaButton";
@@ -11,10 +12,11 @@ import { PaymentStatusBadge } from "@/components/payment/PaymentCard/PaymentStat
 import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { getMyBookingById } from "@/features/booking/lib/getBookings";
 import { getMyPaymentsForBooking } from "@/features/payment/lib/getPayments";
-import { formatCurrency, calculatePaymentProgress } from "@/utils/currency";
+import { formatCurrency, calculatePaymentProgress, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDate, formatDateTime } from "@/utils/date";
 import { BOOKING_TERMINAL_STATUSES } from "@/database/constants/booking-status";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
+import { MISSION_TYPE_LABELS } from "@/database/constants/mission-type";
 import { NotFoundError, ForbiddenError, isAppError } from "@/lib/errors/AppError";
 
 export const metadata: Metadata = { title: "Booking Details" };
@@ -64,25 +66,28 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Calendar className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
                 {formatDate(booking.departureDate)}
+                {booking.returnDate ? ` – ${formatDate(booking.returnDate)}` : ""}
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Users className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
                 {booking.passengerCount} passengers
               </div>
-              {aircraftName ? (
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <MapPin className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
-                  {aircraftName}
-                </div>
-              ) : null}
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <Briefcase className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                {MISSION_TYPE_LABELS[booking.missionType]}
+              </div>
             </div>
 
-            {aircraft && (aircraft.model || aircraft.registration) ? (
-              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4 text-sm text-slate-600">
+            {aircraftName ? (
+              <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-slate-100 pt-4 text-sm text-slate-600">
                 <Airplane className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
-                {aircraft.manufacturer ? `${aircraft.manufacturer} ` : ""}
-                {aircraft.model}
-                {aircraft.registration ? (
+                <span className="font-medium text-navy-900">{aircraftName}</span>
+                {aircraft?.manufacturer || aircraft?.model ? (
+                  <span>
+                    {aircraft?.manufacturer} {aircraft?.model}
+                  </span>
+                ) : null}
+                {aircraft?.registration ? (
                   <span className="spec-readout text-xs text-slate-400">{aircraft.registration}</span>
                 ) : null}
               </div>
@@ -117,7 +122,10 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
         </div>
 
         <aside className="h-fit rounded-xl border border-slate-200 bg-white p-7 shadow-soft lg:sticky lg:top-28">
-          <h3 className="font-display text-base font-semibold text-navy-900">Payment</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-base font-semibold text-navy-900">Payment</h3>
+            <BookingPaymentStatusBadge status={getBookingPaymentStatus(booking.totalAmount, booking.paidAmount)} />
+          </div>
 
           <div className="mt-4 flex items-center gap-2">
             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">

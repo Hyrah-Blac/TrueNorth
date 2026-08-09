@@ -32,14 +32,19 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
 
     const result = await customerAcceptQuote({ quoteId });
 
-    setIsPending(false);
-
     if (!result.success) {
+      setIsPending(false);
       setError(result.error);
       return;
     }
 
+    // Take the customer straight to their new booking (where payment
+    // happens) instead of leaving them on the quote page to find it
+    // themselves. router.refresh() isn't enough on its own here since
+    // it wouldn't navigate anywhere — push does both: it lands them on
+    // the booking and picks up the fresh server data for that route.
     setDialog(null);
+    router.push(`/dashboard/bookings/${result.data.bookingId}`);
     router.refresh();
   }
 
@@ -69,7 +74,7 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
           onClick={() => setDialog("accept")}
           icon={<Check className="h-4 w-4" />}
         >
-          Accept Quote
+          Accept &amp; Continue to Payment
         </Button>
         <Button
           variant="ghost"
@@ -84,7 +89,8 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
       <Modal open={dialog === "accept"} onClose={closeDialog} title="Accept this charter quote?" maxWidth="md">
         <p className="text-sm leading-relaxed text-slate-600">
           By accepting quote {quoteNumber}, you confirm that you would like to proceed with the charter
-          under the quoted terms. This will create your booking and move you to the next step, payment.
+          under the quoted terms. Your booking will be created and you&apos;ll be taken to payment —
+          you won&apos;t be charged until you choose to pay with M-Pesa.
         </p>
 
         {error ? (
@@ -103,7 +109,7 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
             disabled={isPending}
             icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
           >
-            {isPending ? "Accepting…" : "Accept Quote"}
+            {isPending ? "Accepting…" : "Continue to Payment"}
           </Button>
         </div>
       </Modal>

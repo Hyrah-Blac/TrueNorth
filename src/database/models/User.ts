@@ -14,6 +14,11 @@ export interface UserDocument
   company?: string;
   role: Role;
   avatarUrl?: string;
+  // Cloudinary public_id for the user-uploaded avatar (undefined when the
+  // avatar still comes from Clerk's default image_url, e.g. right after
+  // sign-up before the user has picked their own photo). Needed so we can
+  // delete the old Cloudinary asset when the user replaces their avatar.
+  avatarPublicId?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -65,6 +70,10 @@ const UserSchema = new Schema<UserDocument>(
       index: true,
     },
     avatarUrl: {
+      type: String,
+      trim: true,
+    },
+    avatarPublicId: {
       type: String,
       trim: true,
     },

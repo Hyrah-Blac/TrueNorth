@@ -45,8 +45,15 @@ export async function GET(req: NextRequest) {
 
 /**
  * Admin-only direct booking creation, for cases outside the normal
- * quote -> approve flow (e.g. a phone-in charter). Most bookings are
- * instead created by POST /api/quotes/approve.
+ * quote flow (e.g. a phone-in charter booked without ever going
+ * through a quote). Most bookings are instead created automatically
+ * when a customer accepts their quote — see acceptQuoteById.
+ *
+ * The availability check here is an internal double-booking safeguard
+ * (is this aircraft already tied to another active booking in our own
+ * records) — not a claim of real-world provider availability. That
+ * confirmation happens manually, before the aircraft is ever selected
+ * on a quote.
  */
 export async function POST(req: NextRequest) {
   try {
