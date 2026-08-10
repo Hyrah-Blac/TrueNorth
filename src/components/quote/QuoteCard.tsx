@@ -14,7 +14,7 @@ export function QuoteCard({ quote }: { quote: IQuote }) {
   return (
     <Link
       href={`/dashboard/quotes/${quote._id}`}
-      className={`group relative flex flex-col gap-0 overflow-hidden rounded-xl border bg-white shadow-soft transition-all duration-300 ease-editorial hover:-translate-y-0.5 hover:shadow-lifted ${
+      className={`group relative flex flex-col gap-0 overflow-hidden rounded-2xl border bg-white shadow-soft transition-all duration-300 ease-editorial hover:-translate-y-0.5 hover:shadow-lifted active:translate-y-0 active:shadow-soft ${
         needsAction
           ? "border-green-400/60 ring-1 ring-green-400/30"
           : isRejected
@@ -37,20 +37,18 @@ export function QuoteCard({ quote }: { quote: IQuote }) {
 
       <div className="flex flex-col gap-4 p-5">
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <p className="spec-readout text-[11px] font-medium uppercase tracking-wider text-slate-400">
               {quote.quoteNumber}
             </p>
-            <p className="mt-0.5 font-display text-base font-medium text-navy-900">
-              {quote.departureAirportCode}{" "}
-              <span className="text-slate-400">→</span>{" "}
+            <p className="mt-0.5 truncate font-display text-base font-medium text-navy-900">
+              {quote.departureAirportCode} <span className="text-slate-400">→</span>{" "}
               {quote.destinationAirportCode}
             </p>
           </div>
-          <ArrowRight
-            className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-sky-500 mt-1"
-            aria-hidden="true"
-          />
+          <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-300 transition-colors group-hover:bg-sky-50 group-hover:text-sky-500">
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-slate-100 pt-4 text-xs text-slate-500">
@@ -71,7 +69,7 @@ export function QuoteCard({ quote }: { quote: IQuote }) {
               {formatCurrency(quote.quotedAmount, quote.quotedCurrency ?? "KES")}
             </p>
           ) : (
-            <p className="text-xs text-slate-400 italic">Pricing in progress</p>
+            <p className="text-xs italic text-slate-400">Pricing in progress</p>
           )}
         </div>
       </div>

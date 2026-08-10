@@ -76,11 +76,11 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           </Button>
         </div>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="spec-readout text-xs font-medium uppercase tracking-widest text-slate-400">
               {quote.quoteNumber}
             </p>
-            <h1 className="mt-1.5 font-editorial text-3xl font-light tracking-tight text-navy-900">
+            <h1 className="mt-1.5 break-words font-editorial text-2xl font-light tracking-tight text-navy-900 sm:text-3xl">
               {quote.departureAirportCode}{" "}
               <span className="text-slate-400">→</span>{" "}
               {quote.destinationAirportCode}
@@ -100,16 +100,16 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
 
       {/* Approved: attention banner */}
       {isApproved && !isPastValidity ? (
-        <div className="flex flex-wrap items-start gap-4 rounded-xl border border-green-300 bg-green-50 px-6 py-5">
+        <div className="flex flex-wrap items-start gap-4 rounded-2xl border border-green-300 bg-green-50 px-4 py-5 sm:px-6">
           <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600" aria-hidden="true" />
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <p className="font-medium text-green-800">Your charter quote is ready to review.</p>
             <p className="mt-0.5 text-sm text-green-700">
               Accept to create your booking and proceed to payment. Accepting does not charge you.
             </p>
           </div>
           {quote.validUntil ? (
-            <div className="flex items-center gap-1.5 text-sm text-green-700 whitespace-nowrap">
+            <div className="flex items-center gap-1.5 whitespace-nowrap text-sm text-green-700">
               <ClockCountdown className="h-4 w-4" aria-hidden="true" />
               Valid until {formatDate(quote.validUntil)}
             </div>
@@ -119,7 +119,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
 
       {/* Pending: context banner */}
       {isPending ? (
-        <div className="flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-6 py-5">
+        <div className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-5 sm:px-6">
           <Info className="mt-0.5 h-5 w-5 shrink-0 text-sky-600" aria-hidden="true" />
           <div>
             <p className="font-medium text-sky-800">We&apos;re preparing your quote.</p>
@@ -133,7 +133,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr,1fr]">
         {/* Left: trip details */}
         <div className="space-y-5">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
             <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Trip details
             </h2>
@@ -200,7 +200,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           </div>
 
           {requirements.length > 0 ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
               <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Special requirements
               </h2>
@@ -219,7 +219,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.attachments.length > 0 ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
               <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Attachments</h2>
               <ul className="mt-4 space-y-2.5">
                 {quote.attachments.map((attachment) => (
@@ -243,7 +243,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
         {/* Right: proposal + decision */}
         <aside className="h-fit space-y-4 lg:sticky lg:top-28">
           {hasPricingInfo && (selectedAircraft || quote.quotedAmount != null) ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
               <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Charter proposal
               </h3>
@@ -286,13 +286,13 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {canDecide ? (
-            <div className="rounded-xl border border-green-300 bg-white p-6 shadow-soft">
+            <div className="rounded-2xl border border-green-300 bg-white p-6 shadow-soft">
               <QuoteDecisionPanel quoteId={quote._id} quoteNumber={quote.quoteNumber} />
             </div>
           ) : null}
 
           {quote.status === QUOTE_STATUSES.APPROVED && isPastValidity ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6 space-y-4">
               <InlineAlert tone="neutral">
                 This quote&apos;s validity window has passed. Submit a new request for updated pricing.
               </InlineAlert>
@@ -303,7 +303,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.status === QUOTE_STATUSES.CONVERTED && quote.convertedBooking ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6 space-y-4">
               <InlineAlert tone="success">
                 You accepted this quote — your booking is ready.
               </InlineAlert>
@@ -318,7 +318,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.status === QUOTE_STATUSES.REJECTED ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6 space-y-4">
               <InlineAlert tone="danger">
                 {quote.rejectionReason ??
                   "This charter wasn't available. Please reach out to our team if you'd like to explore alternatives."}
@@ -330,7 +330,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.status === QUOTE_STATUSES.EXPIRED ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6 space-y-4">
               <InlineAlert tone="neutral">
                 This quote has expired. Submit a new request for updated pricing.
               </InlineAlert>
@@ -341,7 +341,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {isPending ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
               <InlineAlert tone="info">
                 We&apos;re reviewing this request. You&apos;ll hear from us shortly.
               </InlineAlert>

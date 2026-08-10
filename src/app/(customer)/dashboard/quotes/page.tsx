@@ -34,35 +34,48 @@ export default async function QuotesPage({ searchParams }: QuotesPageProps) {
 
   return (
     <div>
-   <PageHeader
-  variant="light"
-  title="Your Quotes"
-  description="Track every charter request from submission to approval."
-/>
-      <StatusFilterTabs options={filterOptions} />
+      <PageHeader
+        variant="light"
+        title="Your Quotes"
+        description="Track every charter request from submission to approval."
+        actions={
+          <Button href="/request-charter" variant="outline" className="whitespace-nowrap">
+            Request a Charter
+          </Button>
+        }
+      />
 
-      <div className="mt-7">
-        {quotes.length === 0 ? (
-          <EmptyState
-            icon={<FileText className="h-5 w-5" aria-hidden="true" />}
-            title="No quotes found"
-            description="Submit a charter request to see it appear here."
-            action={
-              <Button href="/request-charter" variant="outline">
-                Request a Charter
-              </Button>
-            }
-          />
-        ) : (
-          <>
-            <QuotesTable quotes={quotes} />
-            <div className="space-y-4 md:hidden">
-              {quotes.map((quote) => (
-                <QuoteCard key={quote._id} quote={quote} />
-              ))}
-            </div>
-          </>
-        )}
+      {/* One continuous surface: filters sit directly on top of the results
+          they control, so the section reads as a single card rather than
+          separate floating pieces. */}
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft">
+        <div className="overflow-x-auto border-b border-slate-100 px-4 py-3 sm:px-6">
+          <StatusFilterTabs options={filterOptions} />
+        </div>
+
+        <div className="p-4 sm:p-6">
+          {quotes.length === 0 ? (
+            <EmptyState
+              icon={<FileText className="h-5 w-5" aria-hidden="true" />}
+              title="No quotes found"
+              description="Submit a charter request to see it appear here."
+              action={
+                <Button href="/request-charter" variant="outline">
+                  Request a Charter
+                </Button>
+              }
+            />
+          ) : (
+            <>
+              <QuotesTable quotes={quotes} />
+              <div className="space-y-4 md:hidden">
+                {quotes.map((quote) => (
+                  <QuoteCard key={quote._id} quote={quote} />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
