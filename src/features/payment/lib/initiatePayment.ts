@@ -3,7 +3,7 @@ import connectToDatabase from "@/database/connection";
 import Payment, { type PaymentDocument } from "@/database/models/Payment";
 import Booking from "@/database/models/Booking";
 import { initiateStkPush, queryStkPushStatus, type StkPushResponse } from "@/lib/api/mpesa";
-import { isFinalMpesaResult } from "@/lib/api/mpesaResultCodes";
+import { MPESA_SUCCESS, shouldTrustQueryFailure } from "@/lib/api/mpesaResultCodes";
 import { applyMpesaResult } from "./applyMpesaResult";
 import { toMpesaPhoneFormat } from "@/utils/format";
 import { toWholeCurrencyUnit } from "@/utils/currency";
@@ -47,8 +47,15 @@ export async function initiateBookingPayment(
       try {
         const queryResult = await queryStkPushStatus(existingPayment.mpesa.checkoutRequestId);
         const resultCode = Number(queryResult.ResultCode);
-        if (!Number.isNaN(resultCode) && isFinalMpesaResult(resultCode)) {
-          await applyMpesaResult(existingPayment, { resultCode, resultDescription: queryResult.ResultDesc });
+        if (!Number.isNaN(resultCode)) {
+          const isSuccess = resultCode === MPESA_SUCCESS;
+          // Same rule as checkPaymentStatus: trust success immediately,
+          // but don't let a possibly-premature failure from the query
+          // block a brand-new payment attempt before the existing
+          // prompt would realistically have been resolved.
+          if (isSuccess || shouldTrustQueryFailure(existingPayment.createdAt)) {
+            await applyMpesaResult(existingPayment, { resultCode, resultDescription: queryResult.ResultDesc });
+          }
         }
       } catch (error) {
         logger.warn("Could not verify existing pending payment before starting a new one", {

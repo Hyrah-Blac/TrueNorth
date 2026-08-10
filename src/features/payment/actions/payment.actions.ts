@@ -11,7 +11,7 @@ import { applyMpesaResult } from "../lib/applyMpesaResult";
 import { queryStkPushStatus } from "@/lib/api/mpesa";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { checkRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
-import { isFinalMpesaResult } from "@/lib/api/mpesaResultCodes";
+import { MPESA_SUCCESS, shouldTrustQueryFailure } from "@/lib/api/mpesaResultCodes";
 import { logger } from "@/lib/logging/logger";
 
 /** Extracts the caller IP from Next.js server action request headers. */
@@ -94,7 +94,7 @@ export async function checkPaymentStatus(checkoutRequestId: string): Promise<Che
 
   await connectToDatabase();
 
-  const payment = await Payment.findOne({ "mpesa.checkoutRequestId": parsed.checkoutRequestId });
+  let payment = await Payment.findOne({ "mpesa.checkoutRequestId": parsed.checkoutRequestId });
   if (!payment) return { status: "unknown" };
 
   if (user.role !== ROLES.ADMIN && String(payment.customer) !== String(user._id)) {
@@ -109,14 +109,26 @@ export async function checkPaymentStatus(checkoutRequestId: string): Promise<Che
     const queryResult = await queryStkPushStatus(parsed.checkoutRequestId);
     const resultCode = Number(queryResult.ResultCode);
 
-    // Only apply the result when Daraja has returned a definitive outcome.
-    // Codes in MPESA_PENDING_CODES (1032, 1037, 4001, …) mean the STK prompt
-    // is still on-screen — the customer has not yet accepted or declined.
-    // Treating those as failures is what causes "declined" to appear
-    // immediately after the prompt arrives. Keep polling until we get
-    // a final code (0 = success, anything else not in the pending set = failure).
-    if (!Number.isNaN(resultCode) && isFinalMpesaResult(resultCode)) {
-      await applyMpesaResult(payment, { resultCode, resultDescription: queryResult.ResultDesc });
+    if (!Number.isNaN(resultCode)) {
+      const isSuccess = resultCode === MPESA_SUCCESS;
+
+      // A success from Daraja is always trusted immediately. A failure
+      // is only applied once the STK prompt would realistically have
+      // been resolved (shouldTrustQueryFailure) — the Query API is
+      // known to report failure-looking codes moments after the push
+      // is sent, before the customer has even seen the prompt. Applying
+      // those early is what caused "declined" to appear while the
+      // customer was still entering their PIN, and — because a
+      // premature FAILED used to be permanently terminal — it also
+      // blocked the real success callback from ever landing.
+      if (isSuccess || shouldTrustQueryFailure(payment.createdAt)) {
+        payment = await applyMpesaResult(payment, { resultCode, resultDescription: queryResult.ResultDesc });
+      } else {
+        logger.info("M-Pesa query reported a failure inside the grace window — leaving payment pending", {
+          checkoutRequestId: parsed.checkoutRequestId,
+          resultCode,
+        });
+      }
     }
   } catch (error) {
     logger.warn("checkPaymentStatus query failed, leaving payment pending", { error: String(error) });
