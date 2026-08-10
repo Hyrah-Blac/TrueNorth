@@ -6,6 +6,37 @@ import { applyMpesaResult } from "@/features/payment/lib/applyMpesaResult";
 import { queryStkPushStatus } from "@/lib/api/mpesa";
 import { logger } from "@/lib/logging/logger";
 
+/**
+ * Safaricom's published callback IP ranges (as of 2025).
+ * These are defence-in-depth: even if an attacker learns a
+ * CheckoutRequestID, they cannot trigger callback processing from an
+ * IP outside this list. The primary protection is still the
+ * independent re-verification via queryStkPushStatus below.
+ *
+ * Production: restrict at the Vercel/infra layer as well (firewall
+ * rules), so requests from other IPs never reach this function at all.
+ * Update this list if Safaricom publishes new ranges.
+ */
+const SAFARICOM_IP_ALLOWLIST = new Set([
+  "196.201.214.200",
+  "196.201.214.206",
+  "196.201.213.114",
+  "196.201.214.207",
+  "196.201.214.208",
+  "196.201.213.44",
+  "196.201.212.127",
+  "196.201.212.138",
+  "196.201.212.129",
+  "196.201.212.136",
+  "196.201.212.74",
+  "196.201.212.69",
+]);
+
+function getCallerIp(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  return forwarded?.split(",")[0]?.trim() ?? "";
+}
+
 const callbackItemSchema = z.object({
   Name: z.string(),
   Value: z.union([z.string(), z.number()]).optional(),
@@ -50,13 +81,24 @@ export async function POST(req: Request) {
   // payment is pending) could otherwise POST a forged ResultCode: 0 to
   // this endpoint and get a booking marked "paid" for free. Instead:
   // (1) the callback body is used only to find *which* payment to
-  // check, never to decide its outcome, (2) the actual result is
+  // check, never to decide its outcome; (2) the actual result is
   // fetched fresh from Safaricom's Transaction Status Query API
-  // (queryStkPushStatus) and that response is what gets applied, and
+  // (queryStkPushStatus) and that response is what gets applied; and
   // (3) applyMpesaResult's idempotency guard still protects against
-  // duplicate/replayed callbacks. For extra hardening, also restrict
-  // this route to Safaricom's published IP ranges at the Vercel/infra
-  // layer.
+  // duplicate/replayed callbacks.
+  //
+  // Additionally: enforce Safaricom's published IP allowlist as a
+  // defence-in-depth layer. Requests from outside that set are logged
+  // and rejected before we even parse the body. Also restrict at the
+  // Vercel/infra layer so rogue requests don't reach this function.
+  const callerIp = getCallerIp(req);
+  if (!SAFARICOM_IP_ALLOWLIST.has(callerIp)) {
+    logger.warn("M-Pesa webhook request from unexpected IP — rejected", { callerIp });
+    // Return 200 so Daraja doesn't retry (retries from the wrong IP
+    // won't help), but log loudly for ops visibility.
+    return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
+  }
+
   let payload: unknown;
 
   try {

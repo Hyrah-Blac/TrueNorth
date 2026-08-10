@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import connectToDatabase from "@/database/connection";
 import Payment from "@/database/models/Payment";
 import { getCurrentUserOrThrow } from "@/middleware/auth";
@@ -9,7 +10,15 @@ import { initiateBookingPayment } from "../lib/initiatePayment";
 import { applyMpesaResult } from "../lib/applyMpesaResult";
 import { queryStkPushStatus } from "@/lib/api/mpesa";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
+import { checkRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { logger } from "@/lib/logging/logger";
+
+/** Extracts the caller IP from Next.js server action request headers. */
+async function getCallerIp(): Promise<string> {
+  const hdrs = await headers();
+  const forwarded = hdrs.get("x-forwarded-for");
+  return forwarded?.split(",")[0]?.trim() ?? "unknown";
+}
 
 export interface InitiatePaymentResult {
   success: boolean;
@@ -26,6 +35,15 @@ export async function initiatePayment(input: { bookingId: string; phoneNumber: s
     // admin sets via toggleUserActive. This is exactly the kind of
     // action that flag exists to block.
     const user = await getCurrentUserOrThrow();
+
+    // Rate-limit at the server action layer (mirrors the API route limit)
+    // so the protection holds regardless of which call path is used.
+    const ip = await getCallerIp();
+    const rate = checkRateLimit(`payments:initiate:${ip}`, RATE_LIMITS.AUTHENTICATED_WRITE);
+    if (!rate.allowed) {
+      return { success: false, error: "Too many payment attempts. Please wait a moment and try again." };
+    }
+
     const data = initiatePaymentSchema.parse(input);
 
     const isAdmin = user.role === ROLES.ADMIN;
@@ -57,6 +75,20 @@ export interface CheckPaymentStatusResult {
 /** Polled by the client after initiatePayment while waiting for the customer to respond to the STK prompt. */
 export async function checkPaymentStatus(checkoutRequestId: string): Promise<CheckPaymentStatusResult> {
   const user = await getCurrentUserOrThrow();
+
+  // This action is polled on a ~3.5 s interval by MpesaButton. Without
+  // a rate limit each poll triggers a Daraja API call, making it a free
+  // amplification vector. AUTHENTICATED_READ (120/min) is generous
+  // enough for normal polling (≈17 calls/min) while blocking abuse.
+  const ip = await getCallerIp();
+  const rate = checkRateLimit(`payments:status:${ip}`, RATE_LIMITS.AUTHENTICATED_READ);
+  if (!rate.allowed) {
+    // Return "unknown" rather than throwing — the client treats this as
+    // "keep waiting" and retries on the next poll cycle, which is the
+    // correct behavior when briefly rate-limited.
+    return { status: "unknown" };
+  }
+
   const parsed = verifyPaymentSchema.parse({ checkoutRequestId });
 
   await connectToDatabase();
