@@ -11,8 +11,15 @@ import { initiatePayment, checkPaymentStatus } from "@/features/payment/actions/
 
 type PaymentUiState = "idle" | "awaiting-prompt" | "polling" | "success" | "failed" | "error";
 
-const POLL_INTERVAL_MS = 3500;
-const POLL_TIMEOUT_MS = 90_000;
+// Poll every 5 s — frequent enough to feel responsive, but not so fast
+// that we query Daraja before the customer has had time to respond to
+// the STK prompt. Daraja's own recommendation is 5–10 s intervals.
+const POLL_INTERVAL_MS = 5_000;
+// Allow 2.5 minutes total — STK prompts expire after 60 s on Safaricom's
+// end, but network delays and slow devices can push the webhook arrival
+// later. We keep polling so we don't strand a customer who paid but
+// whose callback arrived after a shorter deadline.
+const POLL_TIMEOUT_MS = 150_000;
 
 export function MpesaButton({
   bookingId,

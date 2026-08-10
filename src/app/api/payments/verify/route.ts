@@ -8,6 +8,7 @@ import { successResponse, handleApiError } from "@/lib/api/response";
 import { verifyPaymentSchema } from "@/features/payment/schemas/payment.schema";
 import { applyMpesaResult } from "@/features/payment/lib/applyMpesaResult";
 import { queryStkPushStatus } from "@/lib/api/mpesa";
+import { isFinalMpesaResult } from "@/lib/api/mpesaResultCodes";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { NotFoundError, ForbiddenError } from "@/lib/errors/AppError";
 import { logger } from "@/lib/logging/logger";
@@ -41,10 +42,9 @@ export async function POST(req: NextRequest) {
       const queryResult = await queryStkPushStatus(data.checkoutRequestId);
       const resultCode = Number(queryResult.ResultCode);
 
-      // Daraja returns 1032 while the customer hasn't responded to the
-      // prompt yet — that's not a final result, so leave the payment
-      // as-is rather than marking it failed prematurely.
-      if (!Number.isNaN(resultCode) && resultCode !== 1032) {
+      // Only apply when Daraja has returned a definitive outcome.
+      // Codes in MPESA_PENDING_CODES mean the prompt is still on-screen.
+      if (!Number.isNaN(resultCode) && isFinalMpesaResult(resultCode)) {
         await applyMpesaResult(payment, {
           resultCode,
           resultDescription: queryResult.ResultDesc,

@@ -3,6 +3,7 @@ import connectToDatabase from "@/database/connection";
 import Payment, { type PaymentDocument } from "@/database/models/Payment";
 import Booking from "@/database/models/Booking";
 import { initiateStkPush, queryStkPushStatus, type StkPushResponse } from "@/lib/api/mpesa";
+import { isFinalMpesaResult } from "@/lib/api/mpesaResultCodes";
 import { applyMpesaResult } from "./applyMpesaResult";
 import { toMpesaPhoneFormat } from "@/utils/format";
 import { toWholeCurrencyUnit } from "@/utils/currency";
@@ -46,7 +47,7 @@ export async function initiateBookingPayment(
       try {
         const queryResult = await queryStkPushStatus(existingPayment.mpesa.checkoutRequestId);
         const resultCode = Number(queryResult.ResultCode);
-        if (!Number.isNaN(resultCode) && resultCode !== 1032) {
+        if (!Number.isNaN(resultCode) && isFinalMpesaResult(resultCode)) {
           await applyMpesaResult(existingPayment, { resultCode, resultDescription: queryResult.ResultDesc });
         }
       } catch (error) {

@@ -11,6 +11,7 @@ import { applyMpesaResult } from "../lib/applyMpesaResult";
 import { queryStkPushStatus } from "@/lib/api/mpesa";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { checkRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
+import { isFinalMpesaResult } from "@/lib/api/mpesaResultCodes";
 import { logger } from "@/lib/logging/logger";
 
 /** Extracts the caller IP from Next.js server action request headers. */
@@ -108,7 +109,13 @@ export async function checkPaymentStatus(checkoutRequestId: string): Promise<Che
     const queryResult = await queryStkPushStatus(parsed.checkoutRequestId);
     const resultCode = Number(queryResult.ResultCode);
 
-    if (!Number.isNaN(resultCode) && resultCode !== 1032) {
+    // Only apply the result when Daraja has returned a definitive outcome.
+    // Codes in MPESA_PENDING_CODES (1032, 1037, 4001, …) mean the STK prompt
+    // is still on-screen — the customer has not yet accepted or declined.
+    // Treating those as failures is what causes "declined" to appear
+    // immediately after the prompt arrives. Keep polling until we get
+    // a final code (0 = success, anything else not in the pending set = failure).
+    if (!Number.isNaN(resultCode) && isFinalMpesaResult(resultCode)) {
       await applyMpesaResult(payment, { resultCode, resultDescription: queryResult.ResultDesc });
     }
   } catch (error) {
