@@ -105,22 +105,23 @@ export default async function ContactPage() {
 
       {/* Full-page background photo — a slow, continuous zoom (same
           animate-zoom-slow used on the other hero routes) gives it a
-          little ambient life instead of sitting static. A soft white
-          scrim keeps the navy copy legible everywhere, with an extra
-          light band pinned to the very top so the transparent navbar's
-          dark logo/links (see Navbar.tsx's isContactPage flag) always
-          have a light surface to sit on, at every scroll position. */}
+          little ambient life instead of sitting static. The scrim is
+          deliberately strong: this photo can be a busy skyline, and a
+          thin tint left buildings competing with the copy and buttons
+          for contrast. A matching top/bottom fade grounds both edges
+          of the section instead of the photo cutting off abruptly. */}
       <div className="absolute inset-0" aria-hidden="true">
         <Image
-          src="/images/gallery/contact.jpg"
+          src="/images/destinations/nairobi.jpg"
           alt=""
           fill
           priority
           className="animate-zoom-slow object-cover"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-white/72" />
+        <div className="absolute inset-0 bg-white/80" />
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/95 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/70 to-transparent" />
       </div>
 
       {/* -mx-6 cancels Container's own mobile gutter so the panel runs
@@ -131,7 +132,7 @@ export default async function ContactPage() {
           and hairline ring once there's room for it beside the photo. */}
       <Container className="relative pb-16 pt-28 sm:pb-20 sm:pt-32 lg:py-0">
         <div className="-mx-6 lg:mx-0">
-          <div className="contact-fade relative overflow-hidden bg-white/65 lg:rounded-[28px] lg:shadow-lifted lg:ring-1 lg:ring-black/[0.04]">
+          <div className="contact-fade relative overflow-hidden bg-white/88 lg:rounded-[28px] lg:shadow-lifted lg:ring-1 lg:ring-black/[0.04]">
             <div className="px-6 py-10 sm:px-10 sm:py-14 lg:px-14 lg:py-16">
               <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-x-16">
                 <div className="relative lg:col-span-5">
