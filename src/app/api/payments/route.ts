@@ -2,74 +2,80 @@ import type { NextRequest } from "next/server";
 import connectToDatabase from "@/database/connection";
 import Payment from "@/database/models/Payment";
 import User from "@/database/models/User";
-import { requireAuth } from "@/middleware/auth";
+import { requireAuth, getCurrentUserOrThrow } from "@/middleware/auth";
 import { ROLES } from "@/database/constants/roles";
 import { successResponse, handleApiError } from "@/lib/api/response";
-import { verifyPaymentSchema } from "@/features/payment/schemas/payment.schema";
-import { applyMpesaResult } from "@/features/payment/lib/applyMpesaResult";
-import { queryStkPushStatus } from "@/lib/api/mpesa";
-import { MPESA_SUCCESS, shouldTrustQueryFailure } from "@/lib/api/mpesaResultCodes";
-import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
-import { NotFoundError, ForbiddenError } from "@/lib/errors/AppError";
-import { logger } from "@/lib/logging/logger";
+import { checkRateLimit, getRequestKey, rateLimitResponse, RATE_LIMITS } from "@/middleware/rate-limit";
+import { buildPaginatedResult } from "@/utils/pagination";
+import { initiatePaymentSchema, paymentQuerySchema } from "@/features/payment/schemas/payment.schema";
+import { initiateBookingPayment } from "@/features/payment/lib/initiatePayment";
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const session = await requireAuth();
-    const body = await req.json();
-    const data = verifyPaymentSchema.parse(body);
+    const query = paymentQuerySchema.parse(Object.fromEntries(req.nextUrl.searchParams));
 
     await connectToDatabase();
 
-    let payment = await Payment.findOne({ "mpesa.checkoutRequestId": data.checkoutRequestId });
-    if (!payment) throw new NotFoundError("Payment not found");
+    const filter: Record<string, unknown> = {};
+    if (query.status) filter.status = query.status;
 
     if (session.role !== ROLES.ADMIN) {
       const dbUser = await User.findOne({ clerkId: session.clerkId }).select("_id");
-      if (String(payment.customer) !== String(dbUser?._id)) {
-        throw new ForbiddenError("You do not have access to this payment");
-      }
+      filter.customer = dbUser?._id ?? null;
     }
 
-    // Already resolved (by the webhook, most likely) — nothing to check.
-    if (payment.status === PAYMENT_STATUSES.COMPLETED || payment.status === PAYMENT_STATUSES.FAILED) {
-      return successResponse({ status: payment.status, paymentNumber: payment.paymentNumber });
-    }
+    const skip = (query.page - 1) * query.limit;
 
-    // Still pending/processing: ask Daraja directly rather than making
-    // the customer wait indefinitely for a callback that may be delayed.
-    try {
-      const queryResult = await queryStkPushStatus(data.checkoutRequestId);
-      const resultCode = Number(queryResult.ResultCode);
+    const [items, total] = await Promise.all([
+      Payment.find(filter)
+        .populate("booking", "bookingNumber departureAirportCode destinationAirportCode")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(query.limit),
+      Payment.countDocuments(filter),
+    ]);
 
-      if (!Number.isNaN(resultCode)) {
-        const isSuccess = resultCode === MPESA_SUCCESS;
-
-        // Trust success immediately; only apply a failure once the STK
-        // prompt would realistically have been resolved one way or
-        // another — the Query API can report a failure-looking result
-        // before the customer has actually responded.
-        if (isSuccess || shouldTrustQueryFailure(payment.createdAt)) {
-          payment = await applyMpesaResult(payment, {
-            resultCode,
-            resultDescription: queryResult.ResultDesc,
-          });
-        } else {
-          logger.info("M-Pesa query reported a failure inside the grace window — leaving payment pending", {
-            checkoutRequestId: data.checkoutRequestId,
-            resultCode,
-          });
-        }
-      }
-    } catch (error) {
-      logger.warn("M-Pesa status query failed, leaving payment pending", {
-        checkoutRequestId: data.checkoutRequestId,
-        error: String(error),
-      });
-    }
-
-    return successResponse({ status: payment.status, paymentNumber: payment.paymentNumber });
+    return successResponse(buildPaginatedResult(items, total, query.page, query.limit));
   } catch (error) {
-    return handleApiError(error, "POST /api/payments/verify");
+    return handleApiError(error, "GET /api/payments");
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    // getCurrentUserOrThrow (not requireAuth) — same reasoning as the
+    // initiatePayment server action: this is the route the client hits
+    // to push a real M-Pesa charge, and requireAuth alone doesn't
+    // check the isActive flag an admin sets via toggleUserActive.
+    const user = await getCurrentUserOrThrow();
+
+    const rate = checkRateLimit(getRequestKey(req, "payments:initiate"), RATE_LIMITS.AUTHENTICATED_WRITE);
+    if (!rate.allowed) return rateLimitResponse(rate);
+
+    const body = await req.json();
+    const data = initiatePaymentSchema.parse(body);
+
+    const isAdmin = user.role === ROLES.ADMIN;
+
+    const { payment, stkResponse } = await initiateBookingPayment(
+      data.bookingId,
+      data.phoneNumber,
+      String(user._id),
+      isAdmin
+    );
+
+    return successResponse(
+      {
+        paymentId: payment._id,
+        paymentNumber: payment.paymentNumber,
+        status: payment.status,
+        checkoutRequestId: stkResponse.CheckoutRequestID,
+        customerMessage: stkResponse.CustomerMessage,
+      },
+      201
+    );
+  } catch (error) {
+    return handleApiError(error, "POST /api/payments");
   }
 }

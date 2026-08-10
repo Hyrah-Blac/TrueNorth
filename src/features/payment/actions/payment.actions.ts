@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import connectToDatabase from "@/database/connection";
-import Payment from "@/database/models/Payment";
+import Payment, { type PaymentDocument } from "@/database/models/Payment";
 import { getCurrentUserOrThrow } from "@/middleware/auth";
 import { ROLES } from "@/database/constants/roles";
 import { initiatePaymentSchema, verifyPaymentSchema } from "../schemas/payment.schema";
@@ -94,7 +94,14 @@ export async function checkPaymentStatus(checkoutRequestId: string): Promise<Che
 
   await connectToDatabase();
 
-  let payment = await Payment.findOne({ "mpesa.checkoutRequestId": parsed.checkoutRequestId });
+  // Explicitly typed (rather than left to inference) because this variable
+  // gets reassigned below from applyMpesaResult's return value — without
+  // the explicit annotation, TS treats the HydratedDocument inferred from
+  // findOne() as structurally distinct from the PaymentDocument type
+  // applyMpesaResult declares, and the build fails on the reassignment.
+  let payment: PaymentDocument | null = await Payment.findOne({
+    "mpesa.checkoutRequestId": parsed.checkoutRequestId,
+  });
   if (!payment) return { status: "unknown" };
 
   if (user.role !== ROLES.ADMIN && String(payment.customer) !== String(user._id)) {

@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import connectToDatabase from "@/database/connection";
-import Payment from "@/database/models/Payment";
+import Payment, { type PaymentDocument } from "@/database/models/Payment";
 import User from "@/database/models/User";
 import { requireAuth } from "@/middleware/auth";
 import { ROLES } from "@/database/constants/roles";
@@ -8,7 +8,7 @@ import { successResponse, handleApiError } from "@/lib/api/response";
 import { verifyPaymentSchema } from "@/features/payment/schemas/payment.schema";
 import { applyMpesaResult } from "@/features/payment/lib/applyMpesaResult";
 import { queryStkPushStatus } from "@/lib/api/mpesa";
-import { isFinalMpesaResult } from "@/lib/api/mpesaResultCodes";
+import { MPESA_SUCCESS, shouldTrustQueryFailure } from "@/lib/api/mpesaResultCodes";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { NotFoundError, ForbiddenError } from "@/lib/errors/AppError";
 import { logger } from "@/lib/logging/logger";
@@ -21,7 +21,13 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
 
-    const payment = await Payment.findOne({ "mpesa.checkoutRequestId": data.checkoutRequestId });
+    // Explicitly typed for the same reason as in payment.actions.ts: this
+    // variable is reassigned below from applyMpesaResult's return value,
+    // and without the annotation TS can't unify the inferred HydratedDocument
+    // from findOne() with the PaymentDocument type applyMpesaResult returns.
+    let payment: PaymentDocument | null = await Payment.findOne({
+      "mpesa.checkoutRequestId": data.checkoutRequestId,
+    });
     if (!payment) throw new NotFoundError("Payment not found");
 
     if (session.role !== ROLES.ADMIN) {
@@ -42,13 +48,24 @@ export async function POST(req: NextRequest) {
       const queryResult = await queryStkPushStatus(data.checkoutRequestId);
       const resultCode = Number(queryResult.ResultCode);
 
-      // Only apply when Daraja has returned a definitive outcome.
-      // Codes in MPESA_PENDING_CODES mean the prompt is still on-screen.
-      if (!Number.isNaN(resultCode) && isFinalMpesaResult(resultCode)) {
-        await applyMpesaResult(payment, {
-          resultCode,
-          resultDescription: queryResult.ResultDesc,
-        });
+      if (!Number.isNaN(resultCode)) {
+        const isSuccess = resultCode === MPESA_SUCCESS;
+
+        // Trust success immediately; only apply a failure once the STK
+        // prompt would realistically have been resolved one way or
+        // another — the Query API can report a failure-looking result
+        // before the customer has actually responded.
+        if (isSuccess || shouldTrustQueryFailure(payment.createdAt)) {
+          payment = await applyMpesaResult(payment, {
+            resultCode,
+            resultDescription: queryResult.ResultDesc,
+          });
+        } else {
+          logger.info("M-Pesa query reported a failure inside the grace window — leaving payment pending", {
+            checkoutRequestId: data.checkoutRequestId,
+            resultCode,
+          });
+        }
       }
     } catch (error) {
       logger.warn("M-Pesa status query failed, leaving payment pending", {
