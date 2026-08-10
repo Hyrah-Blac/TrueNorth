@@ -67,14 +67,22 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 
 // Routes whose top section is a full-bleed dark/image hero — these are the
 // only pages where a transparent, white-text bar over that hero makes
-// sense. Every other route (contact, about, etc.) opens straight into a
-// white page background, so the bar needs to start solid there or its
-// white text and logo disappear against the page underneath it.
+// sense. Every other route opens straight into a white page background,
+// so the bar needs to start solid there or its white text and logo
+// disappear against the page underneath it.
 const HERO_ROUTES = ["/", "/fleet", "/destinations", "/about", "/request-charter", "/contact"];
+
+// Contact and about now use a light, white-washed photo (not the dark
+// ones used on the other hero routes), so a transparent bar there still
+// needs dark text/logo to stay legible — white text would vanish against
+// it. These routes get a transparent background like the others, but
+// keep solid-page text color throughout.
+const LIGHT_HERO_ROUTES = ["/contact", "/about"];
 
 export function Navbar({ phone }: { phone: string }) {
   const pathname = usePathname();
   const isHeroRoute = HERO_ROUTES.includes(pathname);
+  const isLightHero = LIGHT_HERO_ROUTES.includes(pathname);
 
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -142,14 +150,11 @@ export function Navbar({ phone }: { phone: string }) {
   const showSolid = !isHeroRoute || scrolled || menuOpen;
   const elevated = scrolled || menuOpen;
 
-  // Contact's hero sits on a light white/85 scrim over its background
-  // photo (see contact/page.tsx), not a dark image like the other hero
-  // routes — white nav text/logo would wash out against it. So on this
-  // route specifically, keep the bar transparent (showSolid still
-  // governs the background) but render the links/logo/hamburger in
-  // their dark "solid" colors even before the page scrolls.
-  const isContactPage = pathname === "/contact";
-  const darkText = showSolid || isContactPage;
+  // Background transparency (showSolid) and text/logo color are usually
+  // the same toggle, but on a light-background hero like contact they
+  // diverge: the bar itself should still go transparent, while the text
+  // stays dark the whole time since there's no dark photo backing it.
+  const textSolid = showSolid || isLightHero;
 
   // Only the home hero renders its own oversized logo over "Adventure,
   // above & beyond" — the other hero routes (fleet, destinations, about,
@@ -171,29 +176,29 @@ export function Navbar({ phone }: { phone: string }) {
           : "border-b border-transparent"
       }`}
     >
-      <Container>
+      <Container className="px-4 sm:px-6 lg:px-10 xl:px-14">
         <nav className={`relative flex h-24 items-center justify-between ${TRANSITION}`} aria-label="Primary">
-          <div className="flex items-center gap-8">
-            <NavMenuTrigger open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} solid={darkText} />
+          <div className="flex items-center gap-8 lg:gap-12">
+            <NavMenuTrigger open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} solid={textSolid} />
 
-            <div className="hidden items-center gap-8 lg:flex">
-              <TopLink href="/fleet" active={pathname === "/fleet"} solid={darkText}>
+            <div className="hidden items-center gap-10 lg:flex">
+              <TopLink href="/fleet" active={pathname === "/fleet"} solid={textSolid}>
                 Fleet
               </TopLink>
-              <TopLink href="/destinations" active={pathname === "/destinations"} solid={darkText}>
+              <TopLink href="/destinations" active={pathname === "/destinations"} solid={textSolid}>
                 Destinations
               </TopLink>
             </div>
           </div>
 
           {showLogo && (
-            <NavbarLogo logoError={logoError} onLogoError={() => setLogoError(true)} solid={darkText} />
+            <NavbarLogo logoError={logoError} onLogoError={() => setLogoError(true)} solid={textSolid} />
           )}
 
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-6 lg:gap-10">
             <div className="hidden lg:flex">
-              <TopLink href="/about" active={pathname === "/about"} solid={darkText}>
-                About
+              <TopLink href="/contact" active={pathname === "/contact"} solid={textSolid}>
+                Contact
               </TopLink>
             </div>
 
@@ -201,7 +206,7 @@ export function Navbar({ phone }: { phone: string }) {
               href="/request-charter"
               variant="blue"
               size="md"
-              className="!px-4 !py-2 !text-[10px] sm:!px-5"
+              className="!px-5 !py-2.5 !text-[10px] !tracking-[0.12em] sm:!px-6"
             >
               <span className="sm:hidden">Charter</span>
               <span className="hidden sm:inline">Request Charter</span>
@@ -290,7 +295,7 @@ function TopLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`group font-display relative inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-normal tracking-normal transition-all duration-[250ms] ease-out ${
+      className={`group font-display relative inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-normal tracking-[0.02em] transition-all duration-[250ms] ease-out ${
         solid
           ? active
             ? "text-navy-900"

@@ -38,15 +38,15 @@ export function Hero({ companyName, tagline }: HeroProps) {
           height={82}
           priority
           className="w-auto object-contain"
-          style={{ height: "clamp(2.25rem, 1.35rem + 3.5vw, 5rem)" }}
+          style={{ height: "clamp(2rem, 1.3rem + 3vw, 4.25rem)" }}
         />
       </div>
 
       <Container className="relative flex justify-center">
         <div className="mx-auto w-full max-w-xl px-4 text-center sm:px-6">
           <h1
-            className="animate-fade-in-up font-editorial text-[clamp(2.25rem,1.6rem+2.6vw,4.25rem)] font-light uppercase leading-[1.15] tracking-[0.01em] text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.25)]"
-            style={{ animationDelay: "60ms" }}
+            className="animate-fade-in-up text-balance font-editorial text-[clamp(2.125rem,1.5rem+2.4vw,4rem)] font-light uppercase leading-[1.2] tracking-[0.01em] text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.25)]"
+            style={{ animationDelay: "60ms", textWrap: "balance" }}
           >
             {words.map((word, i) => (
               <span
@@ -60,7 +60,7 @@ export function Hero({ companyName, tagline }: HeroProps) {
           </h1>
 
           <p
-            className="animate-fade-in-up mt-6 font-mono text-[clamp(0.8125rem,0.7rem+0.5vw,1.125rem)] font-medium uppercase tracking-[0.3em] text-white/60"
+            className="animate-fade-in-up mt-6 font-mono text-[clamp(0.6875rem,0.6rem+0.4vw,0.9375rem)] font-medium uppercase tracking-[0.28em] text-white/60"
             style={{ animationDelay: "180ms" }}
           >
             Adventure, above &amp; beyond
@@ -72,8 +72,8 @@ export function Hero({ companyName, tagline }: HeroProps) {
           />
 
           <p
-            className="animate-fade-in-up mx-auto max-w-[22rem] text-[clamp(0.8125rem,0.75rem+0.3vw,0.9375rem)] font-light leading-loose tracking-wide text-white/60"
-            style={{ animationDelay: "380ms", marginTop: "clamp(1.25rem, 1rem + 1vw, 2rem)" }}
+            className="animate-fade-in-up mx-auto max-w-[20rem] text-balance text-[clamp(0.75rem,0.7rem+0.25vw,0.875rem)] font-light leading-loose tracking-wide text-white/60"
+            style={{ animationDelay: "380ms", marginTop: "clamp(1.25rem, 1rem + 1vw, 2rem)", textWrap: "balance" }}
           >
             {tagline}
           </p>
