@@ -1,6 +1,12 @@
 import "server-only";
 import connectToDatabase from "@/database/connection";
 import Payment from "@/database/models/Payment";
+// Side-effect import: registers the Booking schema with Mongoose before
+// .populate("booking", ...) below runs. Without this, if getMyPayments is
+// the first code path to touch the database in a fresh server/serverless
+// instance, Mongoose has never seen the Booking schema and populate()
+// throws "Schema hasn't been registered for model 'Booking'".
+import "@/database/models/Booking";
 import { getCurrentUserOrThrow } from "@/middleware/auth";
 import { NotFoundError, ForbiddenError } from "@/lib/errors/AppError";
 import type { IPayment } from "@/types/payment";

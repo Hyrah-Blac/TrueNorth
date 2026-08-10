@@ -1,6 +1,10 @@
 import type { NextRequest } from "next/server";
 import connectToDatabase from "@/database/connection";
 import Payment from "@/database/models/Payment";
+// Side-effect import: registers the Booking schema before .populate("booking")
+// below runs — otherwise a fresh server/serverless instance that hasn't
+// loaded Booking yet throws "Schema hasn't been registered for model 'Booking'".
+import "@/database/models/Booking";
 import User from "@/database/models/User";
 import { requireAuth } from "@/middleware/auth";
 import { ROLES } from "@/database/constants/roles";

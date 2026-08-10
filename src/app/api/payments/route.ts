@@ -1,6 +1,11 @@
 import type { NextRequest } from "next/server";
 import connectToDatabase from "@/database/connection";
 import Payment from "@/database/models/Payment";
+// Explicit side-effect import so the Booking schema is registered before
+// .populate("booking", ...) in GET below — this was previously only
+// registered incidentally via initiateBookingPayment's own import of
+// Booking, which is a fragile thing to depend on implicitly.
+import "@/database/models/Booking";
 import User from "@/database/models/User";
 import { requireAuth, getCurrentUserOrThrow } from "@/middleware/auth";
 import { ROLES } from "@/database/constants/roles";
