@@ -33,7 +33,7 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
   ];
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <PageHeader
         variant="light"
         title="Your Bookings"

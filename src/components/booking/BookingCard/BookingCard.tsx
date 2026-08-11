@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { AirplaneTakeoff, CalendarBlank, Users } from "@phosphor-icons/react/dist/ssr";
+import { AirplaneTakeoff, CalendarBlank, Users, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { CustomerBookingStatusBadge } from "./CustomerBookingStatusBadge";
 import { formatCurrency, calculatePaymentProgress, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
@@ -17,7 +16,7 @@ export function BookingCard({ booking }: { booking: IBooking }) {
   return (
     <Link
       href={`/dashboard/bookings/${booking._id}`}
-      className={`group relative flex flex-col gap-0 overflow-hidden rounded-xl border bg-white shadow-soft transition-all duration-300 ease-editorial hover:-translate-y-0.5 hover:shadow-lifted ${
+      className={`group relative flex flex-col gap-0 overflow-hidden rounded-xl border bg-white transition-colors duration-300 ease-editorial ${
         needsPayment
           ? "border-sky-300 ring-1 ring-sky-300/50"
           : "border-slate-200 hover:border-sky-200"
@@ -56,8 +55,8 @@ export function BookingCard({ booking }: { booking: IBooking }) {
               ) : null}
             </div>
           </div>
-          <ArrowRight
-            className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-sky-500 mt-1"
+          <CaretRight
+            className="mt-1 h-4 w-4 shrink-0 text-slate-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-sky-500"
             aria-hidden="true"
           />
         </div>

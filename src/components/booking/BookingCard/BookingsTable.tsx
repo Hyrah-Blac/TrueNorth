@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { CustomerBookingStatusBadge } from "./CustomerBookingStatusBadge";
 import { formatCurrency, calculatePaymentProgress } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
@@ -12,7 +12,7 @@ import type { IBooking } from "@/types/booking";
  */
 export function BookingsTable({ bookings }: { bookings: IBooking[] }) {
   return (
-    <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-soft md:block">
+    <div className="hidden border-t border-slate-100 md:block">
       <table className="w-full text-left">
         <thead>
           <tr className="border-b border-slate-100 text-xs uppercase tracking-widest2 text-slate-500">
@@ -66,8 +66,8 @@ export function BookingsTable({ bookings }: { bookings: IBooking[] }) {
                 </td>
                 <td className="px-4 py-4">
                   <Link href={`/dashboard/bookings/${booking._id}`} aria-label={`View booking ${booking.bookingNumber}`}>
-                    <ArrowUpRight
-                      className="h-4 w-4 text-slate-300 transition-colors group-hover:text-sky-500"
+                    <CaretRight
+                      className="h-4 w-4 shrink-0 text-slate-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-sky-500"
                       aria-hidden="true"
                     />
                   </Link>

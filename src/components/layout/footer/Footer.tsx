@@ -70,10 +70,10 @@ export async function Footer() {
             </span>
           </div>
 
-          <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-14">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:gap-x-14">
             <div className="flex flex-col items-center gap-2 sm:items-start">
               <FooterHeading>Explore</FooterHeading>
-              <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1.5 sm:justify-start">
+              <nav aria-label="Footer" className="flex flex-col items-center gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start sm:gap-x-6 sm:gap-y-1.5">
                 {NAV_LINKS.map((link) => (
                   <Link
                     key={link.href}
@@ -88,7 +88,7 @@ export async function Footer() {
 
             <div className="flex flex-col items-center gap-2 sm:items-start">
               <FooterHeading>Contact</FooterHeading>
-              <div className="flex flex-col items-center gap-1.5 sm:items-start">
+              <div className="flex flex-col items-start gap-1.5">
                 <a
                   href={`tel:${settings.phone}`}
                   className="font-display inline-flex items-center gap-2 text-xs text-white/80 transition-colors duration-300 ease-out hover:text-sky-300"
