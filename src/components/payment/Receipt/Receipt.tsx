@@ -35,16 +35,18 @@ export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptPro
     <div className="mx-auto max-w-md">
       <div className="rounded-2xl border border-slate-200 bg-white shadow-soft print:border-none print:shadow-none">
         {/* Header */}
-        <div className="border-b border-slate-100 px-8 py-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="font-editorial text-xl font-light text-navy-900">{siteConfig.name}</p>
-              <p className="mt-0.5 text-xs text-slate-500">{contactEmail}</p>
+        <div className="border-b border-slate-100 px-6 py-5 sm:px-8 sm:py-6">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate font-editorial text-lg font-light text-navy-900 sm:text-xl">
+                {siteConfig.name}
+              </p>
+              <p className="mt-0.5 truncate text-xs text-slate-500">{contactEmail}</p>
             </div>
             <button
               type="button"
               onClick={() => window.print()}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:border-sky-300 hover:text-sky-600 print:hidden"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:border-sky-300 hover:text-sky-600 print:hidden"
             >
               <Printer className="h-3.5 w-3.5" aria-hidden="true" />
               Print
@@ -53,9 +55,9 @@ export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptPro
         </div>
 
         {/* Confirmed status */}
-        <div className="px-8 pt-8 pb-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+        <div className="px-6 pt-6 pb-4 sm:px-8 sm:pt-8">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100">
               <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
             </span>
             <div>
@@ -66,13 +68,16 @@ export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptPro
         </div>
 
         {/* Receipt rows */}
-        <dl className="mx-8 divide-y divide-slate-100 border-t border-slate-100">
+        <dl className="mx-6 divide-y divide-slate-100 border-t border-slate-100 sm:mx-8">
           {rows.map((row) => (
-            <div key={row.label} className="flex items-center justify-between py-4">
+            <div
+              key={row.label}
+              className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-4"
+            >
               <dt className="text-sm text-slate-500">{row.label}</dt>
               <dd
-                className={`spec-readout text-sm font-medium ${
-                  row.highlight ? "text-xl font-bold text-navy-900" : "text-navy-900"
+                className={`spec-readout ml-auto text-right text-sm font-medium ${
+                  row.highlight ? "text-lg font-bold text-navy-900 sm:text-xl" : "break-all text-navy-900"
                 }`}
               >
                 {row.value}
@@ -82,10 +87,10 @@ export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptPro
         </dl>
 
         {/* Footer */}
-        <div className="px-8 py-6 border-t border-slate-100">
+        <div className="border-t border-slate-100 px-6 py-5 sm:px-8 sm:py-6">
           <p className="text-center text-xs leading-relaxed text-slate-500">
             This receipt confirms payment received by {siteConfig.name}.{" "}
-            <span className="block mt-0.5">Retain for your records.</span>
+            <span className="mt-0.5 block">Retain for your records.</span>
           </p>
         </div>
       </div>

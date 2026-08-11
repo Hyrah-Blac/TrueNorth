@@ -1,31 +1,34 @@
-import { Skeleton, SkeletonRowCard, SkeletonTable } from "@/components/shared/skeleton/Skeleton";
+import { Skeleton } from "@/components/shared/skeleton/Skeleton";
 
 export default function QuotesLoading() {
   return (
     <div>
-      <div className="flex flex-col gap-4 pb-7 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <Skeleton className="h-3 w-28" />
-          <Skeleton className="mt-2 h-8 w-32" />
-          <Skeleton className="mt-2 h-4 w-64" />
-        </div>
-        <Skeleton className="h-10 w-40 rounded-md" />
+      <div className="pb-7">
+        <Skeleton className="h-3 w-28" />
+        <Skeleton className="mt-2 h-8 w-32" />
+        <Skeleton className="mt-2 h-4 w-64" />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft">
-        <div className="border-b border-slate-100 px-4 py-3 sm:px-6">
-          <Skeleton className="h-9 w-full max-w-md rounded-md" />
-        </div>
+      <div className="mb-6">
+        <Skeleton className="h-8 w-72 rounded-full" />
+      </div>
 
-        <div className="p-4 sm:p-6">
-          <SkeletonTable rows={5} />
-          <div className="space-y-4 md:hidden">
-            <SkeletonRowCard />
-            <SkeletonRowCard />
-            <SkeletonRowCard />
-            <SkeletonRowCard />
+      <div className="divide-y divide-slate-100 border-t border-slate-100">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex flex-col gap-3 py-5 lg:grid lg:grid-cols-[1fr_130px_64px_180px_120px] lg:items-center lg:gap-6"
+          >
+            <div>
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="mt-2 h-6 w-32" />
+            </div>
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-10" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+            <Skeleton className="h-4 w-20 lg:ml-auto" />
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );

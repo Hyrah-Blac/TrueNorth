@@ -1,5 +1,7 @@
 import type { SVGProps } from "react";
-import { Twitter, Facebook, Linkedin, Instagram, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { Twitter, Facebook, Linkedin, Instagram, Phone, Mail, type LucideIcon } from "lucide-react";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 
 // lucide-react has no TikTok mark yet (open request:
@@ -25,39 +27,117 @@ const iconMap: Record<string, LucideIcon | typeof TikTokIcon> = {
   tiktok: TikTokIcon,
 };
 
+// The site's real routes — see src/app/(public). One column, in the
+// order people actually move through the site.
+const NAV_LINKS = [
+  { href: "/fleet", label: "Fleet" },
+  { href: "/destinations", label: "Destinations" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+  { href: "/request-charter", label: "Request Charter" },
+];
+
+function FooterHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="font-display text-[11px] font-medium uppercase tracking-[0.22em] text-white/50">{children}</p>
+  );
+}
+
 export async function Footer() {
   const settings = await getSiteSettings();
 
   return (
     <footer className="relative bg-blue-500">
-      <div className="mx-auto flex max-w-container flex-col items-center gap-8 px-6 py-16 text-center lg:py-20">
-        {settings.socialLinks.length > 0 ? (
-          <div className="flex items-center gap-5">
-            {settings.socialLinks.map((social) => {
-              const Icon = iconMap[social.platform.toLowerCase()];
-              if (!Icon) return null;
-
-              return (
-                <a
-                  key={social.platform}
-                  href={social.href}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  aria-label={social.label}
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 text-white/85 transition-all duration-300 ease-out hover:scale-110 hover:border-sky-300 hover:text-sky-300 hover:shadow-[0_0_20px_rgba(78,168,222,0.35)]"
-                >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                </a>
-              );
-            })}
+      <div className="mx-auto max-w-container px-6 py-10 lg:px-12 lg:py-12">
+        {/* Brand lockup (logo + tagline) on one side, nav + contact on the
+            other — both stack to a single centered column on mobile, and
+            each internally switches from centered to left-aligned the
+            moment it goes horizontal (at `sm`), so alignment and layout
+            direction always change together instead of one lagging the
+            other across breakpoints. */}
+        <div className="flex flex-col items-center gap-7 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
+            <Image
+              src="/logo/logo.png"
+              alt={settings.companyShortName}
+              width={200}
+              height={58}
+              className="h-8 w-auto shrink-0 object-contain brightness-0 invert"
+            />
+            <span className="hidden h-5 w-px bg-white/25 sm:block" aria-hidden="true" />
+            <span className="font-editorial text-xs font-light text-white/65">
+              {settings.companyTagline}
+            </span>
           </div>
-        ) : null}
 
-        <p className="text-xs text-white/80">
-          © {new Date().getFullYear()} {settings.companyName} — All Rights Reserved{" "}
-          <span className="text-white/60">|</span>{" "}
-          <span>Privacy Policy</span>
-        </p>
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-14">
+            <div className="flex flex-col items-center gap-2 sm:items-start">
+              <FooterHeading>Explore</FooterHeading>
+              <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1.5 sm:justify-start">
+                {NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="font-display text-xs text-white/80 transition-colors duration-300 ease-out hover:text-sky-300"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            <div className="flex flex-col items-center gap-2 sm:items-start">
+              <FooterHeading>Contact</FooterHeading>
+              <div className="flex flex-col items-center gap-1.5 sm:items-start">
+                <a
+                  href={`tel:${settings.phone}`}
+                  className="font-display inline-flex items-center gap-2 text-xs text-white/80 transition-colors duration-300 ease-out hover:text-sky-300"
+                >
+                  <Phone className="h-3.5 w-3.5 shrink-0 text-white/50" aria-hidden="true" />
+                  {settings.phone}
+                </a>
+                <a
+                  href={`mailto:${settings.email}`}
+                  className="font-display inline-flex items-center gap-2 text-xs text-white/80 transition-colors duration-300 ease-out hover:text-sky-300"
+                >
+                  <Mail className="h-3.5 w-3.5 shrink-0 text-white/50" aria-hidden="true" />
+                  {settings.email}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="my-7 h-px w-full bg-white/15" />
+
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="order-2 text-xs text-white/60 sm:order-1">
+            © {new Date().getFullYear()} {settings.companyName} — All Rights Reserved{" "}
+            <span className="text-white/40">|</span> <span>Privacy Policy</span>
+          </p>
+
+          {settings.socialLinks.length > 0 ? (
+            <div className="order-1 flex items-center gap-3 sm:order-2">
+              {settings.socialLinks.map((social) => {
+                const Icon = iconMap[social.platform.toLowerCase()];
+                if (!Icon) return null;
+
+                return (
+                  <a
+                    key={social.platform}
+                    href={social.href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={social.label}
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/40 text-white/85 transition-all duration-300 ease-out hover:scale-110 hover:border-sky-300 hover:text-sky-300 hover:shadow-[0_0_20px_rgba(78,168,222,0.35)]"
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
       </div>
     </footer>
   );

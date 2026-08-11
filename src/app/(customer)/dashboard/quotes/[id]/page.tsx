@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import {
-  Warning,
-  Paperclip,
-  CheckCircle,
-  ClockCountdown,
-  Info,
-} from "@phosphor-icons/react/dist/ssr";
+import { Warning, Paperclip, CheckCircle, ClockCountdown, Info } from "@phosphor-icons/react/dist/ssr";
 import { CustomerQuoteStatusBadge } from "@/components/quote/CustomerQuoteStatusBadge";
 import { QuoteDecisionPanel } from "@/components/quote/QuoteDecisionPanel";
 import { InlineAlert } from "@/components/shared/alert/InlineAlert";
@@ -42,19 +36,13 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
       : undefined;
 
   const selectedAircraft =
-    typeof quote.selectedAircraft === "object" && quote.selectedAircraft
-      ? quote.selectedAircraft
-      : undefined;
+    typeof quote.selectedAircraft === "object" && quote.selectedAircraft ? quote.selectedAircraft : undefined;
 
-  const isPastValidity = Boolean(
-    quote.validUntil && new Date(quote.validUntil).getTime() < Date.now()
-  );
+  const isPastValidity = Boolean(quote.validUntil && new Date(quote.validUntil).getTime() < Date.now());
   const canDecide = quote.status === QUOTE_STATUSES.APPROVED && !isPastValidity;
   const isApproved = quote.status === QUOTE_STATUSES.APPROVED;
-  const isPending =
-    quote.status === QUOTE_STATUSES.PENDING || quote.status === QUOTE_STATUSES.REVIEWING;
-  const hasPricingInfo =
-    quote.status === QUOTE_STATUSES.APPROVED || quote.status === QUOTE_STATUSES.CONVERTED;
+  const isPending = quote.status === QUOTE_STATUSES.PENDING || quote.status === QUOTE_STATUSES.REVIEWING;
+  const hasPricingInfo = quote.status === QUOTE_STATUSES.APPROVED || quote.status === QUOTE_STATUSES.CONVERTED;
 
   const requirements = [
     { flagged: quote.hasMedicalEquipment, label: "Medical equipment", detail: quote.medicalEquipmentDetails },
@@ -67,40 +55,40 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
   const hasBudgetRange = quote.budgetRangeMin != null || quote.budgetRangeMax != null;
 
   return (
-    <div className="space-y-6">
-      {/* Back nav + header */}
-      <div>
-        <div className="mb-4">
-          <Button href="/dashboard/quotes" variant="ghost" size="sm" className="-ml-3 text-slate-500 hover:text-navy-900">
-            ← All quotes
-          </Button>
+    <div className="space-y-8">
+      <Button
+        href="/dashboard/quotes"
+        variant="ghost"
+        size="sm"
+        className="-ml-3 text-slate-500 hover:text-navy-900"
+      >
+        ← All quotes
+      </Button>
+
+      {/* Header — the document's masthead */}
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-8">
+        <div className="min-w-0">
+          <p className="spec-readout text-xs font-medium uppercase tracking-widest text-slate-400">
+            {quote.quoteNumber}
+          </p>
+          <h1 className="mt-2 break-words font-editorial text-3xl font-light tracking-tight text-navy-900 sm:text-4xl">
+            {quote.departureAirportCode} <span className="text-slate-300">→</span> {quote.destinationAirportCode}
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">
+            {formatDate(quote.departureDate)}
+            {quote.isRoundTrip && quote.returnDate ? ` — ${formatDate(quote.returnDate)}` : ""}
+            {" · "}
+            {quote.passengerCount} {quote.passengerCount === 1 ? "passenger" : "passengers"}
+            {" · "}
+            {quote.isRoundTrip ? "Round trip" : "One way"}
+          </p>
         </div>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="spec-readout text-xs font-medium uppercase tracking-widest text-slate-400">
-              {quote.quoteNumber}
-            </p>
-            <h1 className="mt-1.5 break-words font-editorial text-2xl font-light tracking-tight text-navy-900 sm:text-3xl">
-              {quote.departureAirportCode}{" "}
-              <span className="text-slate-400">→</span>{" "}
-              {quote.destinationAirportCode}
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              {formatDate(quote.departureDate)}
-              {quote.isRoundTrip && quote.returnDate ? ` — ${formatDate(quote.returnDate)}` : ""}
-              {" · "}
-              {quote.passengerCount} {quote.passengerCount === 1 ? "passenger" : "passengers"}
-              {" · "}
-              {quote.isRoundTrip ? "Round trip" : "One way"}
-            </p>
-          </div>
-          <CustomerQuoteStatusBadge status={quote.status} />
-        </div>
+        <CustomerQuoteStatusBadge status={quote.status} />
       </div>
 
-      {/* Approved: attention banner */}
+      {/* Status strips — a thin colored accent, not a boxed alert */}
       {isApproved && !isPastValidity ? (
-        <div className="flex flex-wrap items-start gap-4 rounded-2xl border border-green-300 bg-green-50 px-4 py-5 sm:px-6">
+        <div className="flex flex-wrap items-start gap-4 rounded-lg border-l-4 border-green-500 bg-green-50/60 px-5 py-4">
           <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600" aria-hidden="true" />
           <div className="min-w-0 flex-1">
             <p className="font-medium text-green-800">Your charter quote is ready to review.</p>
@@ -117,31 +105,29 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
         </div>
       ) : null}
 
-      {/* Pending: context banner */}
       {isPending ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-5 sm:px-6">
+        <div className="flex items-start gap-3 rounded-lg border-l-4 border-sky-400 bg-sky-50/60 px-5 py-4">
           <Info className="mt-0.5 h-5 w-5 shrink-0 text-sky-600" aria-hidden="true" />
           <div>
             <p className="font-medium text-sky-800">We&apos;re preparing your quote.</p>
             <p className="mt-0.5 text-sm text-sky-700">
-              Our operations team is reviewing your request. We&apos;ll be in touch shortly with aircraft options and pricing.
+              Our operations team is reviewing your request. We&apos;ll be in touch shortly with aircraft options
+              and pricing.
             </p>
           </div>
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr,1fr]">
-        {/* Left: trip details */}
-        <div className="space-y-5">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-              Trip details
-            </h2>
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.6fr,1fr]">
+        {/* Left: one flowing document, sections divided by hairlines instead of boxed cards */}
+        <div className="divide-y divide-slate-100">
+          <section className="pb-8">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Trip details</h2>
             <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Route</dt>
-                <dd className="mt-1.5 font-display text-lg font-medium text-navy-900">
-                  {quote.departureAirportCode} → {quote.destinationAirportCode}
+                <dd className="mt-1.5 font-editorial text-lg font-light text-navy-900">
+                  {quote.departureAirportCode} <span className="text-slate-300">→</span> {quote.destinationAirportCode}
                 </dd>
               </div>
               <div>
@@ -150,9 +136,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
                 </dt>
                 <dd className="mt-1.5 text-sm font-medium text-navy-900">
                   {formatDate(quote.departureDate)}
-                  {quote.isRoundTrip && quote.returnDate ? (
-                    <> — {formatDate(quote.returnDate)}</>
-                  ) : null}
+                  {quote.isRoundTrip && quote.returnDate ? <> — {formatDate(quote.returnDate)}</> : null}
                 </dd>
               </div>
               <div>
@@ -163,7 +147,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
               </div>
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Flight type</dt>
-                <dd className="mt-1.5 text-sm font-medium text-navy-900 capitalize">
+                <dd className="mt-1.5 text-sm font-medium capitalize text-navy-900">
                   {quote.missionType.replace(/_/g, " ")} · {quote.isRoundTrip ? "Round trip" : "One way"}
                 </dd>
               </div>
@@ -181,7 +165,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
             </dl>
 
             {hasBudgetRange ? (
-              <div className="mt-5 border-t border-slate-100 pt-5">
+              <div className="mt-6 border-t border-slate-100 pt-5">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Budget range</dt>
                 <dd className="mt-1.5 text-sm text-slate-600">
                   {quote.budgetRangeMin != null ? formatCurrency(quote.budgetRangeMin, quote.currency) : "—"}
@@ -192,15 +176,14 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
             ) : null}
 
             {quote.specialRequests ? (
-              <div className="mt-5 rounded-lg bg-slate-50 p-4">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Special requests</p>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{quote.specialRequests}</p>
-              </div>
+              <blockquote className="mt-6 border-l-2 border-slate-200 pl-4 text-sm leading-relaxed text-slate-600">
+                {quote.specialRequests}
+              </blockquote>
             ) : null}
-          </div>
+          </section>
 
           {requirements.length > 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
+            <section className="py-8">
               <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Special requirements
               </h2>
@@ -215,11 +198,11 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           ) : null}
 
           {quote.attachments.length > 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
+            <section className="py-8">
               <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Attachments</h2>
               <ul className="mt-4 space-y-2.5">
                 {quote.attachments.map((attachment) => (
@@ -236,14 +219,16 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           ) : null}
         </div>
 
-        {/* Right: proposal + decision */}
-        <aside className="h-fit space-y-4 lg:sticky lg:top-28">
+        {/* Right: the one deliberate panel — proposal + decision, styled like a
+            boarding-pass stub with a gold accent, since this is the sole spot
+            that should carry visual weight on the page. */}
+        <aside className="h-fit space-y-5 lg:sticky lg:top-28">
           {hasPricingInfo && (selectedAircraft || quote.quotedAmount != null) ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
+            <div className="rounded-2xl border border-slate-200 border-t-2 border-t-gold-500 bg-slate-50/60 p-6">
               <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Charter proposal
               </h3>
@@ -251,26 +236,20 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
               {selectedAircraft ? (
                 <div className="mt-5">
                   <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Aircraft</p>
-                  <p className="mt-1.5 font-display text-xl font-medium text-navy-900">{selectedAircraft.name}</p>
+                  <p className="mt-1.5 font-editorial text-xl font-light text-navy-900">{selectedAircraft.name}</p>
                   <p className="text-sm text-slate-500">
                     {selectedAircraft.manufacturer} {selectedAircraft.model}
                   </p>
                   {selectedAircraft.registration ? (
-                    <p className="spec-readout mt-0.5 text-xs text-slate-400">
-                      Reg: {selectedAircraft.registration}
-                    </p>
+                    <p className="spec-readout mt-0.5 text-xs text-slate-400">Reg: {selectedAircraft.registration}</p>
                   ) : null}
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    Up to {selectedAircraft.passengerCapacity} passengers
-                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">Up to {selectedAircraft.passengerCapacity} passengers</p>
                 </div>
               ) : null}
 
               {quote.quotedAmount != null ? (
-                <div className={selectedAircraft ? "mt-6 border-t border-slate-100 pt-5" : "mt-5"}>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
-                    Total price
-                  </p>
+                <div className={selectedAircraft ? "mt-6 border-t border-slate-200 pt-5" : "mt-5"}>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Total price</p>
                   <p className="spec-readout mt-1.5 text-3xl font-bold text-navy-900">
                     {formatCurrency(quote.quotedAmount, quote.quotedCurrency ?? quote.currency)}
                   </p>
@@ -282,17 +261,21 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
                   ) : null}
                 </div>
               ) : null}
-            </div>
-          ) : null}
 
-          {canDecide ? (
-            <div className="rounded-2xl border border-green-300 bg-white p-6 shadow-soft">
+              {canDecide ? (
+                <div className="mt-6 border-t border-slate-200 pt-5">
+                  <QuoteDecisionPanel quoteId={quote._id} quoteNumber={quote.quoteNumber} />
+                </div>
+              ) : null}
+            </div>
+          ) : canDecide ? (
+            <div className="rounded-2xl border border-slate-200 border-t-2 border-t-gold-500 bg-slate-50/60 p-6">
               <QuoteDecisionPanel quoteId={quote._id} quoteNumber={quote.quoteNumber} />
             </div>
           ) : null}
 
           {quote.status === QUOTE_STATUSES.APPROVED && isPastValidity ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6 space-y-4">
+            <div className="space-y-3">
               <InlineAlert tone="neutral">
                 This quote&apos;s validity window has passed. Submit a new request for updated pricing.
               </InlineAlert>
@@ -303,10 +286,8 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.status === QUOTE_STATUSES.CONVERTED && quote.convertedBooking ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6 space-y-4">
-              <InlineAlert tone="success">
-                You accepted this quote — your booking is ready.
-              </InlineAlert>
+            <div className="space-y-3">
+              <InlineAlert tone="success">You accepted this quote — your booking is ready.</InlineAlert>
               <Button
                 href={`/dashboard/bookings/${quote.convertedBooking}`}
                 variant="primary"
@@ -318,7 +299,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.status === QUOTE_STATUSES.REJECTED ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6 space-y-4">
+            <div className="space-y-3">
               <InlineAlert tone="danger">
                 {quote.rejectionReason ??
                   "This charter wasn't available. Please reach out to our team if you'd like to explore alternatives."}
@@ -330,10 +311,8 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.status === QUOTE_STATUSES.EXPIRED ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6 space-y-4">
-              <InlineAlert tone="neutral">
-                This quote has expired. Submit a new request for updated pricing.
-              </InlineAlert>
+            <div className="space-y-3">
+              <InlineAlert tone="neutral">This quote has expired. Submit a new request for updated pricing.</InlineAlert>
               <Button href="/request-charter" variant="outline" className="w-full justify-center">
                 New Charter Request
               </Button>
@@ -341,11 +320,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {isPending ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
-              <InlineAlert tone="info">
-                We&apos;re reviewing this request. You&apos;ll hear from us shortly.
-              </InlineAlert>
-            </div>
+            <InlineAlert tone="info">We&apos;re reviewing this request. You&apos;ll hear from us shortly.</InlineAlert>
           ) : null}
         </aside>
       </div>
