@@ -17,6 +17,12 @@ export async function updateSiteSettings(input: SiteSettingsInput): Promise<Acti
     const session = await requireAdmin();
     const data = siteSettingsSchema.parse(input);
 
+    // Normalize phone numbers — strip spaces and dashes that the schema
+    // now validates via refine() rather than transform(), so normalization
+    // happens here in the server action instead.
+    const normalizePhone = (value?: string | null) =>
+      value ? value.replace(/[\s-]/g, "") : value;
+
     await connectToDatabase();
     const updatedBy = await resolveDbUserId(session.clerkId);
 
@@ -24,10 +30,10 @@ export async function updateSiteSettings(input: SiteSettingsInput): Promise<Acti
       SITE_SETTINGS_ID,
       {
         _id: SITE_SETTINGS_ID,
-        phone: data.phone,
+        phone: normalizePhone(data.phone),
         email: data.email,
-        whatsapp: data.whatsapp || undefined,
-        emergencyContact: data.emergencyContact || undefined,
+        whatsapp: normalizePhone(data.whatsapp as string | undefined) || undefined,
+        emergencyContact: normalizePhone(data.emergencyContact as string | undefined) || undefined,
         addressLine1: data.addressLine1,
         addressLine2: data.addressLine2 || undefined,
         city: data.city,

@@ -4,13 +4,28 @@ import { GENERAL_PHONE_REGEX } from "@/utils/validators";
 // Deliberately NOT in a "use server" file — zod schemas are plain values
 // and must stay in plain modules so clients can import them.
 
+// NOTE: No .transform() here — react-hook-form's zodResolver runs the
+// schema on every keystroke and .transform().pipe() creates a recursive
+// validation loop (RangeError: Maximum call stack size exceeded).
+// Phone normalization (stripping spaces/dashes) is applied manually in
+// the server action before the value is stored.
 const phoneField = z
   .string()
   .trim()
-  .transform((value) => value.replace(/[\s-]/g, ""))
-  .pipe(z.string().regex(GENERAL_PHONE_REGEX, "Enter a valid phone number"));
+  .refine(
+    (value) => value === "" || GENERAL_PHONE_REGEX.test(value.replace(/[\s-]/g, "")),
+    { message: "Enter a valid phone number" }
+  );
 
-const optionalPhoneField = phoneField.optional().or(z.literal(""));
+const optionalPhoneField = z
+  .string()
+  .trim()
+  .refine(
+    (value) => value === "" || GENERAL_PHONE_REGEX.test(value.replace(/[\s-]/g, "")),
+    { message: "Enter a valid phone number" }
+  )
+  .optional()
+  .or(z.literal(""));
 
 const socialLinkSchema = z.object({
   platform: z.string().trim().min(1).max(30),

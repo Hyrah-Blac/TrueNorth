@@ -49,7 +49,7 @@ export async function getQuoteForAdmin(quoteId: string): Promise<IQuote> {
   await connectToDatabase();
 
   const quote = await Quote.findById(quoteId)
-    .populate("aircraftPreference")
+    .populate("aircraftPreference", "name slug category registration manufacturer model")
     .populate("customer", "firstName lastName email phone")
     .populate("reviewedBy", "firstName lastName email");
 

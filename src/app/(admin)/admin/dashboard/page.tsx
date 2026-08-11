@@ -74,7 +74,7 @@ export default async function AdminDashboardPage() {
 
       {/* Operations — what needs attention right now, grouped and linked to the filtered list that handles it. */}
       <div>
-        <h2 className="font-display text-base font-semibold text-navy-900">Quotes</h2>
+        <h2 className="font-editorial text-lg font-light text-navy-900">Quotes</h2>
         <div className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <StatCardLink
             href="/admin/quotes?status=pending"
@@ -98,7 +98,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div>
-        <h2 className="font-display text-base font-semibold text-navy-900">Bookings</h2>
+        <h2 className="font-editorial text-lg font-light text-navy-900">Bookings</h2>
         <div className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <StatCardLink
             href="/admin/bookings?status=pending"
@@ -122,7 +122,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div>
-        <h2 className="font-display text-base font-semibold text-navy-900">Payments</h2>
+        <h2 className="font-editorial text-lg font-light text-navy-900">Payments</h2>
         <div className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <StatCardLink
             href="/admin/payments?status=processing"
@@ -141,7 +141,7 @@ export default async function AdminDashboardPage() {
 
       <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-base font-semibold text-navy-900">Upcoming flights</h2>
+          <h2 className="font-editorial text-lg font-light text-navy-900">Upcoming flights</h2>
           <Link
             href="/admin/bookings"
             className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-sky-600 transition-colors hover:text-sky-700"
@@ -195,7 +195,7 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-base font-semibold text-navy-900">Outstanding payments</h2>
+            <h2 className="font-editorial text-lg font-light text-navy-900">Outstanding payments</h2>
             <Link
               href="/admin/bookings?payment=unpaid"
               className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-sky-600 transition-colors hover:text-sky-700"
@@ -244,7 +244,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
-          <h2 className="font-display text-base font-semibold text-navy-900">Recent activity</h2>
+          <h2 className="font-editorial text-lg font-light text-navy-900">Recent activity</h2>
 
           <div className="mt-5">
             {activity.length === 0 ? (
@@ -277,7 +277,7 @@ export default async function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
-          <h2 className="font-display text-base font-semibold text-navy-900">Revenue (6 months)</h2>
+          <h2 className="font-editorial text-lg font-light text-navy-900">Revenue (6 months)</h2>
           <p className="text-xs text-slate-500">This month: {formatCurrency(revenue.thisMonthRevenue)}</p>
           <div className="mt-5">
             <TrendChart data={revenueSeries} formatAsCurrency />
@@ -285,7 +285,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
-          <h2 className="font-display text-base font-semibold text-navy-900">Customer growth (6 months)</h2>
+          <h2 className="font-editorial text-lg font-light text-navy-900">Customer growth (6 months)</h2>
           <p className="text-xs text-slate-500">New customer accounts per month</p>
           <div className="mt-5">
             <TrendChart data={customerSeries} color="rgb(var(--color-gold-500))" />

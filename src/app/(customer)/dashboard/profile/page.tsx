@@ -20,30 +20,28 @@ export default async function ProfilePage() {
   );
 
   return (
-    <div>
+    <div className="max-w-2xl">
       <PageHeader
         variant="light"
         title="Your Profile"
         description="Keep your contact details current so we can reach you about bookings and quotes."
       />
 
-      <div className="max-w-2xl">
-        <ProfileForm
-          initials={initials}
-          name={`${user.firstName} ${user.lastName}`.trim()}
-          email={user.email}
-          memberSince={memberSince}
-          updatedAt={user.updatedAt}
-          defaultValues={{
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phone: user.phone ?? "",
-            company: user.company ?? "",
-            avatarUrl: user.avatarUrl ?? "",
-            avatarPublicId: user.avatarPublicId ?? "",
-          }}
-        />
-      </div>
+      <ProfileForm
+        initials={initials}
+        name={`${user.firstName} ${user.lastName}`.trim()}
+        email={user.email}
+        memberSince={memberSince}
+        updatedAt={user.updatedAt}
+        defaultValues={{
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone ?? "",
+          company: user.company ?? "",
+          avatarUrl: user.avatarUrl ?? "",
+          avatarPublicId: user.avatarPublicId ?? "",
+        }}
+      />
     </div>
   );
 }

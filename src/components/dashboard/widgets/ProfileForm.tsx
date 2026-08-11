@@ -25,7 +25,10 @@ interface ProfileFormProps {
 
 /** Icon + title + one-line description — the only thing that now marks
  *  where one group of settings ends and the next begins, since there
- *  are no card boxes to do that visually. */
+ *  are no card boxes to do that visually. Title uses the same small
+ *  uppercase label style as the quote detail page's section headers
+ *  ("TRIP DETAILS", "SPECIAL REQUIREMENTS") for a consistent hierarchy
+ *  across the portal. */
 function SectionHeading({
   icon: Icon,
   title,
@@ -36,11 +39,11 @@ function SectionHeading({
   description: string;
 }) {
   return (
-    <div className="mb-7 flex items-start gap-2.5">
-      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" aria-hidden="true" />
+    <div className="mb-6 flex items-start gap-2.5">
+      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
       <div>
-        <h2 className="font-display text-sm font-semibold text-navy-900">{title}</h2>
-        <p className="mt-0.5 text-xs text-slate-500">{description}</p>
+        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{title}</h2>
+        <p className="mt-1 text-xs text-slate-500">{description}</p>
       </div>
     </div>
   );
@@ -107,7 +110,7 @@ export function ProfileForm({ defaultValues, initials, name, email, memberSince,
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
         <AvatarUploader
           initials={initials}
@@ -118,12 +121,14 @@ export function ProfileForm({ defaultValues, initials, name, email, memberSince,
           }}
         />
         <div className="min-w-0">
-          <p className="font-editorial truncate text-2xl font-light tracking-tight text-navy-900">{name}</p>
+          <p className="truncate font-editorial text-2xl font-light tracking-tight text-navy-900 sm:text-3xl">
+            {name}
+          </p>
           <p className="mt-1 text-sm text-slate-500">Private charter account</p>
         </div>
       </div>
 
-      <div className="border-t border-slate-200 pt-10">
+      <div className="border-t border-slate-200 pt-7">
         <SectionHeading
           icon={UserRound}
           title="Personal information"
@@ -151,7 +156,7 @@ export function ProfileForm({ defaultValues, initials, name, email, memberSince,
         </div>
       </div>
 
-      <div className="border-t border-slate-200 pt-10">
+      <div className="border-t border-slate-200 pt-7">
         <SectionHeading icon={ShieldCheck} title="Account" description="Managed through your sign-in provider." />
 
         <dl className="divide-y divide-slate-100">
@@ -164,7 +169,7 @@ export function ProfileForm({ defaultValues, initials, name, email, memberSince,
       {error ? <InlineAlert tone="error">{error}</InlineAlert> : null}
       {saved ? <InlineAlert tone="success">Profile updated</InlineAlert> : null}
 
-      <div className="flex justify-end border-t border-slate-200 pt-8">
+      <div className="flex justify-end border-t border-slate-200 pt-7">
         <Button
           type="submit"
           variant="primary"

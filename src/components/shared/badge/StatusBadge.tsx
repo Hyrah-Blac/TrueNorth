@@ -1,12 +1,17 @@
 export type BadgeTone = "neutral" | "info" | "warning" | "success" | "danger" | "gold";
 
+// A thin tinted border + near-white fill + colored text reads as
+// considered rather than a default UI-kit pastel pill. Using opacity
+// modifiers on each color's mid shade (500/600) rather than needing a
+// dedicated pale shade per tone keeps this consistent even though gold
+// only has 600/500/200 defined and green/red don't have a 300.
 const toneStyles: Record<BadgeTone, { pill: string; dot: string }> = {
-  neutral: { pill: "bg-slate-100 text-slate-600", dot: "bg-slate-400" },
-  info: { pill: "bg-sky-100 text-sky-700", dot: "bg-sky-500" },
-  warning: { pill: "bg-gold-200 text-gold-600", dot: "bg-gold-500" },
-  success: { pill: "bg-green-100 text-green-700", dot: "bg-green-500" },
-  danger: { pill: "bg-red-100 text-red-700", dot: "bg-red-500" },
-  gold: { pill: "bg-gold-200 text-gold-600", dot: "bg-gold-500" },
+  neutral: { pill: "border border-slate-300 bg-white text-slate-600", dot: "bg-slate-400" },
+  info: { pill: "border border-sky-500/30 bg-sky-500/5 text-sky-700", dot: "bg-sky-500" },
+  warning: { pill: "border border-gold-500/30 bg-gold-500/5 text-gold-600", dot: "bg-gold-500" },
+  success: { pill: "border border-green-500/30 bg-green-500/5 text-green-700", dot: "bg-green-500" },
+  danger: { pill: "border border-red-500/30 bg-red-500/5 text-red-700", dot: "bg-red-500" },
+  gold: { pill: "border border-gold-500/30 bg-gold-500/5 text-gold-600", dot: "bg-gold-500" },
 };
 
 /**
@@ -29,7 +34,7 @@ export function StatusBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide transition-colors ${styles.pill}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-wide transition-colors ${styles.pill}`}
     >
       <span className="relative flex h-1.5 w-1.5 shrink-0">
         {pulse ? (

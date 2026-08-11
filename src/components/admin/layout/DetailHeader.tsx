@@ -15,7 +15,7 @@ const VARIANT_STYLES: Record<DetailHeaderVariant, DetailHeaderStyles> = {
     subtitle: "text-slate-400",
   },
   light: {
-    back: "text-slate-500",
+    back: "text-slate-400",
     backHover: "hover:text-sky-600",
     eyebrow: "text-sky-600",
     title: "text-navy-900",
@@ -47,29 +47,35 @@ export function DetailHeader({
   const styles = VARIANT_STYLES[variant];
 
   return (
-    <div className="mb-7">
+    <div className="mb-8">
+      {/* Back link — styled as a quiet navigation pill */}
       <Link
         href={backHref}
-        className={`inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide transition-colors ${styles.back} ${styles.backHover}`}
+        className={`group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium uppercase tracking-wide shadow-soft transition-all duration-200 hover:border-sky-200 hover:bg-sky-50 hover:shadow-lifted ${styles.back} ${styles.backHover}`}
       >
-        <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-        Back to {backLabel}
+        <ArrowLeft
+          className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+          aria-hidden="true"
+        />
+        {backLabel}
       </Link>
 
-      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      {/* Title row */}
+      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           {eyebrow ? (
             <p className={`spec-readout text-xs uppercase tracking-widest2 ${styles.eyebrow}`}>{eyebrow}</p>
           ) : null}
-        <h1
-  className={`font-editorial text-3xl font-light tracking-tight sm:text-4xl ${styles.title} ${
-    eyebrow ? "mt-1.5" : ""
-  }`}
->
-  {title}
-</h1>
+          <h1
+            className={`font-editorial text-3xl font-light tracking-tight sm:text-4xl ${styles.title} ${
+              eyebrow ? "mt-1.5" : ""
+            }`}
+          >
+            {title}
+          </h1>
           {subtitle ? <p className={`mt-1.5 text-sm ${styles.subtitle}`}>{subtitle}</p> : null}
         </div>
+
         {status || actions ? (
           <div className="flex shrink-0 items-center gap-3">
             {status}

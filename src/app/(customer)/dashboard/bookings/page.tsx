@@ -39,17 +39,12 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
         title="Your Bookings"
         description="Every confirmed charter, from first departure to final invoice."
       />
+      <StatusFilterTabs options={filterOptions} />
 
-      {/* Filter tabs render their own border — just give them room to
-          breathe from the list below instead of doubling the border. */}
-      <div className="mb-6">
-        <StatusFilterTabs options={filterOptions} />
-      </div>
-
-      {bookings.length === 0 ? (
-        <div className="py-16">
+      <div className="mt-7">
+        {bookings.length === 0 ? (
           <EmptyState
-            icon={<AirplaneTakeoff className="h-5 w-5" aria-hidden="true" />}
+            icon={<AirplaneTakeoff className="h-5 w-5 text-champagne-500" aria-hidden="true" />}
             title="No bookings found"
             description="Bookings appear here once a charter request has been approved."
             action={
@@ -58,17 +53,17 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
               </Button>
             }
           />
-        </div>
-      ) : (
-        <>
-          <BookingsTable bookings={bookings} />
-          <div className="space-y-4 md:hidden">
-            {bookings.map((booking) => (
-              <BookingCard key={booking._id} booking={booking} />
-            ))}
-          </div>
-        </>
-      )}
+        ) : (
+          <>
+            <BookingsTable bookings={bookings} />
+            <div className="space-y-4 md:hidden">
+              {bookings.map((booking) => (
+                <BookingCard key={booking._id} booking={booking} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

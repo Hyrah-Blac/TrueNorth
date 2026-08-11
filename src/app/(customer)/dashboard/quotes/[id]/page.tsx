@@ -55,23 +55,23 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
   const hasBudgetRange = quote.budgetRangeMin != null || quote.budgetRangeMax != null;
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-5xl space-y-8">
       <Button
         href="/dashboard/quotes"
         variant="ghost"
         size="sm"
         className="-ml-3 text-slate-500 hover:text-navy-900"
       >
-        ← All quotes
+        &lt; All quotes
       </Button>
 
       {/* Header — the document's masthead */}
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-8">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-7">
         <div className="min-w-0">
           <p className="spec-readout text-xs font-medium uppercase tracking-widest text-slate-400">
             {quote.quoteNumber}
           </p>
-          <h1 className="mt-2 break-words font-editorial text-3xl font-light tracking-tight text-navy-900 sm:text-4xl">
+          <h1 className="mt-2 break-words font-editorial text-2xl font-light tracking-tight text-navy-900 sm:text-3xl">
             {quote.departureAirportCode} <span className="text-slate-300">→</span> {quote.destinationAirportCode}
           </h1>
           <p className="mt-2 text-sm text-slate-500">
@@ -118,15 +118,15 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.6fr,1fr]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.6fr,1fr] lg:gap-10">
         {/* Left: one flowing document, sections divided by hairlines instead of boxed cards */}
         <div className="divide-y divide-slate-100">
-          <section className="pb-8">
+          <section className="pb-7">
             <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Trip details</h2>
             <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Route</dt>
-                <dd className="mt-1.5 font-editorial text-lg font-light text-navy-900">
+                <dd className="mt-1.5 font-editorial text-base font-light text-navy-900">
                   {quote.departureAirportCode} <span className="text-slate-300">→</span> {quote.destinationAirportCode}
                 </dd>
               </div>
@@ -183,7 +183,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           </section>
 
           {requirements.length > 0 ? (
-            <section className="py-8">
+            <section className="py-7">
               <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Special requirements
               </h2>
@@ -202,7 +202,7 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           ) : null}
 
           {quote.attachments.length > 0 ? (
-            <section className="py-8">
+            <section className="py-7">
               <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Attachments</h2>
               <ul className="mt-4 space-y-2.5">
                 {quote.attachments.map((attachment) => (
@@ -227,74 +227,78 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
             boarding-pass stub with a gold accent, since this is the sole spot
             that should carry visual weight on the page. */}
         <aside className="h-fit space-y-5 lg:sticky lg:top-28">
-          {hasPricingInfo && (selectedAircraft || quote.quotedAmount != null) ? (
+          {(hasPricingInfo && (selectedAircraft || quote.quotedAmount != null)) || canDecide ? (
             <div className="rounded-2xl border border-slate-200 border-t-2 border-t-gold-500 bg-slate-50/60 p-6">
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Charter proposal
-              </h3>
+              {hasPricingInfo && (selectedAircraft || quote.quotedAmount != null) ? (
+                <>
+                  <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    Charter proposal
+                  </h3>
 
-              {selectedAircraft ? (
-                <div className="mt-5">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Aircraft</p>
-                  <p className="mt-1.5 font-editorial text-xl font-light text-navy-900">{selectedAircraft.name}</p>
-                  <p className="text-sm text-slate-500">
-                    {selectedAircraft.manufacturer} {selectedAircraft.model}
-                  </p>
-                  {selectedAircraft.registration ? (
-                    <p className="spec-readout mt-0.5 text-xs text-slate-400">Reg: {selectedAircraft.registration}</p>
+                  {selectedAircraft ? (
+                    <div className="mt-5">
+                      <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Aircraft</p>
+                      <p className="mt-1.5 font-editorial text-lg font-light text-navy-900">{selectedAircraft.name}</p>
+                      <p className="text-sm text-slate-500">
+                        {selectedAircraft.manufacturer} {selectedAircraft.model}
+                      </p>
+                      {selectedAircraft.registration ? (
+                        <p className="spec-readout mt-0.5 text-xs text-slate-400">
+                          Reg: {selectedAircraft.registration}
+                        </p>
+                      ) : null}
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Up to {selectedAircraft.passengerCapacity} passengers
+                      </p>
+                    </div>
                   ) : null}
-                  <p className="mt-0.5 text-xs text-slate-500">Up to {selectedAircraft.passengerCapacity} passengers</p>
-                </div>
-              ) : null}
 
-              {quote.quotedAmount != null ? (
-                <div className={selectedAircraft ? "mt-6 border-t border-slate-200 pt-5" : "mt-5"}>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Total price</p>
-                  <p className="spec-readout mt-1.5 text-3xl font-bold text-navy-900">
-                    {formatCurrency(quote.quotedAmount, quote.quotedCurrency ?? quote.currency)}
-                  </p>
-                  {quote.validUntil ? (
-                    <p className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
-                      <ClockCountdown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                      Quote valid until {formatDate(quote.validUntil)}
-                    </p>
+                  {quote.quotedAmount != null ? (
+                    <div className={selectedAircraft ? "mt-6 border-t border-dashed border-slate-300 pt-5" : "mt-5"}>
+                      <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Total price</p>
+                      <p className="spec-readout mt-1.5 text-2xl font-bold text-navy-900">
+                        {formatCurrency(quote.quotedAmount, quote.quotedCurrency ?? quote.currency)}
+                      </p>
+                      {quote.validUntil ? (
+                        <p className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+                          <ClockCountdown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          Quote valid until {formatDate(quote.validUntil)}
+                        </p>
+                      ) : null}
+                    </div>
                   ) : null}
-                </div>
+                </>
               ) : null}
 
               {canDecide ? (
-                <div className="mt-6 border-t border-slate-200 pt-5">
+                <div className="mt-6 border-t border-dashed border-slate-300 pt-5">
                   <QuoteDecisionPanel quoteId={quote._id} quoteNumber={quote.quoteNumber} />
                 </div>
               ) : null}
-            </div>
-          ) : canDecide ? (
-            <div className="rounded-2xl border border-slate-200 border-t-2 border-t-gold-500 bg-slate-50/60 p-6">
-              <QuoteDecisionPanel quoteId={quote._id} quoteNumber={quote.quoteNumber} />
-            </div>
-          ) : null}
 
-          {quote.status === QUOTE_STATUSES.APPROVED && isPastValidity ? (
-            <div className="space-y-3">
-              <InlineAlert tone="neutral">
-                This quote&apos;s validity window has passed. Submit a new request for updated pricing.
-              </InlineAlert>
-              <Button href="/request-charter" variant="outline" className="w-full justify-center">
-                New Charter Request
-              </Button>
-            </div>
-          ) : null}
+              {quote.status === QUOTE_STATUSES.CONVERTED && quote.convertedBooking ? (
+                <div className="mt-6 space-y-3 border-t border-dashed border-slate-300 pt-5">
+                  <InlineAlert tone="success">You accepted this quote — your booking is ready.</InlineAlert>
+                  <Button
+                    href={`/dashboard/bookings/${quote.convertedBooking}`}
+                    variant="primary"
+                    className="w-full justify-center"
+                  >
+                    View Booking &amp; Payment
+                  </Button>
+                </div>
+              ) : null}
 
-          {quote.status === QUOTE_STATUSES.CONVERTED && quote.convertedBooking ? (
-            <div className="space-y-3">
-              <InlineAlert tone="success">You accepted this quote — your booking is ready.</InlineAlert>
-              <Button
-                href={`/dashboard/bookings/${quote.convertedBooking}`}
-                variant="primary"
-                className="w-full justify-center"
-              >
-                View Booking &amp; Payment
-              </Button>
+              {quote.status === QUOTE_STATUSES.APPROVED && isPastValidity ? (
+                <div className="mt-6 space-y-3 border-t border-dashed border-slate-300 pt-5">
+                  <InlineAlert tone="neutral">
+                    This quote&apos;s validity window has passed. Submit a new request for updated pricing.
+                  </InlineAlert>
+                  <Button href="/request-charter" variant="outline" className="w-full justify-center">
+                    New Charter Request
+                  </Button>
+                </div>
+              ) : null}
             </div>
           ) : null}
 

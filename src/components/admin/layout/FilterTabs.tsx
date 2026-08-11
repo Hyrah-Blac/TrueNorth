@@ -7,31 +7,34 @@ export interface FilterTabOption {
   count?: number;
 }
 
-/**
- * Segmented status-filter control used at the top of admin list pages.
- * Purely presentational — each page still owns its own status values and
- * href construction, this just renders them consistently.
- */
 export function FilterTabs({ options }: { options: FilterTabOption[] }) {
   return (
-    <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter by status">
+    <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Filter by status">
       {options.map((option) => (
         <Link
           key={option.href}
           href={option.href}
           role="tab"
           aria-selected={option.active}
-          className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-medium uppercase tracking-wide transition-all duration-300 ${
+          className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium tracking-wide transition-all duration-200 ${
             option.active
-              ? "bg-navy-900 text-white shadow-soft"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              ? "text-white shadow-soft"
+              : "bg-white border border-slate-200 text-slate-500 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
           }`}
+          style={
+            option.active
+              ? {
+                  background: "linear-gradient(135deg, rgb(30 58 128) 0%, rgb(43 91 191) 100%)",
+                  boxShadow: "0 2px 8px rgb(43 91 191 / 0.25), inset 0 1px 0 rgb(255 255 255 / 0.1)",
+                }
+              : undefined
+          }
         >
           {option.label}
           {typeof option.count === "number" ? (
             <span
               className={`spec-readout rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
-                option.active ? "bg-white/15 text-white" : "bg-slate-200 text-slate-500"
+                option.active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-400"
               }`}
             >
               {option.count}

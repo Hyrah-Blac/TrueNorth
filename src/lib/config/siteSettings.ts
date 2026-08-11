@@ -88,7 +88,7 @@ export function toEmailContact(settings: ResolvedSiteSettings) {
 export async function getSiteSettings(): Promise<ResolvedSiteSettings> {
   await connectToDatabase();
 
-  const settings = await SiteSettings.findById(SITE_SETTINGS_ID);
+  const settings = await SiteSettings.findById(SITE_SETTINGS_ID).lean();
 
   if (!settings) {
     return {
