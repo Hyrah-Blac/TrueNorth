@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaretLeft } from "@phosphor-icons/react/dist/ssr";
 import { Receipt } from "@/components/payment/Receipt/Receipt";
+import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
 import { getMyPaymentById } from "@/features/payment/lib/getPayments";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 import { NotFoundError, ForbiddenError, isAppError } from "@/lib/errors/AppError";
@@ -20,7 +21,13 @@ export default async function PaymentDetailPage({ params }: PaymentDetailPagePro
   try {
     payment = await getMyPaymentById(id);
   } catch (error) {
-    if (isAppError(error) && (error instanceof NotFoundError || error instanceof ForbiddenError)) {
+    // See the matching comment in the quotes detail page: a Forbidden
+    // here means "signed in with the wrong account," not "this
+    // payment/receipt doesn't exist" — those deserve different screens.
+    if (isAppError(error) && error instanceof ForbiddenError) {
+      return <WrongAccountNotice resourceLabel="receipt" />;
+    }
+    if (isAppError(error) && error instanceof NotFoundError) {
       notFound();
     }
     throw error;

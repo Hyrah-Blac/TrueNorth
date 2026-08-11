@@ -20,6 +20,7 @@ import { MpesaButton } from "@/components/payment/MpesaButton/MpesaButton";
 import { CustomerPaymentStatusBadge } from "@/components/payment/PaymentCard/CustomerPaymentStatusBadge";
 import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { Button } from "@/components/shared/buttons/Button";
+import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
 import { getMyBookingById } from "@/features/booking/lib/getBookings";
 import { getMyPaymentsForBooking } from "@/features/payment/lib/getPayments";
 import { formatCurrency, calculatePaymentProgress, getBookingPaymentStatus } from "@/utils/currency";
@@ -42,7 +43,13 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
   try {
     booking = await getMyBookingById(id);
   } catch (error) {
-    if (isAppError(error) && (error instanceof NotFoundError || error instanceof ForbiddenError)) {
+    // See the matching comment in the quotes detail page: a Forbidden
+    // here means "signed in with the wrong account," not "this booking
+    // doesn't exist" — those deserve different screens.
+    if (isAppError(error) && error instanceof ForbiddenError) {
+      return <WrongAccountNotice resourceLabel="booking" />;
+    }
+    if (isAppError(error) && error instanceof NotFoundError) {
       notFound();
     }
     throw error;

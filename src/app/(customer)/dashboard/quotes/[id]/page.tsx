@@ -5,6 +5,7 @@ import { CustomerQuoteStatusBadge } from "@/components/quote/CustomerQuoteStatus
 import { QuoteDecisionPanel } from "@/components/quote/QuoteDecisionPanel";
 import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { Button } from "@/components/shared/buttons/Button";
+import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
 import { getMyQuoteById } from "@/features/quote/lib/getQuotes";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
@@ -24,7 +25,16 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
   try {
     quote = await getMyQuoteById(id);
   } catch (error) {
-    if (isAppError(error) && (error instanceof NotFoundError || error instanceof ForbiddenError)) {
+    // A ForbiddenError here means the quote exists but belongs to a
+    // different account than the one currently signed in — most often
+    // someone clicking an email link while signed in with the "wrong"
+    // of two accounts. That's a recoverable, self-service situation,
+    // so it gets its own screen rather than being folded into the
+    // generic "not found" page a truly missing/invalid id gets.
+    if (isAppError(error) && error instanceof ForbiddenError) {
+      return <WrongAccountNotice resourceLabel="quote" />;
+    }
+    if (isAppError(error) && error instanceof NotFoundError) {
       notFound();
     }
     throw error;
