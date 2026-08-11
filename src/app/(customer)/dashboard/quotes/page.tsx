@@ -32,7 +32,7 @@ export default async function QuotesPage({ searchParams }: QuotesPageProps) {
   ];
 
   return (
-    <div>
+    <div className="max-w-4xl">
       <PageHeader
         variant="light"
         title="Your Quotes"

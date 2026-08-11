@@ -1,6 +1,6 @@
 "use client";
 
-import { Printer, CheckCircle } from "@phosphor-icons/react";
+import { Download, CheckCircle } from "@phosphor-icons/react";
 import { formatCurrency } from "@/utils/currency";
 import { formatDateTime } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
@@ -33,51 +33,86 @@ export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptPro
 
   return (
     <div className="mx-auto max-w-md">
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-soft print:border-none print:shadow-none">
+      {/* The receipt can be printed from a page that still has the site
+          header/footer around it (nav, "Request Charter" CTA, footer
+          contact block, etc). None of that belongs on a printed receipt,
+          so it's hidden globally in print mode here rather than requiring
+          every page that renders <Receipt /> to remember to do it.
+
+          Browsers strip background colors/gradients by default when
+          printing — print-color-adjust: exact forces the blue/champagne
+          accent bar and badge to actually show up on paper instead of
+          silently vanishing. @page sets sane margins and break-inside:
+          avoid keeps the card from being sliced across two pages. */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: auto;
+            margin: 0.6in;
+          }
+          header,
+          footer {
+            display: none !important;
+          }
+          html,
+          body {
+            background: #fff !important;
+          }
+          .receipt-card,
+          .receipt-card * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          .receipt-card {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+        }
+      `}</style>
+
+      <div className="receipt-card overflow-hidden rounded-2xl border border-navy-900/10 bg-white shadow-soft print:border-slate-200 print:shadow-none">
         {/* Header */}
-        <div className="border-b border-slate-100 px-6 py-5 sm:px-8 sm:py-6">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate font-editorial text-lg font-light text-navy-900 sm:text-xl">
-                {siteConfig.name}
-              </p>
-              <p className="mt-0.5 truncate text-xs text-slate-500">{contactEmail}</p>
+        <div className="border-b border-navy-900/10 px-6 py-5 sm:px-8 sm:py-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-editorial text-base font-light text-navy-900 sm:text-lg">{siteConfig.name}</p>
+              <p className="mt-0.5 text-[0.6875rem] text-slate-500">{contactEmail}</p>
             </div>
             <button
               type="button"
               onClick={() => window.print()}
-              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:border-sky-300 hover:text-sky-600 print:hidden"
+              className="flex items-center gap-1.5 rounded-lg border border-blue-200 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-blue-600 transition-colors hover:border-blue-400 hover:bg-blue-50 print:hidden"
             >
-              <Printer className="h-3.5 w-3.5" aria-hidden="true" />
-              Print
+              <Download className="h-3 w-3" aria-hidden="true" />
+              Download
             </button>
           </div>
         </div>
 
         {/* Confirmed status */}
-        <div className="px-6 pt-6 pb-4 sm:px-8 sm:pt-8">
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
+        <div className="px-6 pb-4 pt-6 sm:px-8 sm:pt-8">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-champagne-50">
+              <CheckCircle className="h-4 w-4 text-champagne-600" weight="light" aria-hidden="true" />
             </span>
             <div>
-              <p className="font-semibold text-green-800">Payment confirmed</p>
-              <p className="text-xs text-green-600">Your payment has been received and applied to your booking.</p>
+              <p className="text-xs font-medium text-navy-900 sm:text-sm">Payment confirmed</p>
+              <p className="mt-0.5 text-[0.6875rem] text-slate-500">
+                Your payment has been received and applied to your booking.
+              </p>
             </div>
           </div>
         </div>
 
         {/* Receipt rows */}
-        <dl className="mx-6 divide-y divide-slate-100 border-t border-slate-100 sm:mx-8">
+        <dl className="mx-6 divide-y divide-navy-900/10 border-t border-navy-900/10 sm:mx-8">
           {rows.map((row) => (
-            <div
-              key={row.label}
-              className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-4"
-            >
-              <dt className="text-sm text-slate-500">{row.label}</dt>
+            <div key={row.label} className="flex items-center justify-between py-3.5 sm:py-4">
+              <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">{row.label}</dt>
               <dd
-                className={`spec-readout ml-auto text-right text-sm font-medium ${
-                  row.highlight ? "text-lg font-bold text-navy-900 sm:text-xl" : "break-all text-navy-900"
+                className={`font-editorial spec-readout text-right font-light text-navy-900 ${
+                  row.highlight ? "text-lg font-semibold text-blue-700 sm:text-xl" : "text-xs sm:text-sm"
                 }`}
               >
                 {row.value}
@@ -87,8 +122,8 @@ export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptPro
         </dl>
 
         {/* Footer */}
-        <div className="border-t border-slate-100 px-6 py-5 sm:px-8 sm:py-6">
-          <p className="text-center text-xs leading-relaxed text-slate-500">
+        <div className="border-t border-navy-900/10 bg-slate-50/60 px-6 py-5 sm:px-8 sm:py-6">
+          <p className="text-center text-[0.6875rem] leading-relaxed text-slate-500">
             This receipt confirms payment received by {siteConfig.name}.{" "}
             <span className="mt-0.5 block">Retain for your records.</span>
           </p>

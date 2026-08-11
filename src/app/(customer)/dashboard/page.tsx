@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, AirplaneTakeoff, FileText, CurrencyCircleDollar, CheckCircle } from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { BookingCard } from "@/components/booking/BookingCard/BookingCard";
-import { QuoteCard } from "@/components/quote/QuoteCard";
+import { QuoteRow } from "@/components/quote/QuoteRow";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { Button } from "@/components/shared/buttons/Button";
 import { getMyBookings } from "@/features/booking/lib/getBookings";
@@ -227,9 +227,11 @@ export default async function DashboardOverviewPage() {
             )}
           </div>
 
-          {/* Quotes section */}
+          {/* Quotes section — a short list using the same QuoteRow the main
+              Quotes page uses, rather than a separate card component, so
+              a quote looks the same wherever it appears in the portal. */}
           <div>
-            <div className="mb-5 flex items-center justify-between">
+            <div className="mb-2 flex items-center justify-between">
               <div>
                 <h2 className="font-display text-xl font-semibold text-navy-900">Charter quotes</h2>
                 <p className="mt-0.5 text-sm text-slate-500">
@@ -256,9 +258,9 @@ export default async function DashboardOverviewPage() {
                 }
               />
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="divide-y divide-slate-100 border-t border-slate-100">
                 {sortedQuotes.slice(0, 3).map((quote) => (
-                  <QuoteCard key={quote._id} quote={quote} />
+                  <QuoteRow key={quote._id} quote={quote} />
                 ))}
               </div>
             )}
