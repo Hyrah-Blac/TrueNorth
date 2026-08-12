@@ -47,9 +47,9 @@ export function WrongAccountNotice({ resourceLabel }: WrongAccountNoticeProps) {
       <UserCircle className="h-10 w-10 text-slate-400" weight="light" />
       <h1 className="font-display text-lg font-medium text-navy-900">Wrong account signed in</h1>
       <p className="max-w-md text-sm text-slate-600">
-        This {resourceLabel} link is for a different account than the one you're currently signed in
-        with{currentEmail ? ` (${currentEmail})` : ""}. Sign out and sign back in with the account that
-        received the original email to view it.
+        This {resourceLabel} link is for a different account than the one you&apos;re currently signed
+        in with{currentEmail ? ` (${currentEmail})` : ""}. Sign out and sign back in with the account
+        that received the original email to view it.
       </p>
       <Button onClick={handleSwitchAccount} disabled={loading} variant="primary" size="md">
         {loading ? "Signing out\u2026" : "Switch account"}
