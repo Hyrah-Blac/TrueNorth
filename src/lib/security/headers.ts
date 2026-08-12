@@ -75,15 +75,25 @@ export const securityHeaders = [
 export function buildCspHeader(nonce: string): string {
   const isDev = process.env.NODE_ENV !== "production";
 
+  // When Clerk is configured with a custom Frontend API domain (set via
+  // CLERK_FRONTEND_API_DOMAIN, e.g. clerk.truenorthaircharters.com),
+  // clerk-js loads its script/XHR/iframe traffic from that domain
+  // instead of the default *.clerk.accounts.dev — so it has to be in
+  // the allowlist too, or the browser silently blocks Clerk entirely
+  // and every SignedIn/SignedOut/UserButton just never renders.
+  const clerkFrontendApiDomain = process.env.CLERK_FRONTEND_API_DOMAIN
+    ? `https://${process.env.CLERK_FRONTEND_API_DOMAIN}`
+    : "";
+
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://*.clerk.accounts.dev https://clerk.com https://challenges.cloudflare.com`,
+    `script-src 'self' 'nonce-${nonce}' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://*.clerk.accounts.dev https://clerk.com ${clerkFrontendApiDomain} https://challenges.cloudflare.com`,
     "worker-src 'self' blob:",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://res.cloudinary.com https://img.clerk.com",
+    `img-src 'self' data: blob: https://res.cloudinary.com https://img.clerk.com ${clerkFrontendApiDomain}`,
     "font-src 'self' data:",
-    `connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com https://challenges.cloudflare.com https://api.cloudinary.com https://o4511865337872384.ingest.us.sentry.io`,
-    "frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+    `connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com ${clerkFrontendApiDomain} https://challenges.cloudflare.com https://api.cloudinary.com https://o4511865337872384.ingest.us.sentry.io`,
+    `frame-src 'self' https://*.clerk.accounts.dev ${clerkFrontendApiDomain} https://challenges.cloudflare.com`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
