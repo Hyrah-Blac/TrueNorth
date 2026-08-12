@@ -17,7 +17,7 @@ export default async function AdminSettingsPage() {
         description="All public-facing company information is sourced from here. Changes are live immediately."
       />
 
-      <div className="max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-soft">
+      <div className="max-w-2xl rounded-xl border border-slate-200 bg-white p-8">
         <SettingsForm
           defaultValues={{
             companyName: settings.companyName,

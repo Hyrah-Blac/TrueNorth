@@ -43,7 +43,7 @@ export function TrendChart({
               borderColor: "rgb(var(--color-slate-200))",
               fontSize: 12,
               fontFamily: "var(--font-body)",
-              boxShadow: "var(--shadow-soft)",
+              boxShadow: "0 1px 0 0 rgb(0 0 0 / 0.06)",
             }}
           />
           <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill="url(#trendFill)" />

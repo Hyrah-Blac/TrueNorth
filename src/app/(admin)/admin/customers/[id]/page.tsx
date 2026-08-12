@@ -49,7 +49,7 @@ export default async function AdminCustomerDetailPage({ params }: AdminCustomerD
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr,1.4fr]">
         <div className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Contact</h3>
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex items-center gap-2 text-slate-600">
@@ -73,7 +73,7 @@ export default async function AdminCustomerDetailPage({ params }: AdminCustomerD
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Account</h3>
             <div className="mt-4">
               <CustomerActionsPanel userId={user._id} role={user.role} isActive={user.isActive} />
@@ -82,7 +82,7 @@ export default async function AdminCustomerDetailPage({ params }: AdminCustomerD
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Recent bookings</h3>
             <div className="mt-4 space-y-3">
               {bookings.length === 0 ? (
@@ -106,7 +106,7 @@ export default async function AdminCustomerDetailPage({ params }: AdminCustomerD
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Recent quotes</h3>
             <div className="mt-4 space-y-3">
               {quotes.length === 0 ? (

@@ -68,7 +68,7 @@ export function AirportTable({ initialAirports, total }: AirportTableProps) {
         </Button>
       </ListToolbar>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 shadow-soft">
+      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
         {initialAirports.length === 0 ? (
           <div className="p-6">
             <EmptyState

@@ -65,12 +65,36 @@ export const RATE_LIMITS = {
    * a credential unlocks a direct upload to our storage account.
    */
   UPLOAD_SIGNATURE: { windowMs: 60_000, max: 5 },
+  /**
+   * Customer quote/booking/payment detail pages. These now show a
+   * different screen for "belongs to another account" vs. "doesn't
+   * exist" (see WrongAccountNotice) so someone can no longer look up a
+   * resource with real content — but the two screens ARE distinguishable
+   * from each other, which lets a signed-in account confirm whether a
+   * guessed id is real. IDs are non-sequential Mongo ObjectIds, so this
+   * isn't practically guessable, but this tier caps the guessing rate
+   * anyway as a defense-in-depth measure. Well above any legitimate
+   * usage pattern (a customer browsing their own handful of records).
+   */
+  DETAIL_PAGE_LOOKUP: { windowMs: 60_000, max: 20 },
 } as const;
 
 export function getRequestKey(req: Request, discriminator: string): string {
   const forwardedFor = req.headers.get("x-forwarded-for");
   const ip = forwardedFor?.split(",")[0]?.trim() ?? "unknown";
   return `${discriminator}:${ip}`;
+}
+
+/**
+ * Rate-limit key scoped to the signed-in user rather than IP. Used for
+ * authenticated Server Component pages, which don't have a `Request`
+ * object to read headers from the way route handlers do — but do have
+ * a stable identity (the Clerk user id) that's actually the right thing
+ * to key on here: the concern is one account probing many ids, not one
+ * IP address doing so.
+ */
+export function checkUserRateLimit(userClerkId: string, discriminator: string, config: RateLimitConfig): RateLimitResult {
+  return checkRateLimit(`${discriminator}:${userClerkId}`, config);
 }
 
 export function rateLimitResponse(result: RateLimitResult): Response {

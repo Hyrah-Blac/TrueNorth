@@ -23,6 +23,8 @@ import { Button } from "@/components/shared/buttons/Button";
 import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
 import { getMyBookingById } from "@/features/booking/lib/getBookings";
 import { getMyPaymentsForBooking } from "@/features/payment/lib/getPayments";
+import { requireAuth } from "@/middleware/auth";
+import { checkUserRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { formatCurrency, calculatePaymentProgress, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDate, formatDateTime } from "@/utils/date";
 import { BOOKING_TERMINAL_STATUSES, BOOKING_STATUSES } from "@/database/constants/booking-status";
@@ -38,6 +40,12 @@ interface BookingDetailPageProps {
 
 export default async function BookingDetailPage({ params }: BookingDetailPageProps) {
   const { id } = await params;
+
+  const { clerkId } = await requireAuth();
+  const rateLimit = checkUserRateLimit(clerkId, "booking-detail", RATE_LIMITS.DETAIL_PAGE_LOOKUP);
+  if (!rateLimit.allowed) {
+    notFound();
+  }
 
   let booking;
   try {

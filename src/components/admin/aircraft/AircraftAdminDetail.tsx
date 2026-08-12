@@ -69,7 +69,7 @@ export function AircraftAdminDetail({ aircraft }: AircraftAdminDetailProps) {
         </div>
 
         {/* Core specs */}
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft">
+        <section className="rounded-xl border border-slate-200 bg-white p-6">
           <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-400">Core Specifications</p>
           <DetailRow label="Category" value={AIRCRAFT_CATEGORY_LABELS[aircraft.category]} />
           <DetailRow label="Status" value={AIRCRAFT_STATUS_LABELS[aircraft.status]} />
@@ -87,7 +87,7 @@ export function AircraftAdminDetail({ aircraft }: AircraftAdminDetailProps) {
         </section>
 
         {/* AI concierge data */}
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft">
+        <section className="rounded-xl border border-slate-200 bg-white p-6">
           <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-400">AI Concierge Data</p>
           {aircraft.minimumRunwayLength ? (
             <DetailRow label="Min. Runway" value={`${aircraft.minimumRunwayLength.toLocaleString()} m`} />

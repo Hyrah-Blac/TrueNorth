@@ -11,11 +11,11 @@ export default function AdminDashboardLoading() {
         <SkeletonStatCard />
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+        <div className="rounded-xl border border-slate-200 bg-white p-7">
           <Skeleton className="h-4 w-40" />
           <Skeleton className="mt-5 h-56 w-full" />
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+        <div className="rounded-xl border border-slate-200 bg-white p-7">
           <Skeleton className="h-4 w-40" />
           <Skeleton className="mt-5 h-56 w-full" />
         </div>

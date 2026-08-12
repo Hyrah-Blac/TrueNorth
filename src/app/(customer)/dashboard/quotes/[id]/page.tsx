@@ -7,6 +7,8 @@ import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { Button } from "@/components/shared/buttons/Button";
 import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
 import { getMyQuoteById } from "@/features/quote/lib/getQuotes";
+import { requireAuth } from "@/middleware/auth";
+import { checkUserRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { QUOTE_STATUSES } from "@/database/constants/quote-status";
@@ -20,6 +22,17 @@ interface QuoteDetailPageProps {
 
 export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) {
   const { id } = await params;
+
+  // Cheap: reads the already-verified session claims, no extra network
+  // call. Keyed per-account rather than per-IP since the concern is one
+  // signed-in account probing many ids, not shared-network traffic.
+  const { clerkId } = await requireAuth();
+  const rateLimit = checkUserRateLimit(clerkId, "quote-detail", RATE_LIMITS.DETAIL_PAGE_LOOKUP);
+  if (!rateLimit.allowed) {
+    // Fail closed into the same screen a genuinely missing id gets —
+    // no additional signal leaks from being rate limited.
+    notFound();
+  }
 
   let quote;
   try {

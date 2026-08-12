@@ -17,7 +17,7 @@ export function StatCard({
 }) {
   return (
     <div
-      className="group relative overflow-hidden rounded-2xl bg-white p-6 transition-colors duration-200 hover:bg-sky-50/40"
+      className="group relative overflow-hidden rounded-xl bg-white p-4 transition-colors duration-200 hover:bg-sky-50/40"
       style={{ border: "1px solid rgb(228 229 232)", boxShadow: "inset 0 1px 0 rgb(255 255 255 / 0.8)" }}
     >
       {/* Top-left accent stripe */}
@@ -30,25 +30,25 @@ export function StatCard({
       {/* Label row */}
       <div className="flex items-start justify-between gap-3">
         <p
-          className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400"
+          className="text-[9px] font-medium uppercase tracking-[0.16em] text-slate-400"
           style={{ fontFamily: "var(--font-data, ui-monospace, monospace)" }}
         >
           {label}
         </p>
         <span
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md"
           style={{
             background: "rgb(237 242 251)",
             color: "rgb(43 91 191)",
           }}
         >
-          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+          <Icon className="h-3 w-3" aria-hidden="true" />
         </span>
       </div>
 
-      {/* Value — large editorial display */}
+      {/* Value — editorial display, compact and precise */}
       <p
-        className="mt-5 text-[2.6rem] font-light leading-none tracking-tight text-navy-900"
+        className="mt-4 text-2xl font-light leading-none tracking-tight text-navy-900"
         style={{ fontFamily: "var(--font-editorial, system-ui, sans-serif)" }}
       >
         {value}
@@ -56,7 +56,7 @@ export function StatCard({
 
       {hint ? (
         <p
-          className="mt-2 text-[10px] uppercase tracking-[0.14em] text-slate-400"
+          className="mt-1.5 text-[9px] uppercase tracking-[0.14em] text-slate-400"
           style={{ fontFamily: "var(--font-data, ui-monospace, monospace)" }}
         >
           {hint}

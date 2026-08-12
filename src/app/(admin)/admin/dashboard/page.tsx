@@ -139,7 +139,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+      <div className="rounded-xl border border-slate-200 bg-white p-7">
         <div className="flex items-center justify-between">
           <h2 className="font-editorial text-lg font-light text-navy-900">Upcoming flights</h2>
           <Link
@@ -193,7 +193,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+        <div className="rounded-xl border border-slate-200 bg-white p-7">
           <div className="flex items-center justify-between">
             <h2 className="font-editorial text-lg font-light text-navy-900">Outstanding payments</h2>
             <Link
@@ -243,7 +243,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+        <div className="rounded-xl border border-slate-200 bg-white p-7">
           <h2 className="font-editorial text-lg font-light text-navy-900">Recent activity</h2>
 
           <div className="mt-5">
@@ -276,7 +276,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+        <div className="rounded-xl border border-slate-200 bg-white p-7">
           <h2 className="font-editorial text-lg font-light text-navy-900">Revenue (6 months)</h2>
           <p className="text-xs text-slate-500">This month: {formatCurrency(revenue.thisMonthRevenue)}</p>
           <div className="mt-5">
@@ -284,7 +284,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+        <div className="rounded-xl border border-slate-200 bg-white p-7">
           <h2 className="font-editorial text-lg font-light text-navy-900">Customer growth (6 months)</h2>
           <p className="text-xs text-slate-500">New customer accounts per month</p>
           <div className="mt-5">

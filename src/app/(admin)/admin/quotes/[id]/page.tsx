@@ -71,7 +71,7 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr,1fr]">
       <div className="space-y-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+        <div className="rounded-xl border border-slate-200 bg-white p-7">
           <div className="flex items-start justify-between">
             <div>
               <p className="spec-readout text-sm text-slate-500">{quote.quoteNumber}</p>
@@ -144,7 +144,7 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
         </div>
 
         {quote.attachments.length > 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">
               Attachments ({quote.attachments.length})
             </h3>
@@ -168,7 +168,7 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
         ) : null}
 
         {canReview ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Review this request</h3>
             <div className="mt-4">
               <QuoteReviewPanel
@@ -183,7 +183,7 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
         ) : null}
 
         {hasOutcomeInfo ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Outcome</h3>
 
             <div className="mt-4 space-y-4">
@@ -251,7 +251,7 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
       </div>
 
       <aside className="h-fit space-y-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+        <div className="rounded-xl border border-slate-200 bg-white p-7">
           <h3 className="font-display text-base font-semibold text-navy-900">Requested by</h3>
           <div className="mt-4 space-y-3 text-sm">
             <p className="font-medium text-navy-900">{quote.contactInfo.fullName}</p>
@@ -294,7 +294,7 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
         </div>
 
         {preferredAircraft ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Preferred aircraft</h3>
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex items-center gap-2 font-medium text-navy-900">
@@ -306,7 +306,7 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
           </div>
         ) : null}
 
-        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+        <div className="rounded-xl border border-slate-200 bg-white p-7">
           <h3 className="font-display text-base font-semibold text-navy-900">Timeline</h3>
           <dl className="mt-4 space-y-3 text-sm">
             <div className="flex justify-between gap-4">

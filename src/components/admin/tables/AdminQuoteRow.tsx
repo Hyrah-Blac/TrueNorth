@@ -20,7 +20,7 @@ export function AdminQuoteRow({ quote }: { quote: IQuote }) {
   return (
     <Link
       href={`/admin/quotes/${quote._id}`}
-      className="group flex flex-col gap-4 rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-soft transition-all duration-300 hover:border-sky-200 hover:shadow-lifted sm:flex-row sm:items-center sm:justify-between"
+      className="group flex flex-col gap-4 rounded-xl border border-slate-200 bg-white px-6 py-5 transition-all duration-300 hover:border-sky-200 sm:flex-row sm:items-center sm:justify-between"
     >
       {/* Left — icon + identity */}
       <div className="flex items-center gap-4">

@@ -6,6 +6,8 @@ import { Receipt } from "@/components/payment/Receipt/Receipt";
 import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
 import { getMyPaymentById } from "@/features/payment/lib/getPayments";
 import { getSiteSettings } from "@/lib/config/siteSettings";
+import { requireAuth } from "@/middleware/auth";
+import { checkUserRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { NotFoundError, ForbiddenError, isAppError } from "@/lib/errors/AppError";
 
 export const metadata: Metadata = { title: "Receipt" };
@@ -16,6 +18,12 @@ interface PaymentDetailPageProps {
 
 export default async function PaymentDetailPage({ params }: PaymentDetailPageProps) {
   const { id } = await params;
+
+  const { clerkId } = await requireAuth();
+  const rateLimit = checkUserRateLimit(clerkId, "payment-detail", RATE_LIMITS.DETAIL_PAGE_LOOKUP);
+  if (!rateLimit.allowed) {
+    notFound();
+  }
 
   let payment;
   try {

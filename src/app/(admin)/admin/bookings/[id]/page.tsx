@@ -46,7 +46,7 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr,1fr]">
         <div className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <CalendarDays className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
@@ -98,14 +98,14 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
             ) : null}
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Timeline</h3>
             <div className="mt-5">
               <BookingTimeline timeline={booking.timeline} />
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Update status</h3>
             <div className="mt-4">
               <BookingStatusActions
@@ -118,7 +118,7 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
         </div>
 
         <aside className="h-fit space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Customer</h3>
             {customer ? (
               <div className="mt-4 space-y-3 text-sm">
@@ -153,7 +153,7 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
             )}
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-navy-950 to-navy-900 p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-navy-950 to-navy-900 p-7">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-base font-semibold text-white">Payment</h3>
               <BookingPaymentStatusBadge status={paymentStatus} />

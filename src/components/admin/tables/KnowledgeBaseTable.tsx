@@ -84,7 +84,7 @@ export function KnowledgeBaseTable({ initialEntries, total }: KnowledgeBaseTable
         </Button>
       </ListToolbar>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 shadow-soft">
+      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
         {initialEntries.length === 0 ? (
           <div className="p-6">
             <EmptyState

@@ -60,14 +60,14 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr,1fr]">
         <div className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-navy-950 to-navy-900 p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-navy-950 to-navy-900 p-7">
             <p className="text-xs uppercase tracking-widest2 text-slate-400">Amount</p>
             <p className="mt-2 font-editorial text-4xl font-light text-white">
               {formatCurrency(payment.amount, payment.currency)}
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
             <dl className="divide-y divide-slate-100">
               {rows.map((row) => (
                 <div key={row.label} className="flex items-center justify-between py-3 text-sm">
@@ -85,7 +85,7 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
           </div>
 
           {booking ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+            <div className="rounded-xl border border-slate-200 bg-white p-7">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-base font-semibold text-navy-900">Booking</h3>
                 <Link
@@ -126,7 +126,7 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
           {payment.status === PAYMENT_STATUSES.COMPLETED ? <Receipt payment={payment} /> : null}
         </div>
 
-        <aside className="h-fit rounded-xl border border-slate-200 bg-white p-7 shadow-soft">
+        <aside className="h-fit rounded-xl border border-slate-200 bg-white p-7">
           <h3 className="font-display text-base font-semibold text-navy-900">Customer</h3>
           {customer ? (
             <div className="mt-4 space-y-3 text-sm">
