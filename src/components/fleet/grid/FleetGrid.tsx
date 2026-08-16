@@ -1,7 +1,6 @@
 import { PlaneTakeoff } from "lucide-react";
 import { AircraftCard } from "../cards/AircraftCard";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
-import { Button } from "@/components/shared/buttons/Button";
 import type { IAircraft } from "@/types/aircraft";
 
 export function FleetGrid({ items }: { items: IAircraft[] }) {
@@ -11,11 +10,6 @@ export function FleetGrid({ items }: { items: IAircraft[] }) {
         icon={<PlaneTakeoff className="h-5 w-5" aria-hidden="true" />}
         title="No aircraft match those filters"
         description="Try widening your search, or tell us the mission directly and we'll recommend the right aircraft."
-        action={
-          <Button href="/request-charter" variant="outline">
-            Request Charter Instead
-          </Button>
-        }
       />
     );
   }

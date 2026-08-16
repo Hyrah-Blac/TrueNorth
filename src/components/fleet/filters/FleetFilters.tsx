@@ -1,40 +1,51 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
-import { ChevronDown } from "lucide-react";
+import { useTransition } from "react";
+import type { Icon } from "@phosphor-icons/react";
+import {
+  AirplaneTilt,
+  Airplane,
+  AirTrafficControl,
+  Ambulance,
+  Binoculars,
+  Globe,
+  Package,
+  Wrench,
+} from "@phosphor-icons/react";
 import { fleetCategories } from "@/content/fleet-categories";
 import type { AircraftCategory } from "@/database/constants/aircraft";
 
 const PASSENGER_OPTIONS = [
   { label: "Any size", value: "" },
-  { label: "4+ passengers", value: "4" },
-  { label: "8+ passengers", value: "8" },
-  { label: "12+ passengers", value: "12" },
+  { label: "4+", full: "4+ passengers", value: "4" },
+  { label: "8+", full: "8+ passengers", value: "8" },
+  { label: "12+", full: "12+ passengers", value: "12" },
 ];
+
+const CATEGORY_ICONS: Record<AircraftCategory, Icon> = {
+  helicopter: AirTrafficControl,
+  turboprop: AirplaneTilt,
+  light_jet: Airplane,
+  utility: Wrench,
+  medevac: Ambulance,
+  safari: Binoculars,
+  cargo: Package,
+};
+
+// Fades the leading/trailing edge of a horizontally-scrollable row on
+// mobile, so an overflowing list reads as "more content" rather than
+// getting clipped mid-word.
+const SCROLL_FADE_MASK =
+  "[mask-image:linear-gradient(to_right,transparent,black_12px,black_calc(100%-12px),transparent)] sm:[mask-image:none]";
 
 export function FleetFilters({ activeCategory }: { activeCategory?: AircraftCategory }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const [passengerMenuOpen, setPassengerMenuOpen] = useState(false);
-  const passengerMenuRef = useRef<HTMLDivElement>(null);
 
   const activeMinPassengers = searchParams.get("minPassengers") ?? "";
-  const hasActiveFilters = Boolean(activeCategory) || Boolean(activeMinPassengers);
-  const activePassengerLabel =
-    PASSENGER_OPTIONS.find((option) => option.value === activeMinPassengers)?.label ?? "Any size";
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (passengerMenuRef.current && !passengerMenuRef.current.contains(event.target as Node)) {
-        setPassengerMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -50,113 +61,82 @@ export function FleetFilters({ activeCategory }: { activeCategory?: AircraftCate
     });
   }
 
-  function clearFilters() {
-    startTransition(() => {
-      router.push(pathname);
-    });
-  }
-
   return (
     <div
-      className={`flex flex-col gap-8 border-y border-slate-200/70 py-10 transition-opacity duration-300 ${
-        isPending ? "opacity-60" : ""
+      className={`mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] ring-1 ring-slate-900/[0.02] transition-opacity duration-300 sm:mt-7 sm:gap-3.5 sm:p-3.5 md:mt-8 lg:p-4 ${
+        isPending ? "pointer-events-none opacity-50" : ""
       }`}
     >
-      <div className="flex items-baseline justify-between gap-4">
-        <p className="font-editorial text-lg font-light text-navy-900 sm:text-xl">Filter the Fleet</p>
-        {hasActiveFilters ? (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="text-[0.625rem] font-medium uppercase tracking-[0.15em] text-slate-400 transition-colors duration-300 hover:text-navy-900"
-          >
-            Clear filters
-          </button>
-        ) : null}
-      </div>
-
-      {/* Category tabs — a slim champagne underline marks the active
-          state; everything else stays quiet so the accent color reads
-          as a deliberate signal, not decoration. */}
-      <div className="flex flex-wrap gap-x-9 gap-y-4">
-        <button
-          type="button"
-          onClick={() => updateParam("category", "")}
-          className={`border-b pb-2 font-display text-[0.8125rem] font-medium tracking-tight transition-colors duration-300 ${
-            !activeCategory
-              ? "border-champagne-400 text-navy-900"
-              : "border-transparent text-slate-400 hover:text-navy-700"
-          }`}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 lg:gap-5">
+        {/* Aircraft category — quiet text tabs; the active state is
+            marked only by a champagne ring around the icon and a shift
+            to navy text, no underline or fill. */}
+        <div
+          className={`scrollbar-none flex gap-1.5 overflow-x-auto pb-px sm:flex-wrap ${SCROLL_FADE_MASK}`}
         >
-          All categories
-        </button>
-        {fleetCategories.map((item) => (
           <button
-            key={item.category}
             type="button"
-            onClick={() => updateParam("category", item.category)}
-            className={`border-b pb-2 font-display text-[0.8125rem] font-medium tracking-tight transition-colors duration-300 ${
-              activeCategory === item.category
-                ? "border-champagne-400 text-navy-900"
-                : "border-transparent text-slate-400 hover:text-navy-700"
+            onClick={() => updateParam("category", "")}
+            aria-pressed={!activeCategory}
+            className={`inline-flex min-h-[1.75rem] shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 font-display text-[0.6875rem] font-medium tracking-tight whitespace-nowrap transition-all duration-300 ${
+              !activeCategory
+                ? "border-sky-500 bg-sky-50 text-sky-700 shadow-[inset_0_0_0_1px_rgba(14,165,233,0.15)]"
+                : "border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-navy-900"
             }`}
           >
-            {item.shortLabel}
+            <Globe className="h-3 w-3" weight={!activeCategory ? "fill" : "regular"} aria-hidden="true" />
+            All
           </button>
-        ))}
-      </div>
+          {fleetCategories.map((item) => {
+            const ChipIcon = CATEGORY_ICONS[item.category];
+            const isActive = activeCategory === item.category;
+            return (
+              <button
+                key={item.category}
+                type="button"
+                onClick={() => updateParam("category", item.category)}
+                aria-pressed={isActive}
+                title={item.label}
+                className={`inline-flex min-h-[1.75rem] shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 font-display text-[0.6875rem] font-medium tracking-tight whitespace-nowrap transition-all duration-300 ${
+                  isActive
+                    ? "border-sky-500 bg-sky-50 text-sky-700 shadow-[inset_0_0_0_1px_rgba(14,165,233,0.15)]"
+                    : "border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-navy-900"
+                }`}
+              >
+                <ChipIcon className="h-3 w-3" weight={isActive ? "fill" : "regular"} aria-hidden="true" />
+                {item.shortLabel}
+              </button>
+            );
+          })}
+        </div>
 
-      <div className="flex flex-wrap items-center gap-5 border-t border-slate-200/70 pt-7">
-        <span className="text-[0.625rem] font-medium uppercase tracking-[0.2em] text-slate-400">
-          Passengers
-        </span>
+        {/* Horizontal hairline on mobile/tablet where the two groups
+            stack, vertical hairline once they sit side by side. */}
+        <div className="h-px w-full shrink-0 bg-gradient-to-r from-transparent via-slate-200 to-transparent sm:hidden" aria-hidden="true" />
+        <div
+          className="hidden h-5 w-px shrink-0 bg-gradient-to-b from-transparent via-slate-200 to-transparent sm:block"
+          aria-hidden="true"
+        />
 
-        {/* Custom dropdown — native <select>/<option> styling is OS-controlled
-            (that gray highlight and blue link text can't be overridden), so
-            this is a button + floating panel built to match the site's
-            hairline-underline language instead. */}
-        <div ref={passengerMenuRef} className="relative">
-          <button
-            type="button"
-            onClick={() => setPassengerMenuOpen((open) => !open)}
-            aria-haspopup="listbox"
-            aria-expanded={passengerMenuOpen}
-            className="flex items-center gap-2 border-b border-slate-300 pb-1.5 font-display text-[0.8125rem] font-medium text-navy-900 transition-colors duration-300 hover:border-slate-500"
-          >
-            {activePassengerLabel}
-            <ChevronDown
-              className={`h-3 w-3 text-slate-400 transition-transform duration-300 ${
-                passengerMenuOpen ? "rotate-180" : ""
-              }`}
-              aria-hidden="true"
-            />
-          </button>
-
-          {passengerMenuOpen ? (
-            <ul
-              role="listbox"
-              className="absolute left-0 top-full z-10 mt-2 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1.5 shadow-soft"
-            >
-              {PASSENGER_OPTIONS.map((option) => (
-                <li key={option.value} role="option" aria-selected={option.value === activeMinPassengers}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      updateParam("minPassengers", option.value);
-                      setPassengerMenuOpen(false);
-                    }}
-                    className={`w-full px-4 py-2 text-left font-display text-[0.8125rem] font-medium transition-colors duration-300 ${
-                      option.value === activeMinPassengers
-                        ? "text-navy-900"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-navy-800"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+        <div className={`scrollbar-none flex gap-x-3 overflow-x-auto pb-px sm:gap-x-3.5 ${SCROLL_FADE_MASK}`}>
+          {PASSENGER_OPTIONS.map((option) => {
+            const isActive = activeMinPassengers === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => updateParam("minPassengers", option.value)}
+                aria-pressed={isActive}
+                title={option.full ?? option.label}
+                className={`flex min-h-[1.75rem] shrink-0 items-center pb-px font-display text-[0.6875rem] font-medium tracking-tight whitespace-nowrap transition-colors duration-300 ${
+                  isActive ? "text-navy-900" : "text-slate-400 hover:text-navy-700"
+                }`}
+              >
+                <span className="sm:hidden">{option.label}</span>
+                <span className="hidden sm:inline">{option.full ?? option.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

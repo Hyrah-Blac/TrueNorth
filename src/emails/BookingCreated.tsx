@@ -25,7 +25,7 @@ export default function BookingCreated({
 }: BookingCreatedProps) {
   return (
     <EmailLayout
-      previewText={`Booking ${bookingNumber} created — payment pending`}
+      previewText={`Booking ${bookingNumber} created — payment required`}
       heading="Your booking has been created"
       contact={contact}
     >

@@ -24,7 +24,7 @@ export function DashboardSidebar({
 
   return (
     <aside
-      className="sticky top-0 flex h-screen w-64 shrink-0 flex-col"
+      className="sticky top-0 flex h-screen w-64 shrink-0 flex-col overflow-hidden xl:w-72"
       style={{
         background: "linear-gradient(180deg, rgb(11 18 28) 0%, rgb(9 14 22) 100%)",
         borderRight: "1px solid rgb(255 255 255 / 0.07)",
@@ -48,7 +48,7 @@ export function DashboardSidebar({
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4 xl:px-4">
         {items.map((item) => {
           const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
@@ -64,7 +64,7 @@ export function DashboardSidebar({
             <Link
               key={item.href}
               href={item.href}
-              className={`group relative flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ${
+              className={`group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/70 ${
                 isActive
                   ? "text-white"
                   : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
@@ -99,7 +99,7 @@ export function DashboardSidebar({
                 {icon}
               </span>
 
-              {item.label}
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}
@@ -119,19 +119,28 @@ export function DashboardSidebar({
 
 function LogoImage() {
   return (
-    <Image
-      src="/logo/logo.png"
-      alt="True North Charters"
-      width={120}
-      height={34}
-      priority
-      className="h-7 w-auto object-contain"
-      onError={(e) => {
-        const target = e.currentTarget as HTMLImageElement;
-        target.style.display = "none";
-        const fallback = target.nextElementSibling as HTMLElement | null;
-        if (fallback) fallback.style.display = "flex";
-      }}
-    />
+    <span className="flex items-center">
+      <Image
+        src="/logo/logo.png"
+        alt="True North Charters"
+        width={120}
+        height={34}
+        priority
+        className="h-7 w-auto object-contain"
+        onError={(e) => {
+          const target = e.currentTarget as HTMLImageElement;
+          target.style.display = "none";
+          const fallback = target.nextElementSibling as HTMLElement | null;
+          if (fallback) fallback.style.display = "flex";
+        }}
+      />
+      <span
+        className="hidden items-center gap-2 text-sm font-semibold tracking-tight text-white"
+        style={{ display: "none" }}
+      >
+        <Compass className="h-5 w-5 text-sky-400" weight="fill" aria-hidden="true" />
+        True North
+      </span>
+    </span>
   );
 }

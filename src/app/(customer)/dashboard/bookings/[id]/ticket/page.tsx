@@ -8,6 +8,7 @@ import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
 import { getMyTicketForBooking } from "@/features/ticket/lib/getTicketForBooking";
 import { getTicketVerificationUrl } from "@/features/ticket/lib/ticketVerificationUrl";
 import { generateQrCodeDataUrl } from "@/features/ticket/lib/generateQrCode";
+import { getTicketAirportCities } from "@/features/ticket/lib/getTicketAirportNames";
 import { requireAuth } from "@/middleware/auth";
 import { checkUserRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { TICKET_STATUSES } from "@/database/constants/ticket-status";
@@ -87,6 +88,10 @@ export default async function BookingTicketPage({ params }: TicketPageProps) {
   // for (see Ticket.ts and issueTicketForBooking.ts).
   const verificationUrl = getTicketVerificationUrl(ticket.verificationToken);
   const qrDataUrl = await generateQrCodeDataUrl(verificationUrl);
+  const airportCities = await getTicketAirportCities([
+    booking.departureAirportCode,
+    booking.destinationAirportCode,
+  ]);
 
   return (
     <div className="space-y-4">
@@ -119,6 +124,8 @@ export default async function BookingTicketPage({ params }: TicketPageProps) {
         departureTime={booking.departureTime}
         fboName={booking.fboName}
         fboAddress={booking.fboAddress}
+        departureAirportName={airportCities[booking.departureAirportCode]}
+        destinationAirportName={airportCities[booking.destinationAirportCode]}
       />
     </div>
   );

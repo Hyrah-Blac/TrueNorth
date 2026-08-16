@@ -7,7 +7,6 @@ import {
   DownloadSimple,
   CheckCircle,
   WarningCircle,
-  Airplane,
   SealCheck,
   Compass,
   MapPinLine,
@@ -42,6 +41,13 @@ export interface TicketCardProps {
   /** FBO / terminal name and, optionally, its address — shown together as one "where to go" block. */
   fboName?: string;
   fboAddress?: string;
+  /**
+   * Real city for the departure/destination ICAO code, from the
+   * Airport collection (see getTicketAirportCities). Omitted — never
+   * invented — when that airport isn't in the database.
+   */
+  departureAirportName?: string;
+  destinationAirportName?: string;
 }
 
 /**
@@ -51,13 +57,13 @@ export interface TicketCardProps {
  * requirement #3). departureTime/fboName/fboAddress come from the
  * booking once ops sets them and are simply omitted until then.
  *
- * Visual language (Phase 6): a restrained, private-aviation "travel
- * document" rather than a commercial-airline boarding pass — deep
- * navy header, a single champagne-gold accent, generous whitespace,
- * and a stub-style perforation between the journey/details body and
- * the QR/verification area. Colors and type all come from the site's
- * existing design tokens (src/styles/variables.css) — nothing new is
- * introduced.
+ * Visual language (Phase 6 — premium redesign): a restrained,
+ * private-aviation travel document rather than a commercial-airline
+ * boarding pass — deep navy header, a single champagne-gold accent,
+ * generous whitespace, and a stub-style perforation between the
+ * journey/details body and the QR/verification area. Colors and type
+ * all come from the site's existing design tokens
+ * (src/styles/variables.css) — nothing new is introduced.
  *
  * Print handling mirrors components/payment/Receipt/Receipt.tsx: a
  * scoped `@media print` block hides the site chrome (nav/footer) and
@@ -81,6 +87,8 @@ export function TicketCard({
   departureTime,
   fboName,
   fboAddress,
+  departureAirportName,
+  destinationAirportName,
 }: TicketCardProps) {
   return (
     <div className="mx-auto max-w-2xl">
@@ -142,7 +150,7 @@ export function TicketCard({
         </h2>
 
         {/* Header */}
-        <div className="relative overflow-hidden bg-navy-950 px-6 py-6 sm:px-9 sm:py-7">
+        <div className="relative overflow-hidden bg-navy-950 px-6 py-7 sm:px-10 sm:py-8">
           {/* Subtle coordinate-grid motif — restrained aviation texture, not decoration for its own sake. */}
           <div
             aria-hidden="true"
@@ -156,56 +164,67 @@ export function TicketCard({
             <div className="flex items-center gap-3">
               <TicketLogoMark />
               <div>
-                <p className="font-editorial text-base font-light text-white sm:text-lg">{siteConfig.name}</p>
-                <p className="mt-0.5 text-[0.625rem] uppercase tracking-[0.2em] text-white/50">
-                  Private Charter
+                <p className="font-editorial text-lg font-light tracking-[0.01em] text-white sm:text-xl">
+                  {siteConfig.name}
+                </p>
+                <p className="mt-0.5 text-[0.625rem] uppercase tracking-[0.28em] text-champagne-400/80">
+                  Private Aviation
                 </p>
               </div>
             </div>
             <div className="text-right">
               <p className="text-[9px] font-medium uppercase tracking-[0.22em] text-champagne-400">
-                Charter Ticket
+                Private Charter Confirmation
               </p>
-              <p className="spec-readout mt-1.5 text-sm font-semibold text-white">{ticketNumber}</p>
+              <p className="spec-readout mt-2 text-sm font-semibold text-white">{ticketNumber}</p>
             </div>
           </div>
         </div>
 
         {/* Status strip */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-navy-900/10 bg-slate-50/70 px-6 py-3 sm:px-9">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-navy-900/10 bg-slate-50/70 px-6 py-3.5 sm:px-10">
           <PaymentStatusPill status={status} />
-          <p className="text-[0.6875rem] text-slate-500">
-            Booking <span className="spec-readout text-slate-600">{bookingNumber}</span>
+          <p className="text-[0.6875rem] uppercase tracking-[0.1em] text-slate-400">
+            Booking{" "}
+            <span className="spec-readout normal-case tracking-normal text-slate-600">{bookingNumber}</span>
           </p>
         </div>
 
         {/* Journey — the visual centerpiece */}
-        <div className="px-6 py-8 sm:px-10 sm:py-10">
-          <p className="text-center text-[9px] font-medium uppercase tracking-[0.3em] text-slate-400">
+        <div className="px-6 py-10 sm:px-10 sm:py-14">
+          <p className="text-center text-[9px] font-medium uppercase tracking-[0.35em] text-slate-400">
             Journey
           </p>
-          <div className="mt-5 flex items-center justify-center gap-4 sm:gap-8">
+          <div className="mt-6 flex items-start justify-center gap-5 sm:gap-10">
             <div className="text-center">
-              <p className="font-editorial text-4xl font-medium text-navy-900 sm:text-5xl">
+              <p className="font-editorial text-5xl font-medium leading-none text-navy-900 sm:text-6xl">
                 {departureAirportCode}
               </p>
-              <p className="mt-1.5 text-[10px] uppercase tracking-[0.16em] text-slate-400">Departure</p>
+              {departureAirportName ? (
+                <p className="mt-2 text-xs font-medium text-slate-500 sm:text-sm">{departureAirportName}</p>
+              ) : null}
+              <p className="mt-1.5 text-[10px] uppercase tracking-[0.2em] text-slate-400">Departure</p>
             </div>
 
-            <div className="flex w-16 shrink-0 items-center gap-1.5 text-champagne-500 sm:w-28">
-              <span className="h-px flex-1 bg-champagne-400/50" />
-              <Airplane className="h-4 w-4 shrink-0 rotate-90" weight="light" aria-hidden="true" />
-              <span className="h-px flex-1 bg-champagne-400/50" />
+            <div className="flex w-14 shrink-0 items-center gap-2 pt-4 text-champagne-500 sm:w-32 sm:pt-5">
+              <span className="h-px flex-1 bg-gradient-to-r from-transparent to-champagne-400/60" />
+              <span aria-hidden="true" className="text-[11px] leading-none text-champagne-500">
+                ✦
+              </span>
+              <span className="h-px flex-1 bg-gradient-to-l from-transparent to-champagne-400/60" />
             </div>
 
             <div className="text-center">
-              <p className="font-editorial text-4xl font-medium text-navy-900 sm:text-5xl">
+              <p className="font-editorial text-5xl font-medium leading-none text-navy-900 sm:text-6xl">
                 {destinationAirportCode}
               </p>
-              <p className="mt-1.5 text-[10px] uppercase tracking-[0.16em] text-slate-400">Destination</p>
+              {destinationAirportName ? (
+                <p className="mt-2 text-xs font-medium text-slate-500 sm:text-sm">{destinationAirportName}</p>
+              ) : null}
+              <p className="mt-1.5 text-[10px] uppercase tracking-[0.2em] text-slate-400">Destination</p>
             </div>
           </div>
-          <p className="mt-7 text-center text-xs font-semibold uppercase tracking-[0.14em] text-navy-900 sm:text-sm">
+          <p className="mt-9 text-center text-xs font-semibold uppercase tracking-[0.16em] text-navy-900 sm:text-sm">
             {formatDate(departureDate)}
             {departureTime ? (
               <span className="font-normal normal-case tracking-normal text-slate-500"> · {departureTime} local</span>
@@ -228,37 +247,44 @@ export function TicketCard({
         </div>
 
         {/* Details + QR */}
-        <div className="flex flex-col gap-8 px-6 py-7 sm:flex-row sm:px-9 sm:py-8">
-          <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-6">
+        <div className="flex flex-col gap-9 px-6 py-8 sm:flex-row sm:px-10 sm:py-10">
+          <dl className="grid flex-1 grid-cols-2 gap-x-8 gap-y-7">
             <DetailField label="Passenger" value={passengerName} />
             <DetailField
               label="Passengers"
               value={`${passengerCount} ${passengerCount === 1 ? "passenger" : "passengers"}`}
             />
+            <div className="col-span-2 border-t border-navy-900/10" role="presentation" />
             {aircraftName ? <DetailField label="Aircraft" value={aircraftName} /> : null}
             {aircraftRegistration ? (
               <DetailField label="Registration" value={aircraftRegistration} mono />
             ) : null}
             {fboName ? (
-              <div className="col-span-2">
-                <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">
-                  FBO / Terminal
-                </dt>
-                <dd className="mt-1 flex items-start gap-1.5 text-xs font-semibold text-navy-900 sm:text-sm">
-                  <MapPinLine className="mt-0.5 h-3.5 w-3.5 shrink-0 text-champagne-500" weight="light" aria-hidden="true" />
-                  <span>
-                    {fboName}
-                    {fboAddress ? (
-                      <span className="mt-0.5 block text-xs font-normal text-slate-500">{fboAddress}</span>
-                    ) : null}
-                  </span>
-                </dd>
-              </div>
+              <>
+                <div className="col-span-2 border-t border-navy-900/10" role="presentation" />
+                <div className="col-span-2">
+                  <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">
+                    FBO / Terminal
+                  </dt>
+                  <dd className="mt-1.5 flex items-start gap-1.5 text-xs font-semibold text-navy-900 sm:text-sm">
+                    <MapPinLine className="mt-0.5 h-3.5 w-3.5 shrink-0 text-champagne-500" weight="light" aria-hidden="true" />
+                    <span>
+                      {fboName}
+                      {fboAddress ? (
+                        <span className="mt-0.5 block text-xs font-normal text-slate-500">{fboAddress}</span>
+                      ) : null}
+                    </span>
+                  </dd>
+                </div>
+              </>
             ) : null}
           </dl>
 
           {/* QR code */}
-          <div className="flex shrink-0 flex-col items-center gap-3 border-t border-navy-900/10 pt-6 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0">
+          <div className="flex shrink-0 flex-col items-center gap-3 border-t border-navy-900/10 pt-7 sm:w-40 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0">
+            <p className="text-center text-[9px] font-medium uppercase tracking-[0.2em] text-slate-400">
+              Digital Verification
+            </p>
             <div className="rounded-lg border border-navy-900/10 bg-white p-2.5 shadow-crisp">
               {/* eslint-disable-next-line @next/next/no-img-element -- a base64 data URI, next/image can't optimize this and doesn't need to */}
               <img
@@ -267,21 +293,39 @@ export function TicketCard({
                 className="h-28 w-28 sm:h-32 sm:w-32"
               />
             </div>
-            <p className="text-center text-[9px] font-medium uppercase tracking-[0.18em] text-slate-400">
-              Scan to Verify
-            </p>
+            <div className="text-center">
+              <p className="text-[9px] font-medium uppercase tracking-[0.18em] text-slate-400">Scan to Verify</p>
+              <p className="spec-readout mt-1 text-[10px] text-slate-400">{ticketNumber}</p>
+            </div>
           </div>
         </div>
 
+        {/* Security divider */}
+        <div
+          aria-hidden="true"
+          role="presentation"
+          className="mx-6 flex items-center gap-3 sm:mx-10"
+        >
+          <span className="h-px flex-1 bg-navy-900/10" />
+          <span className="tracking-[0.5em] text-[8px] text-navy-900/20">· · · · · · · ·</span>
+          <span className="h-px flex-1 bg-navy-900/10" />
+        </div>
+
         {/* Footer */}
-        <div className="border-t border-navy-900/10 bg-slate-50/60 px-6 py-5 sm:px-9 sm:py-6">
-          <div className="flex items-center justify-center gap-1.5 text-[9px] font-medium uppercase tracking-[0.16em] text-slate-400">
+        <div className="bg-slate-50/60 px-6 py-6 sm:px-10 sm:py-7">
+          <div className="flex items-center justify-center gap-1.5 text-[9px] font-medium uppercase tracking-[0.18em] text-slate-400">
             <SealCheck className="h-3 w-3 text-champagne-500" weight="fill" aria-hidden="true" />
             Verified Digital Credential
           </div>
-          <p className="mt-2 text-center text-[0.6875rem] leading-relaxed text-slate-500">
+          <p className="mt-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-navy-900">
+            Private Charter Confirmation
+          </p>
+          <p className="mx-auto mt-2 max-w-md text-center text-[0.6875rem] leading-relaxed text-slate-500">
             This document confirms your private charter reservation with {siteConfig.name}.
-            <span className="mt-0.5 block">Present it, digitally or printed, when required.</span>
+            <span className="mt-0.5 block">Please retain it and present it, digitally or printed, when required.</span>
+          </p>
+          <p className="mt-4 text-center text-[0.625rem] uppercase tracking-[0.1em] text-slate-400">
+            {siteConfig.name} &middot; {siteConfig.phoneDisplay} &middot; {siteConfig.email}
           </p>
         </div>
       </section>
@@ -323,7 +367,7 @@ function DetailField({ label, value, mono = false }: { label: string; value: str
   return (
     <div>
       <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">{label}</dt>
-      <dd className={`mt-1 text-xs font-semibold text-navy-900 sm:text-sm ${mono ? "spec-readout" : ""}`}>
+      <dd className={`mt-1.5 text-xs font-semibold text-navy-900 sm:text-sm ${mono ? "spec-readout" : ""}`}>
         {value}
       </dd>
     </div>
@@ -336,8 +380,8 @@ function PaymentStatusPill({ status }: { status: TicketStatus }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] ${
-        isValid ? "border-green-600/20 bg-green-50 text-green-700" : "border-red-600/20 bg-red-50 text-red-700"
+      className={`inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] ${
+        isValid ? "border-green-700/25 text-green-800" : "border-red-700/25 text-red-800"
       }`}
     >
       {isValid ? (

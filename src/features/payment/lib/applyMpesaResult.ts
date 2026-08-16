@@ -2,6 +2,7 @@ import "server-only";
 import Payment, { type PaymentDocument } from "@/database/models/Payment";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { creditBookingAndNotify } from "./creditBookingForPayment";
+import { notifyPaymentFailed } from "./notifyPaymentFailed";
 
 export interface MpesaResultData {
   resultCode: number;
@@ -93,6 +94,8 @@ export async function applyMpesaResult(
 
   if (isSuccess) {
     await creditBookingAndNotify(payment);
+  } else {
+    await notifyPaymentFailed(payment);
   }
 
   return payment;

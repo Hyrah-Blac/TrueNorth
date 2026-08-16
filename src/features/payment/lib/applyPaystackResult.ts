@@ -3,6 +3,7 @@ import Payment, { type PaymentDocument } from "@/database/models/Payment";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { logger } from "@/lib/logging/logger";
 import { creditBookingAndNotify } from "./creditBookingForPayment";
+import { notifyPaymentFailed } from "./notifyPaymentFailed";
 import type { PaystackVerifyData } from "@/lib/api/paystack";
 
 export interface PaystackResultData {
@@ -146,6 +147,8 @@ export async function applyPaystackResult(
 
   if (isSuccess) {
     await creditBookingAndNotify(payment);
+  } else {
+    await notifyPaymentFailed(payment);
   }
 
   return payment;

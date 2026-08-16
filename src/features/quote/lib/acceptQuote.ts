@@ -151,7 +151,7 @@ export async function acceptQuoteById(
 
   await sendEmail({
     to: claimed.contactInfo.email,
-    subject: `Booking ${booking.bookingNumber} created — payment pending`,
+    subject: `Booking ${booking.bookingNumber} created — payment required`,
     react: BookingCreated({
       customerName: claimed.contactInfo.fullName,
       bookingNumber: booking.bookingNumber,

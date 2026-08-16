@@ -10,6 +10,8 @@ import { sendEmail, getAdminNotificationEmail } from "@/lib/api/resend";
 import { siteConfig } from "@/lib/config/site";
 import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
 import AdminCancellationRequested from "@/emails/AdminCancellationRequested";
+import CancellationRequestReceived from "@/emails/CancellationRequestReceived";
+import ModificationRequestReceived from "@/emails/ModificationRequestReceived";
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
 
@@ -61,6 +63,22 @@ export async function requestBookingCancellation(
       }),
     });
 
+    // Best-effort receipt so the customer has confirmation their request
+    // landed, without implying the booking is cancelled yet — the actual
+    // cancellation (and its own BookingCancelled email) only happens once
+    // staff acts on this, via cancelBooking in transitions.ts.
+    await sendEmail({
+      to: user.email,
+      subject: `We've received your cancellation request — ${booking.bookingNumber}`,
+      react: CancellationRequestReceived({
+        customerName: user.firstName || user.email,
+        bookingNumber: booking.bookingNumber,
+        reason: data.cancellationReason,
+        dashboardUrl: `${siteConfig.url}/dashboard/bookings/${booking._id}`,
+        contact,
+      }),
+    });
+
     return { success: true, data: { cancellationRequested: true } };
   } catch (error) {
     const message = isAppError(error) ? error.message : "Failed to request cancellation";
@@ -89,6 +107,23 @@ export async function requestBookingModification(
     await booking.save();
 
     revalidatePath(`/dashboard/bookings/${bookingId}`);
+
+    // Best-effort receipt so the customer has confirmation their request
+    // landed, without implying anything has changed yet — same shape as
+    // the cancellation-request receipt above.
+    const settings = await getSiteSettings();
+    await sendEmail({
+      to: user.email,
+      subject: `We've received your change request — ${booking.bookingNumber}`,
+      react: ModificationRequestReceived({
+        customerName: user.firstName || user.email,
+        bookingNumber: booking.bookingNumber,
+        notes: data.modificationNotes,
+        dashboardUrl: `${siteConfig.url}/dashboard/bookings/${bookingId}`,
+        contact: toEmailContact(settings),
+      }),
+    });
+
     return { success: true, data: { modificationRequested: true } };
   } catch (error) {
     const message = isAppError(error) ? error.message : "Failed to request modification";

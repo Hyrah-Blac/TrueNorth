@@ -4,6 +4,7 @@ import { getMyTicketById } from "@/features/ticket/lib/getTicketForBooking";
 import { getTicketVerificationUrl } from "@/features/ticket/lib/ticketVerificationUrl";
 import { generateQrCodeDataUrl } from "@/features/ticket/lib/generateQrCode";
 import { generateTicketPdf } from "@/features/ticket/lib/generateTicketPdf";
+import { getTicketAirportCities } from "@/features/ticket/lib/getTicketAirportNames";
 import { checkRateLimit, getRequestKey, RATE_LIMITS } from "@/middleware/rate-limit";
 import { resolveErrorMessage } from "@/lib/api/response";
 import { logger } from "@/lib/logging/logger";
@@ -44,6 +45,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     const verificationUrl = getTicketVerificationUrl(ticket.verificationToken);
     const qrCodeDataUrl = await generateQrCodeDataUrl(verificationUrl);
+    const airportCities = await getTicketAirportCities([
+      booking.departureAirportCode,
+      booking.destinationAirportCode,
+    ]);
 
     let pdfBuffer: Buffer;
     try {
@@ -63,6 +68,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         departureTime: booking.departureTime,
         fboName: booking.fboName,
         fboAddress: booking.fboAddress,
+        departureAirportName: airportCities[booking.departureAirportCode],
+        destinationAirportName: airportCities[booking.destinationAirportCode],
       });
     } catch (pdfError) {
       // A PDF-rendering failure is a genuine server error, not a

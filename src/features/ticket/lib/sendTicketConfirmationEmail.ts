@@ -9,6 +9,7 @@ import { TICKET_EMAIL_STATUSES } from "@/database/constants/ticket-email-status"
 import { generateQrCodeDataUrl } from "./generateQrCode";
 import { generateTicketPdf } from "./generateTicketPdf";
 import { getTicketVerificationUrl } from "./ticketVerificationUrl";
+import { getTicketAirportCities } from "./getTicketAirportNames";
 import { withRetry } from "@/lib/api/retry";
 import TicketConfirmation from "@/emails/TicketConfirmation";
 import { siteConfig } from "@/lib/config/site";
@@ -126,6 +127,10 @@ async function deliverTicketConfirmationEmail(ticket: TicketDocument): Promise<v
 
   const verificationUrl = getTicketVerificationUrl(ticketWithToken.verificationToken);
   const qrCodeDataUrl = await generateQrCodeDataUrl(verificationUrl);
+  const airportCities = await getTicketAirportCities([
+    booking.departureAirportCode,
+    booking.destinationAirportCode,
+  ]);
 
   // Reuses the exact same PDF generator as the dashboard download
   // route (Phase 2) — see generateTicketPdf.tsx. Not a second PDF
@@ -144,6 +149,11 @@ async function deliverTicketConfirmationEmail(ticket: TicketDocument): Promise<v
     qrCodeDataUrl,
     verificationUrl,
     status: ticketWithToken.status,
+    departureTime: booking.departureTime,
+    fboName: booking.fboName,
+    fboAddress: booking.fboAddress,
+    departureAirportName: airportCities[booking.departureAirportCode],
+    destinationAirportName: airportCities[booking.destinationAirportCode],
   });
 
   const settings = await getSiteSettings();
