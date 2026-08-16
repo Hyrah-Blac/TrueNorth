@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { paymentSerif } from "./fonts";
 
 /**
  * Scopes the Fraunces serif to the Payments section only.
@@ -8,18 +7,24 @@ import { paymentSerif } from "./fonts";
  * PaymentRow's method text, the receipt heading) resolves through the
  * CSS variable --font-editorial. Rather than touching the root layout —
  * which would change that variable, and therefore every other page that
- * uses font-editorial, sitewide — this layout loads Fraunces under its
- * own variable name and locally re-points --font-editorial to it only
- * for children of this layout. Every page outside /dashboard/payments
- * keeps reading the --font-editorial value set on <html> in the root
- * layout (Poppins), unaffected.
+ * uses font-editorial, sitewide — this layout locally re-points
+ * --font-editorial to --font-dashboard-serif (the shared, self-hosted
+ * Fraunces variable defined in globals.css — see layout.tsx at the app
+ * root) only for children of this layout. Every page outside
+ * /dashboard/payments keeps reading the --font-editorial value set on
+ * <html> (Poppins), unaffected.
+ *
+ * Phase 5 fix: this previously re-pointed to `var(--font-payment-serif)`,
+ * a variable name nothing ever actually set (the sibling fonts.ts module
+ * loaded a font under the *different* name --font-dashboard-serif) — so
+ * the Fraunces override silently never took effect and this section
+ * quietly fell back to Poppins the whole time. Same bug existed in the
+ * Bookings and Quotes sections; all three now consistently reference the
+ * one real, correctly-named variable.
  */
 export default function PaymentsLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className={paymentSerif.variable}
-      style={{ "--font-editorial": "var(--font-payment-serif)" } as CSSProperties}
-    >
+    <div style={{ "--font-editorial": "var(--font-dashboard-serif)" } as CSSProperties}>
       {children}
     </div>
   );

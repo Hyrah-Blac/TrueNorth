@@ -3,7 +3,7 @@ import { FormField } from "@/components/forms/FormField";
 import { TextInput } from "@/components/forms/TextInput";
 import { AirportCombobox } from "@/components/forms/AirportCombobox";
 import { ToggleSwitch } from "@/components/forms/ToggleSwitch";
-import { airports } from "@/content/airports";
+import { useAirports } from "@/features/airport/hooks/useAirports";
 import type { CreateQuoteInput } from "@/features/quote/schemas/quote.schema";
 
 interface TripDetailsStepProps {
@@ -18,6 +18,7 @@ export function TripDetailsStep({ register, errors, watch, setValue }: TripDetai
   const departureAirportCode = watch("departureAirportCode");
   const destinationAirportCode = watch("destinationAirportCode");
   const today = new Date().toISOString().slice(0, 10);
+  const { airports, isLoading: airportsLoading } = useAirports();
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -28,6 +29,7 @@ export function TripDetailsStep({ register, errors, watch, setValue }: TripDetai
           required
           error={errors.departureAirportCode?.message}
           airports={airports}
+          isLoading={airportsLoading}
           value={departureAirportCode ?? ""}
           onChange={(code) => setValue("departureAirportCode", code, { shouldValidate: true })}
           hasError={Boolean(errors.departureAirportCode)}
@@ -39,6 +41,7 @@ export function TripDetailsStep({ register, errors, watch, setValue }: TripDetai
           required
           error={errors.destinationAirportCode?.message}
           airports={airports}
+          isLoading={airportsLoading}
           value={destinationAirportCode ?? ""}
           onChange={(code) => setValue("destinationAirportCode", code, { shouldValidate: true })}
           hasError={Boolean(errors.destinationAirportCode)}

@@ -7,6 +7,7 @@ import { Conversation, Message } from "../models/Conversation";
 import Quote from "../models/Quote";
 import Booking from "../models/Booking";
 import Payment from "../models/Payment";
+import Ticket from "../models/Ticket";
 import { logger } from "@/lib/logging/logger";
 
 const MODELS = [
@@ -19,6 +20,7 @@ const MODELS = [
   Quote,
   Booking,
   Payment,
+  Ticket,
 ];
 
 /**

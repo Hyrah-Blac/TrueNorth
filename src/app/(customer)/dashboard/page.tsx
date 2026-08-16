@@ -7,12 +7,16 @@ import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { Button } from "@/components/shared/buttons/Button";
 import { getMyBookings } from "@/features/booking/lib/getBookings";
 import { getMyQuotes } from "@/features/quote/lib/getQuotes";
+import { getBookingIdsWithTickets } from "@/features/ticket/lib/getTicketForBooking";
 import { formatCurrency } from "@/utils/currency";
 import { BOOKING_STATUSES } from "@/database/constants/booking-status";
 import { QUOTE_STATUSES } from "@/database/constants/quote-status";
 
 export default async function DashboardOverviewPage() {
   const [bookings, quotes] = await Promise.all([getMyBookings(), getMyQuotes()]);
+  // Batched (one query for every card) rather than one ticketExistsForBooking
+  // call per BookingCard rendered below.
+  const ticketedBookingIds = await getBookingIdsWithTickets(bookings.map((b) => b._id));
 
   const activeBookings = bookings.filter(
     (b) => b.status !== BOOKING_STATUSES.COMPLETED && b.status !== BOOKING_STATUSES.CANCELLED
@@ -221,7 +225,7 @@ export default async function DashboardOverviewPage() {
                   })
                   .slice(0, 3)
                   .map((booking) => (
-                    <BookingCard key={booking._id} booking={booking} />
+                    <BookingCard key={booking._id} booking={booking} hasTicket={ticketedBookingIds.has(booking._id)} />
                   ))}
               </div>
             )}

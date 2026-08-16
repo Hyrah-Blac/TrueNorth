@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { AirplaneTakeoff, CalendarBlank, Users, CaretRight } from "@phosphor-icons/react/dist/ssr";
+import { AirplaneTakeoff, CalendarBlank, Users, CaretRight, Ticket as TicketIcon } from "@phosphor-icons/react/dist/ssr";
 import { CustomerBookingStatusBadge } from "./CustomerBookingStatusBadge";
 import { formatCurrency, calculatePaymentProgress, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import type { IBooking } from "@/types/booking";
 import { BOOKING_STATUSES } from "@/database/constants/booking-status";
 
-export function BookingCard({ booking }: { booking: IBooking }) {
+export function BookingCard({ booking, hasTicket = false }: { booking: IBooking; hasTicket?: boolean }) {
   const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
   const progress = calculatePaymentProgress(booking.totalAmount, booking.paidAmount);
   const paymentStatus = getBookingPaymentStatus(booking.totalAmount, booking.paidAmount);
@@ -73,7 +73,15 @@ export function BookingCard({ booking }: { booking: IBooking }) {
         </div>
 
         <div className="flex items-center justify-between gap-3">
-          <CustomerBookingStatusBadge status={booking.status} />
+          <div className="flex flex-wrap items-center gap-1.5">
+            <CustomerBookingStatusBadge status={booking.status} />
+            {hasTicket ? (
+              <span className="flex items-center gap-1 rounded-full bg-champagne-500/10 px-2 py-0.5 text-[10px] font-medium text-champagne-600">
+                <TicketIcon className="h-3 w-3" aria-hidden="true" />
+                Ticket ready
+              </span>
+            ) : null}
+          </div>
           <div className="text-right">
             <p className="spec-readout text-sm font-semibold text-navy-900">
               {formatCurrency(booking.totalAmount, booking.currency)}

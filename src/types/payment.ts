@@ -1,4 +1,4 @@
-import type { PaymentStatus, PaymentMethod } from "@/database/constants/payment-status";
+import type { PaymentStatus, PaymentMethod, PaymentProvider } from "@/database/constants/payment-status";
 import type { IBooking, IBookingCustomer } from "./booking";
 
 export interface IMpesaDetails {
@@ -11,6 +11,27 @@ export interface IMpesaDetails {
   resultDescription?: string;
 }
 
+export interface IPaystackAuthorizationDetails {
+  authorizationCode?: string;
+  last4?: string;
+  cardType?: string;
+  bank?: string;
+  channel?: string;
+  reusable?: boolean;
+}
+
+export interface IPaystackDetails {
+  reference?: string;
+  accessCode?: string;
+  authorizationUrl?: string;
+  transactionId?: number;
+  channel?: string;
+  gatewayResponse?: string;
+  paidAt?: string;
+  ipAddress?: string;
+  authorization?: IPaystackAuthorizationDetails;
+}
+
 export interface IPayment {
   _id: string;
   paymentNumber: string;
@@ -21,8 +42,10 @@ export interface IPayment {
   currency: string;
   method: PaymentMethod;
   status: PaymentStatus;
+  provider: PaymentProvider;
 
   mpesa: IMpesaDetails;
+  paystack: IPaystackDetails;
 
   receiptUrl?: string;
   failureReason?: string;

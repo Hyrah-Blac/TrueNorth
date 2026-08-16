@@ -31,7 +31,7 @@ export function RecheckPaymentButton({ paymentId }: { paymentId: string }) {
         disabled={isPending}
         icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
       >
-        {isPending ? "Checking…" : "Check M-Pesa Status"}
+        {isPending ? "Checking…" : "Check Payment Status"}
       </Button>
       {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
     </div>

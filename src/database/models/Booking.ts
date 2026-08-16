@@ -32,6 +32,17 @@ export interface BookingDocument
   isRoundTrip: boolean;
   missionType: MissionType;
 
+  // Day-of-travel logistics — filled in by ops once known, typically
+  // closer to departure than the rest of the booking. All optional:
+  // a booking is valid without them, but once set they're surfaced on
+  // the customer's booking page, the digital ticket, and the reminder
+  // email so "when and where do I show up" is answered on-platform
+  // instead of over email/WhatsApp only.
+  departureTime?: string;
+  fboName?: string;
+  fboAddress?: string;
+  groundContactPhone?: string;
+
   totalAmount: number;
   paidAmount: number;
   currency: string;
@@ -84,6 +95,15 @@ const BookingSchema = new Schema<BookingDocument>(
     returnDate: { type: Date },
     isRoundTrip: { type: Boolean, default: false },
     missionType: { type: String, enum: MISSION_TYPE_VALUES, required: true },
+
+    // Free-text HH:mm-style local time (e.g. "09:30") rather than folded
+    // into departureDate — keeps the existing date-only handling used
+    // throughout quotes/booking creation untouched, and avoids baking in
+    // timezone assumptions for a value ops enters manually per booking.
+    departureTime: { type: String, trim: true, maxlength: 20 },
+    fboName: { type: String, trim: true, maxlength: 200 },
+    fboAddress: { type: String, trim: true, maxlength: 300 },
+    groundContactPhone: { type: String, trim: true, maxlength: 30 },
 
     totalAmount: { type: Number, required: true, min: 0 },
     paidAmount: { type: Number, default: 0, min: 0 },

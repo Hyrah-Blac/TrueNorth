@@ -60,6 +60,10 @@ export async function sendBookingReminders(): Promise<{ sent: number; failed: nu
           departureDate: formatDate(booking.departureDate),
           dashboardUrl: `${siteConfig.url}/dashboard/bookings/${booking._id}`,
           contact,
+          departureTime: booking.departureTime,
+          fboName: booking.fboName,
+          fboAddress: booking.fboAddress,
+          groundContactPhone: booking.groundContactPhone,
         }),
       });
 

@@ -6,6 +6,29 @@
 @import "../styles/animations.css";
 
 @layer base {
+  :root {
+    /* Self-hosted via @fontsource (see layout.tsx for why) — the
+       actual @font-face rules are registered by the CSS files
+       imported there; these variables just point the rest of the
+       site's font-family declarations (tailwind.config.ts, and the
+       font-family rules below) at the right family name. --font-display
+       and --font-editorial intentionally resolve to the same family
+       (Poppins) — they always did, next/font just generated two
+       distinct scoped names for independent weight-subsetting, which
+       is no longer necessary now that each weight is its own imported
+       CSS file. */
+    --font-display: "Poppins";
+    --font-editorial: "Poppins";
+    --font-body: "Raleway";
+    --font-data: "IBM Plex Mono";
+    /* The dashboard-section Fraunces serif override (Bookings, Payments,
+       Quotes, Profile) — see those layout.tsx files, and the Phase 5
+       fix note there: this single, consistently-named variable
+       replaces three previously-mismatched per-section variable names
+       that meant the serif override silently never applied. */
+    --font-dashboard-serif: "Fraunces";
+  }
+
   html {
     scroll-behavior: smooth;
     font-size: 15px;

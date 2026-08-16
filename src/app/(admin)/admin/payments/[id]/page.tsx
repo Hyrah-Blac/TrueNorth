@@ -32,21 +32,47 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
   const customer = typeof payment.customer === "object" && payment.customer !== null ? payment.customer : null;
   const booking = typeof payment.booking === "object" && payment.booking !== null ? payment.booking : null;
   const aircraft = booking && typeof booking.aircraft === "object" ? booking.aircraft : undefined;
+  const isPaystack = payment.provider === "paystack";
   const canRecheck =
     (payment.status === PAYMENT_STATUSES.PENDING || payment.status === PAYMENT_STATUSES.PROCESSING) &&
-    Boolean(payment.mpesa.checkoutRequestId);
+    ((!isPaystack && Boolean(payment.mpesa.checkoutRequestId)) || (isPaystack && Boolean(payment.paystack.reference)));
 
-  const rows: { label: string; value: string }[] = [
-    { label: "Method", value: payment.method === "mpesa" ? "M-Pesa" : payment.method },
-    { label: "Phone", value: payment.mpesa.phoneNumber ?? "—" },
-    { label: "M-Pesa receipt", value: payment.mpesa.mpesaReceiptNumber ?? "—" },
-    { label: "Checkout request ID", value: payment.mpesa.checkoutRequestId ?? "—" },
-    { label: "Submitted", value: formatDateTime(payment.createdAt) },
-    ...(payment.mpesa.transactionDate
-      ? [{ label: "Completed", value: formatDateTime(payment.mpesa.transactionDate) }]
-      : []),
-    ...(payment.failureReason ? [{ label: "Failure reason", value: payment.failureReason }] : []),
-  ];
+  const rows: { label: string; value: string }[] = isPaystack
+    ? [
+        { label: "Provider", value: "Paystack" },
+        { label: "Method", value: payment.method === "card" ? "Card" : "M-Pesa (via Paystack)" },
+        { label: "Channel", value: payment.paystack.channel ?? "—" },
+        { label: "Paystack reference", value: payment.paystack.reference ?? "—" },
+        { label: "Paystack transaction ID", value: payment.paystack.transactionId?.toString() ?? "—" },
+        ...(payment.paystack.authorization?.last4
+          ? [
+              {
+                label: "Card",
+                value: `${payment.paystack.authorization.cardType ?? ""} ····${payment.paystack.authorization.last4}`.trim(),
+              },
+            ]
+          : []),
+        { label: "Submitted", value: formatDateTime(payment.createdAt) },
+        ...(payment.paystack.paidAt
+          ? [{ label: "Completed", value: formatDateTime(payment.paystack.paidAt) }]
+          : []),
+        ...(payment.paystack.gatewayResponse
+          ? [{ label: "Gateway response", value: payment.paystack.gatewayResponse }]
+          : []),
+        ...(payment.failureReason ? [{ label: "Failure reason", value: payment.failureReason }] : []),
+      ]
+    : [
+        { label: "Provider", value: "Direct M-Pesa (Daraja)" },
+        { label: "Method", value: payment.method === "mpesa" ? "M-Pesa" : payment.method },
+        { label: "Phone", value: payment.mpesa.phoneNumber ?? "—" },
+        { label: "M-Pesa receipt", value: payment.mpesa.mpesaReceiptNumber ?? "—" },
+        { label: "Checkout request ID", value: payment.mpesa.checkoutRequestId ?? "—" },
+        { label: "Submitted", value: formatDateTime(payment.createdAt) },
+        ...(payment.mpesa.transactionDate
+          ? [{ label: "Completed", value: formatDateTime(payment.mpesa.transactionDate) }]
+          : []),
+        ...(payment.failureReason ? [{ label: "Failure reason", value: payment.failureReason }] : []),
+      ];
 
   return (
     <div>

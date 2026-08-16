@@ -47,6 +47,22 @@ export function toWholeCurrencyUnit(amount: number): number {
   return Math.round(amount);
 }
 
+/**
+ * Converts a major-unit amount (e.g. KES 1,500) to the integer subunit
+ * Paystack's API requires (e.g. 150000 cents). Paystack expects every
+ * currency it supports — including KES — in its smallest unit, so this
+ * always multiplies by 100, never sends a fractional amount, and never
+ * lets a floating-point amount reach the API layer.
+ */
+export function toPaystackSubunit(amount: number): number {
+  return Math.round(amount * 100);
+}
+
+/** Converts a Paystack subunit amount back to the application's major-unit representation. */
+export function fromPaystackSubunit(amount: number): number {
+  return Math.round(amount) / 100;
+}
+
 export function calculateBalance(totalAmount: number, paidAmount: number): number {
   return Math.max(toWholeCurrencyUnit(totalAmount - paidAmount), 0);
 }

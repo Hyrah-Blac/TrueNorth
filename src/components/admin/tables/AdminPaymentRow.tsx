@@ -66,6 +66,8 @@ export function AdminPaymentRow({ payment }: { payment: IPayment }) {
           </p>
           {payment.mpesa?.mpesaReceiptNumber ? (
             <p className="spec-readout text-[10px] text-slate-400">{payment.mpesa.mpesaReceiptNumber}</p>
+          ) : payment.paystack?.reference ? (
+            <p className="spec-readout text-[10px] text-slate-400">{payment.paystack.reference}</p>
           ) : null}
         </div>
         <PaymentStatusBadge status={payment.status} />

@@ -37,6 +37,23 @@ export const verifyPaymentSchema = z.object({
 
 export type VerifyPaymentInput = z.infer<typeof verifyPaymentSchema>;
 
+// Paystack channel the customer picked on our PaymentCheckout UI. This
+// is passed straight through to Paystack's `channels` restriction so
+// the hosted checkout only offers the method the customer already
+// chose, rather than surfacing every channel Paystack supports.
+export const initiatePaystackPaymentSchema = z.object({
+  bookingId: objectId,
+  channel: z.enum(["mobile_money", "card"]),
+});
+
+export type InitiatePaystackPaymentInput = z.infer<typeof initiatePaystackPaymentSchema>;
+
+export const verifyPaystackPaymentSchema = z.object({
+  reference: z.string().min(1, "reference is required"),
+});
+
+export type VerifyPaystackPaymentInput = z.infer<typeof verifyPaystackPaymentSchema>;
+
 export const paymentQuerySchema = z.object({
   status: z.enum(PAYMENT_STATUS_VALUES as [PaymentStatus, ...PaymentStatus[]]).optional(),
   page: z.coerce.number().int().min(1).default(1),

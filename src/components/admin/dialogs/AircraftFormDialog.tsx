@@ -19,7 +19,7 @@ import {
 import { createAircraft, updateAircraft } from "@/features/admin/actions/aircraft.actions";
 import { AIRCRAFT_CATEGORY_VALUES, AIRCRAFT_CATEGORY_LABELS, AIRCRAFT_STATUS_VALUES, AIRCRAFT_STATUS_LABELS } from "@/database/constants/aircraft";
 import { MISSION_TYPE_VALUES, MISSION_TYPE_LABELS } from "@/database/constants/mission-type";
-import { airports } from "@/content/airports";
+import { useAirports } from "@/features/airport/hooks/useAirports";
 import type { IAircraft } from "@/types/aircraft";
 
 interface AircraftFormDialogProps {
@@ -90,6 +90,7 @@ function toFormDefaults(aircraft?: IAircraft | null): Partial<CreateAircraftInpu
 
 export function AircraftFormDialog({ open, onClose, onSaved, aircraft }: AircraftFormDialogProps) {
   const isEditing = Boolean(aircraft);
+  const { airports, isLoading: airportsLoading } = useAirports();
 
   const {
     register,
@@ -193,8 +194,8 @@ export function AircraftFormDialog({ open, onClose, onSaved, aircraft }: Aircraf
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField label="Base airport" htmlFor="baseAirportCode" required error={errors.baseAirportCode?.message}>
-            <Select id="baseAirportCode" defaultValue="" {...register("baseAirportCode")}>
-              <option value="" disabled>Select airport</option>
+            <Select id="baseAirportCode" defaultValue="" {...register("baseAirportCode")} disabled={airportsLoading}>
+              <option value="" disabled>{airportsLoading ? "Loading airports…" : "Select airport"}</option>
               {airports.map((airport) => (
                 <option key={airport.code} value={airport.code}>
                   {airport.name} ({airport.code})

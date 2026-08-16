@@ -1,39 +1,38 @@
 import type { Metadata } from "next";
-import { Poppins, Raleway, IBM_Plex_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { siteConfig } from "@/lib/config/site";
+// Self-hosted via @fontsource (npm-distributed, bundled at build time)
+// rather than next/font/google, which fetches font files from
+// fonts.gstatic.com during the build. That network dependency is a
+// genuine production liability on its own — a build in any
+// network-restricted environment (this sandbox, an air-gapped CI
+// runner, a firewalled build server) fails outright — not just a
+// sandbox inconvenience. Same families, weights, and styles as
+// before; only the delivery mechanism changed. See globals.css for
+// where --font-display/--font-editorial/--font-body/--font-data now
+// get their actual font-family values (previously generated
+// dynamically by next/font's `.variable`).
+import "@fontsource/poppins/300.css";
+import "@fontsource/poppins/400.css";
+import "@fontsource/poppins/500.css";
+import "@fontsource/poppins/600.css";
+import "@fontsource/poppins/700.css";
+import "@fontsource/poppins/800.css";
+import "@fontsource/poppins/300-italic.css";
+import "@fontsource/poppins/400-italic.css";
+import "@fontsource/poppins/500-italic.css";
+import "@fontsource/poppins/600-italic.css";
+import "@fontsource/raleway/300.css";
+import "@fontsource/raleway/400.css";
+import "@fontsource/raleway/600.css";
+import "@fontsource/raleway/700.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/ibm-plex-mono/600.css";
+import "@fontsource/fraunces/300.css";
+import "@fontsource/fraunces/400.css";
+import "@fontsource/fraunces/500.css";
+import "@fontsource/fraunces/600.css";
 import "./globals.css";
-
-// UI-level headings — nav, cards, dashboard, buttons, body copy.
-// Includes 800 (ExtraBold) since section headings across the site use
-// font-extrabold for the bold/uppercase treatment — without loading this
-// weight explicitly, browsers fake-bold the 700 cut instead of rendering
-// the real ExtraBold glyphs.
-const displayFont = Poppins({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-// Editorial headlines — hero, section titles, page headers.
-const editorialFont = Poppins({
-  subsets: ["latin"],
-  variable: "--font-editorial",
-  weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
-});
-
-const bodyFont = Raleway({
-  subsets: ["latin"],
-  variable: "--font-body",
-  weight: ["300", "400", "600", "700"],
-});
-
-const dataFont = IBM_Plex_Mono({
-  subsets: ["latin"],
-  variable: "--font-data",
-  weight: ["500", "600"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -72,10 +71,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html
-        lang="en"
-        className={`${displayFont.variable} ${editorialFont.variable} ${bodyFont.variable} ${dataFont.variable}`}
-      >
+      <html lang="en">
         <body>{children}</body>
       </html>
     </ClerkProvider>

@@ -24,6 +24,7 @@ const isPublicRoute = createRouteMatcher([
   "/sso-callback(.*)",
   "/api/webhooks(.*)",
   "/api/aircraft(.*)",
+  "/api/airports(.*)",
   "/api/contact",
 ]);
 

@@ -33,6 +33,11 @@ export interface IBooking {
   isRoundTrip: boolean;
   missionType: MissionType;
 
+  departureTime?: string;
+  fboName?: string;
+  fboAddress?: string;
+  groundContactPhone?: string;
+
   totalAmount: number;
   paidAmount: number;
   balanceAmount: number;

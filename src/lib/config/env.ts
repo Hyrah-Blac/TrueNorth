@@ -31,6 +31,13 @@ const envSchema = z.object({
   MPESA_PASSKEY: z.string().min(1, "M-Pesa passkey is required"),
   MPESA_CALLBACK_URL: z.string().url("M-Pesa callback URL must be a full https URL"),
 
+  // Paystack is the primary online payment provider (M-Pesa + cards).
+  // There is no separate webhook secret to configure — Paystack signs
+  // webhook payloads with an HMAC of the same secret key used for API
+  // calls (see src/lib/api/paystack.ts verifyWebhookSignature).
+  PAYSTACK_SECRET_KEY: z.string().min(1, "Paystack secret key is required"),
+  NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: z.string().min(1, "Paystack public key is required"),
+
   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().min(1, "Cloudinary cloud name is required"),
   CLOUDINARY_API_KEY: z.string().min(1, "Cloudinary API key is required"),
   CLOUDINARY_API_SECRET: z.string().min(1, "Cloudinary API secret is required"),
@@ -66,6 +73,8 @@ export function getEnv(): Env {
     MPESA_SHORTCODE: process.env.MPESA_SHORTCODE,
     MPESA_PASSKEY: process.env.MPESA_PASSKEY,
     MPESA_CALLBACK_URL: process.env.MPESA_CALLBACK_URL,
+    PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY,
+    NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,

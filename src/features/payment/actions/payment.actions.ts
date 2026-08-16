@@ -5,10 +5,17 @@ import connectToDatabase from "@/database/connection";
 import Payment, { type PaymentDocument } from "@/database/models/Payment";
 import { getCurrentUserOrThrow } from "@/middleware/auth";
 import { ROLES } from "@/database/constants/roles";
-import { initiatePaymentSchema, verifyPaymentSchema } from "../schemas/payment.schema";
+import {
+  initiatePaymentSchema,
+  verifyPaymentSchema,
+  initiatePaystackPaymentSchema,
+  verifyPaystackPaymentSchema,
+} from "../schemas/payment.schema";
 import { initiateBookingPayment } from "../lib/initiatePayment";
 import { applyMpesaResult } from "../lib/applyMpesaResult";
 import { queryStkPushStatus } from "@/lib/api/mpesa";
+import { initiatePaystackBookingPayment } from "../lib/initiatePaystackPayment";
+import { checkPaystackPaymentStatus } from "../lib/verifyPaystackPayment";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { checkRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { MPESA_SUCCESS, shouldTrustQueryFailure } from "@/lib/api/mpesaResultCodes";
@@ -142,4 +149,83 @@ export async function checkPaymentStatus(checkoutRequestId: string): Promise<Che
   }
 
   return { status: payment.status, paymentNumber: payment.paymentNumber };
+}
+
+export interface InitiatePaystackPaymentResult {
+  success: boolean;
+  authorizationUrl?: string;
+  reference?: string;
+  error?: string;
+}
+
+/**
+ * Starts a Paystack checkout for a booking's outstanding balance and
+ * returns the hosted checkout URL to redirect the customer to. Mirrors
+ * initiatePayment's auth/rate-limit shape.
+ */
+export async function initiatePaystackPayment(input: {
+  bookingId: string;
+  channel: "mobile_money" | "card";
+}): Promise<InitiatePaystackPaymentResult> {
+  try {
+    const user = await getCurrentUserOrThrow();
+
+    const ip = await getCallerIp();
+    const rate = checkRateLimit(`payments:paystack:initiate:${ip}`, RATE_LIMITS.AUTHENTICATED_WRITE);
+    if (!rate.allowed) {
+      return { success: false, error: "Too many payment attempts. Please wait a moment and try again." };
+    }
+
+    const data = initiatePaystackPaymentSchema.parse(input);
+    const isAdmin = user.role === ROLES.ADMIN;
+
+    const { authorizationUrl, payment } = await initiatePaystackBookingPayment(
+      data.bookingId,
+      data.channel,
+      String(user._id),
+      isAdmin
+    );
+
+    return { success: true, authorizationUrl, reference: payment.paystack.reference };
+  } catch (error) {
+    logger.error("initiatePaystackPayment action failed", { error: String(error) });
+    const message = error instanceof Error ? error.message : "Failed to start payment";
+    return { success: false, error: message };
+  }
+}
+
+export interface CheckPaystackPaymentStatusResult {
+  status: string;
+  paymentNumber?: string;
+  paymentId?: string;
+  error?: string;
+}
+
+/** Called from the post-checkout callback page (and available for polling) to get the authoritative payment status. */
+export async function checkPaystackPaymentStatusAction(
+  reference: string
+): Promise<CheckPaystackPaymentStatusResult> {
+  try {
+    const user = await getCurrentUserOrThrow();
+
+    const ip = await getCallerIp();
+    const rate = checkRateLimit(`payments:paystack:status:${ip}`, RATE_LIMITS.AUTHENTICATED_READ);
+    if (!rate.allowed) {
+      return { status: "unknown" };
+    }
+
+    const parsed = verifyPaystackPaymentSchema.parse({ reference });
+    const isAdmin = user.role === ROLES.ADMIN;
+
+    const result = await checkPaystackPaymentStatus(parsed.reference, {
+      dbUserId: String(user._id),
+      isAdmin,
+    });
+
+    return result;
+  } catch (error) {
+    logger.error("checkPaystackPaymentStatusAction failed", { error: String(error) });
+    const message = error instanceof Error ? error.message : "Failed to check payment status";
+    return { status: "unknown", error: message };
+  }
 }

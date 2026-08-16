@@ -4,6 +4,8 @@ import { Download, CheckCircle } from "@phosphor-icons/react";
 import { formatCurrency } from "@/utils/currency";
 import { formatDateTime } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
+import { PAYMENT_METHOD_META } from "@/components/payment/PaymentCard/paymentMeta";
+import { PAYMENT_PROVIDERS } from "@/database/constants/payment-status";
 import type { IPayment } from "@/types/payment";
 
 interface ReceiptProps {
@@ -17,17 +19,21 @@ export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptPro
       ? payment.booking.bookingNumber
       : undefined;
 
+  const isPaystack = payment.provider === PAYMENT_PROVIDERS.PAYSTACK;
+  const methodLabel = PAYMENT_METHOD_META[payment.method]?.label ?? payment.method;
+  const providerReference = isPaystack ? payment.paystack.reference : payment.mpesa.mpesaReceiptNumber;
+  const providerReferenceLabel = isPaystack ? "Payment reference (Paystack)" : "M-Pesa receipt";
+  const transactionDate = isPaystack ? payment.paystack.paidAt : payment.mpesa.transactionDate;
+
   const rows: { label: string; value: string; highlight?: boolean }[] = [
     { label: "Amount paid", value: formatCurrency(payment.amount, payment.currency), highlight: true },
-    { label: "Payment method", value: "M-Pesa" },
-    { label: "M-Pesa receipt", value: payment.mpesa.mpesaReceiptNumber ?? "—" },
+    { label: "Payment method", value: methodLabel },
+    { label: providerReferenceLabel, value: providerReference ?? "—" },
     { label: "Payment reference", value: payment.paymentNumber },
     ...(bookingNumber ? [{ label: "Booking reference", value: bookingNumber }] : []),
     {
       label: "Date & time",
-      value: payment.mpesa.transactionDate
-        ? formatDateTime(payment.mpesa.transactionDate)
-        : formatDateTime(payment.createdAt),
+      value: transactionDate ? formatDateTime(transactionDate) : formatDateTime(payment.createdAt),
     },
   ];
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useId } from "react";
 import { Container } from "@/components/layout/container/Container";
 
 interface HeroProps {
@@ -10,43 +11,68 @@ interface HeroProps {
 
 export function Hero({ companyName, tagline }: HeroProps) {
   const words = companyName.split(" ");
+  const grainId = useId();
 
   return (
     <section className="relative flex h-screen min-h-[560px] items-center overflow-hidden bg-navy-950 py-24">
-      <div className="absolute inset-0" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <Image
-          src="/images/hero/hunter.jpg"
+          src="/images/hero/phone1.jpg"
           alt=""
           fill
           priority
-          className="animate-kenburns object-cover"
+          quality={90}
+          className="animate-kenburns object-cover lg:hidden"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-black/60" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.45)_100%)]" />
-      </div>
-
-      <div
-        className="animate-fade-in-up absolute left-1/2 -translate-x-[62%]"
-        style={{ animationDelay: "0ms", top: "clamp(5rem, 4rem + 3vw, 7rem)" }}
-        aria-hidden="true"
-      >
         <Image
-          src="/logo/logo.png"
+          src="/images/hero/hunt6.jpg"
           alt=""
-          width={280}
-          height={82}
+          fill
           priority
-          className="w-auto object-contain"
-          style={{ height: "clamp(2rem, 1.3rem + 3vw, 4.25rem)" }}
+          quality={90}
+          className="animate-kenburns hidden object-cover lg:block"
+          sizes="100vw"
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-navy-950/55 via-navy-950/15 to-navy-950/70 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(6,12,28,0.42)_100%)]" />
+        <svg className="absolute inset-0 h-full w-full opacity-[0.05] mix-blend-overlay">
+          <filter id={grainId}>
+            <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
+          </filter>
+          <rect width="100%" height="100%" filter={`url(#${grainId})`} />
+        </svg>
       </div>
 
       <Container className="relative flex justify-center">
-        <div className="mx-auto w-full max-w-xl px-4 text-center sm:px-6">
+        <div className="relative mx-auto flex w-full max-w-xl flex-col items-center px-4 text-center sm:px-6">
+          <div
+            className="pointer-events-none absolute inset-x-[-10%] inset-y-[-15%] -z-10 bg-[radial-gradient(ellipse_65%_60%_at_50%_40%,rgba(4,10,26,0.4)_0%,transparent_72%)]"
+            aria-hidden="true"
+          />
+
+          <div
+            className="animate-fade-in-up"
+            style={{ animationDelay: "0ms" }}
+          >
+            <Image
+              src="/logo/logo.png"
+              alt=""
+              width={280}
+              height={82}
+              priority
+              className="w-auto object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]"
+              style={{ height: "clamp(2rem, 1.3rem + 3vw, 4.25rem)" }}
+            />
+          </div>
+
           <h1
-            className="animate-fade-in-up text-balance font-editorial text-[clamp(2.125rem,1.5rem+2.4vw,4rem)] font-light uppercase leading-[1.2] tracking-[0.01em] text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.25)]"
-            style={{ animationDelay: "60ms", textWrap: "balance" }}
+            className="animate-fade-in-up text-balance font-editorial text-[clamp(2.125rem,1.5rem+2.4vw,4rem)] font-light uppercase leading-[1.2] tracking-[0.01em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)]"
+            style={{
+              animationDelay: "60ms",
+              marginTop: "clamp(1.25rem, 0.9rem + 1.2vw, 2rem)",
+            }}
           >
             {words.map((word, i) => (
               <span
@@ -60,38 +86,38 @@ export function Hero({ companyName, tagline }: HeroProps) {
           </h1>
 
           <p
-            className="animate-fade-in-up mt-6 font-mono text-[clamp(0.6875rem,0.6rem+0.4vw,0.9375rem)] font-medium uppercase tracking-[0.28em] text-white/60"
+            className="animate-fade-in-up mt-6 font-mono text-[clamp(0.6875rem,0.6rem+0.4vw,0.9375rem)] font-medium uppercase tracking-[0.28em] text-white/70 drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]"
             style={{ animationDelay: "180ms" }}
           >
             Adventure, above &amp; beyond
           </p>
 
           <div
-            className="animate-fade-in-up mx-auto h-px w-6 bg-white/20"
+            className="animate-fade-in-up h-px w-6 bg-white/25"
             style={{ animationDelay: "300ms", marginTop: "clamp(1.5rem, 1.1rem + 1.5vw, 2.25rem)" }}
           />
 
           <p
-            className="animate-fade-in-up mx-auto max-w-[20rem] text-balance text-[clamp(0.75rem,0.7rem+0.25vw,0.875rem)] font-light leading-loose tracking-wide text-white/60"
-            style={{ animationDelay: "380ms", marginTop: "clamp(1.25rem, 1rem + 1vw, 2rem)", textWrap: "balance" }}
+            className="animate-fade-in-up max-w-[20rem] text-balance text-[clamp(0.75rem,0.7rem+0.25vw,0.875rem)] font-light leading-loose tracking-wide text-white/70 drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]"
+            style={{ animationDelay: "380ms", marginTop: "clamp(1.25rem, 1rem + 1vw, 2rem)" }}
           >
             {tagline}
           </p>
         </div>
       </Container>
 
-      <div
-        className="animate-fade-in-up absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 sm:bottom-8"
+      <a
+        href="#content"
+        className="animate-fade-in-up absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 rounded-sm outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-champagne-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-950 sm:bottom-8"
         style={{ animationDelay: "600ms" }}
-        aria-hidden="true"
       >
-        <span className="font-mono text-[0.5625rem] uppercase tracking-[0.4em] text-white/40">
+        <span className="font-mono text-[0.5625rem] uppercase tracking-[0.4em] text-white/50 drop-shadow-[0_1px_6px_rgba(0,0,0,0.4)]">
           Scroll
         </span>
-        <div className="relative h-8 w-px overflow-hidden bg-white/15 sm:h-10">
-          <div className="animate-scroll-line absolute inset-x-0 top-0 h-1/2 bg-white/70" />
-        </div>
-      </div>
+        <span className="relative h-8 w-px overflow-hidden bg-white/20 sm:h-10">
+          <span className="animate-scroll-line absolute inset-x-0 top-0 h-1/2 bg-white/80" />
+        </span>
+      </a>
 
       <style jsx>{`
         @keyframes kenburns {

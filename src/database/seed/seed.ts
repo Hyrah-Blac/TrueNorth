@@ -6,11 +6,13 @@ import mongoose from "mongoose";
 import connectToDatabase from "../connection";
 import User from "../models/User";
 import Aircraft from "../models/Aircraft";
+import Airport from "../models/Airport";
 import Quote from "../models/Quote";
 import Booking from "../models/Booking";
 import Payment from "../models/Payment";
 import { ROLES } from "../constants/roles";
 import { AIRCRAFT_STATUSES } from "../constants/aircraft";
+import { AIRPORT_STATUSES } from "../constants/airport";
 import { QUOTE_STATUSES } from "../constants/quote-status";
 import { BOOKING_STATUSES } from "../constants/booking-status";
 import { PAYMENT_STATUSES, PAYMENT_METHODS } from "../constants/payment-status";
@@ -25,6 +27,7 @@ async function seed() {
     Booking.deleteMany({}),
     Quote.deleteMany({}),
     Aircraft.deleteMany({}),
+    Airport.deleteMany({}),
     User.deleteMany({ email: { $regex: /@seed\.truenorthair\.co\.ke$/ } }),
   ]);
 
@@ -80,6 +83,57 @@ async function seed() {
   ]);
 
   // --- Aircraft --------------------------------------------------------
+  console.log("Seeding airports...");
+
+  // ICAO/coordinates verified against current published sources for NBO,
+  // WIL, ZNZ, JRO, ADD. The remaining East African bush-strip codes (MRE,
+  // ASV, UKA, LAU, LOK, NYK) follow Kenya's standard "HK" ICAO prefix and
+  // established IATA codes but should be cross-checked against an
+  // authoritative source (e.g. OurAirports / Kenya CAA AIP) before this
+  // data is relied on operationally.
+  const airportData: {
+    icao: string;
+    iata: string;
+    name: string;
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    fuelAvailable: boolean;
+    nightOperations: boolean;
+    customsAvailable: boolean;
+    isFeatured?: boolean;
+  }[] = [
+    { icao: "HKNW", iata: "WIL", name: "Wilson Airport", city: "Nairobi", country: "Kenya", latitude: -1.3215, longitude: 36.8149, fuelAvailable: true, nightOperations: true, customsAvailable: false, isFeatured: true },
+    { icao: "HKJK", iata: "NBO", name: "Jomo Kenyatta International", city: "Nairobi", country: "Kenya", latitude: -1.3192, longitude: 36.9278, fuelAvailable: true, nightOperations: true, customsAvailable: true, isFeatured: true },
+    { icao: "HKMS", iata: "MRE", name: "Mara Serena", city: "Maasai Mara", country: "Kenya", latitude: -1.405, longitude: 35.01, fuelAvailable: false, nightOperations: false, customsAvailable: false, isFeatured: true },
+    { icao: "HKAM", iata: "ASV", name: "Amboseli Airport", city: "Amboseli", country: "Kenya", latitude: -2.6422, longitude: 37.25, fuelAvailable: false, nightOperations: false, customsAvailable: false },
+    { icao: "HKUK", iata: "UKA", name: "Ukunda Airport", city: "Diani", country: "Kenya", latitude: -4.2969, longitude: 39.5714, fuelAvailable: true, nightOperations: false, customsAvailable: false },
+    { icao: "HKMO", iata: "MBA", name: "Moi International", city: "Mombasa", country: "Kenya", latitude: -4.0348, longitude: 39.5942, fuelAvailable: true, nightOperations: true, customsAvailable: true, isFeatured: true },
+    { icao: "HKLU", iata: "LAU", name: "Manda Airport", city: "Lamu", country: "Kenya", latitude: -2.2461, longitude: 40.91, fuelAvailable: false, nightOperations: false, customsAvailable: false },
+    { icao: "HKLO", iata: "LOK", name: "Lodwar Airport", city: "Lodwar", country: "Kenya", latitude: 3.1222, longitude: 35.61, fuelAvailable: true, nightOperations: false, customsAvailable: false },
+    { icao: "HKKI", iata: "KIS", name: "Kisumu International", city: "Kisumu", country: "Kenya", latitude: -0.0861, longitude: 34.7289, fuelAvailable: true, nightOperations: true, customsAvailable: true },
+    { icao: "HKEL", iata: "EDL", name: "Eldoret International", city: "Eldoret", country: "Kenya", latitude: 0.4044, longitude: 35.2389, fuelAvailable: true, nightOperations: true, customsAvailable: true },
+    { icao: "HKML", iata: "MYD", name: "Malindi Airport", city: "Malindi", country: "Kenya", latitude: -3.215, longitude: 40.1, fuelAvailable: true, nightOperations: false, customsAvailable: false },
+    { icao: "HKNY", iata: "NYK", name: "Nanyuki Airport", city: "Nanyuki", country: "Kenya", latitude: -0.0611, longitude: 37.0419, fuelAvailable: true, nightOperations: false, customsAvailable: false },
+    { icao: "HTZA", iata: "ZNZ", name: "Zanzibar International", city: "Zanzibar", country: "Tanzania", latitude: -6.2222, longitude: 39.225, fuelAvailable: true, nightOperations: true, customsAvailable: true },
+    { icao: "HTKJ", iata: "JRO", name: "Kilimanjaro International", city: "Arusha", country: "Tanzania", latitude: -3.4294, longitude: 37.0746, fuelAvailable: true, nightOperations: true, customsAvailable: true },
+    { icao: "HRYR", iata: "KGL", name: "Kigali International", city: "Kigali", country: "Rwanda", latitude: -1.9686, longitude: 30.1395, fuelAvailable: true, nightOperations: true, customsAvailable: true },
+    { icao: "HUEN", iata: "EBB", name: "Entebbe International", city: "Entebbe", country: "Uganda", latitude: 0.0424, longitude: 32.4435, fuelAvailable: true, nightOperations: true, customsAvailable: true },
+    { icao: "HJJJ", iata: "JUB", name: "Juba International", city: "Juba", country: "South Sudan", latitude: 4.872, longitude: 31.6011, fuelAvailable: true, nightOperations: false, customsAvailable: true },
+    { icao: "HAAB", iata: "ADD", name: "Bole International", city: "Addis Ababa", country: "Ethiopia", latitude: 8.9779, longitude: 38.7993, fuelAvailable: true, nightOperations: true, customsAvailable: true, isFeatured: true },
+    { icao: "HKKL", iata: "ILU", name: "Kilaguni Airport", city: "Tsavo West", country: "Kenya", latitude: -2.9, longitude: 38.0739, fuelAvailable: false, nightOperations: false, customsAvailable: false },
+  ];
+
+  await Airport.create(
+    airportData.map((item) => ({
+      ...item,
+      status: AIRPORT_STATUSES.ACTIVE,
+      medicalSupport: false,
+      isFeatured: item.isFeatured ?? false,
+    }))
+  );
+
   console.log("Seeding aircraft...");
 
   const aircraftData = [
@@ -336,6 +390,7 @@ async function seed() {
   });
 
   console.log("\nSeed complete:");
+  console.log(`  ${airportData.length} airports`);
   console.log(`  ${aircraft.length} aircraft`);
   console.log(`  ${customers.length} demo customers + 1 admin placeholder`);
   console.log("  3 quotes (pending / reviewing / rejected)");

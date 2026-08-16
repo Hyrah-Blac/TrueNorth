@@ -123,7 +123,7 @@ export const destinations: Destination[] = [
   {
     slug: "tsavo",
     name: "Tsavo",
-    airportCode: "KLX",
+    airportCode: "ILU",
     region: "domestic",
     category: "safari",
     description: "Kenya's largest protected area, famed for red-dust elephants and vast open wilderness.",

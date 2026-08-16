@@ -5,7 +5,10 @@ export interface PaymentReceiptProps {
   paymentNumber: string;
   bookingNumber: string;
   amount: string;
-  mpesaReceiptNumber?: string;
+  /** e.g. "M-Pesa" or "Card" — how the customer paid. */
+  methodLabel: string;
+  /** The provider's own reference for this transaction (M-Pesa receipt number or Paystack reference). */
+  providerReference?: string;
   transactionDate: string;
   receiptUrl: string;
   contact?: EmailContact;
@@ -16,7 +19,8 @@ export default function PaymentReceipt({
   paymentNumber,
   bookingNumber,
   amount,
-  mpesaReceiptNumber,
+  methodLabel,
+  providerReference,
   transactionDate,
   receiptUrl,
   contact,
@@ -29,7 +33,8 @@ export default function PaymentReceipt({
       <EmailDetailRow label="Payment reference" value={paymentNumber} />
       <EmailDetailRow label="Booking reference" value={bookingNumber} />
       <EmailDetailRow label="Amount paid" value={amount} />
-      {mpesaReceiptNumber ? <EmailDetailRow label="M-Pesa receipt" value={mpesaReceiptNumber} /> : null}
+      <EmailDetailRow label="Payment method" value={methodLabel} />
+      {providerReference ? <EmailDetailRow label="Transaction reference" value={providerReference} /> : null}
       <EmailDetailRow label="Date" value={transactionDate} />
 
       <EmailButton href={receiptUrl}>View Full Receipt</EmailButton>

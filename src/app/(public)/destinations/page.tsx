@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Section, SectionGap, SectionHeading } from "@/components/layout/section/Section";
+import { Section, SectionGap } from "@/components/layout/section/Section";
 import { Button } from "@/components/shared/buttons/Button";
 import { DestinationsHero } from "@/components/destinations/DestinationsHero";
 import { DestinationsExplorer } from "@/components/destinations/DestinationsExplorer";
-import { RouteMapPlaceholder } from "@/components/destinations/RouteMapPlaceholder";
 import { JsonLd } from "@/components/shared/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
 import { getSiteSettings } from "@/lib/config/siteSettings";
@@ -25,8 +24,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function DestinationsPage() {
-  const settings = await getSiteSettings();
-
   return (
     <>
       <JsonLd
@@ -38,25 +35,14 @@ export default async function DestinationsPage() {
 
       <DestinationsHero />
 
-      <Section tone="white">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr,1.3fr] lg:items-center">
-          <SectionHeading
-            eyebrow="Route Network"
-            title={`Flown from ${settings.addressLine1}, ${settings.city}`}
-            description={`Every route below is flown from our ${settings.city} base. Flight times are approximate and vary by aircraft type.`}
-          />
-          <RouteMapPlaceholder />
-        </div>
-      </Section>
-
-      <Section tone="slate" className="!pt-0">
+      <Section tone="slate" className="!pt-6 sm:!pt-8">
         <DestinationsExplorer />
       </Section>
 
       <SectionGap size="lg" />
 
       <Section tone="white" size="slim">
-        <div className="flex flex-col overflow-hidden rounded-2xl sm:min-h-[18rem] sm:flex-row">
+        <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 shadow-sm sm:min-h-[18rem] sm:flex-row">
           <div className="flex w-full flex-col justify-center gap-5 bg-gradient-to-r from-white to-slate-100 p-8 sm:w-[45%] sm:shrink-0 md:p-10 lg:p-12">
             <h3 className="font-display text-sm font-semibold text-navy-900 sm:text-base">
               Don&apos;t See Your Destination?
@@ -71,12 +57,12 @@ export default async function DestinationsPage() {
               </Button>
             </div>
           </div>
-          <div className="relative h-56 w-full sm:h-auto sm:flex-1">
+          <div className="group relative h-64 w-full overflow-hidden sm:h-auto sm:flex-1">
             <Image
               src="/images/destinations/nairobi.jpg"
               alt=""
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               sizes="(min-width: 768px) 55vw, 100vw"
             />
           </div>

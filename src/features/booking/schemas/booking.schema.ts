@@ -41,6 +41,27 @@ export const requestModificationSchema = z.object({
   modificationNotes: z.string().trim().min(5).max(1000),
 });
 
+// Day-of-travel logistics — every field optional since ops may only
+// know some of these at first and fill the rest in later. Empty
+// strings are normalized to undefined so "clearing" a field back out
+// works the same as never having set it.
+const optionalTrimmed = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .transform((value) => (value ? value : undefined));
+
+export const updateBookingTripDetailsSchema = z.object({
+  departureTime: optionalTrimmed(20),
+  fboName: optionalTrimmed(200),
+  fboAddress: optionalTrimmed(300),
+  groundContactPhone: optionalTrimmed(30),
+});
+
+export type UpdateBookingTripDetailsInput = z.infer<typeof updateBookingTripDetailsSchema>;
+
 export const bookingQuerySchema = z.object({
   status: statusEnum.optional(),
   page: z.coerce.number().int().min(1).default(1),

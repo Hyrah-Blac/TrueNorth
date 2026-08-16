@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, MapPin } from "lucide-react";
-import type { Airport } from "@/content/airports";
+import { Check, Loader2, MapPin } from "lucide-react";
+import type { AirportOption } from "@/features/airport/hooks/useAirports";
 
 interface AirportComboboxProps {
   id: string;
   label: string;
   required?: boolean;
   error?: string;
-  airports: Airport[];
+  airports: AirportOption[];
   value: string;
   onChange: (code: string) => void;
   onBlur?: () => void;
   hasError?: boolean;
+  /** Airports are loading from the database — show a hint instead of "no matches". */
+  isLoading?: boolean;
 }
 
 /**
@@ -40,6 +42,7 @@ export function AirportCombobox({
   onChange,
   onBlur,
   hasError,
+  isLoading,
 }: AirportComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -83,7 +86,7 @@ export function AirportCombobox({
     setHighlighted(Math.max(results.findIndex((a) => a.code === value), 0));
   }
 
-  function selectAirport(airport: Airport) {
+  function selectAirport(airport: AirportOption) {
     onChange(airport.code);
     setOpen(false);
     setQuery("");
@@ -165,9 +168,14 @@ export function AirportCombobox({
             role="listbox"
             className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 max-h-72 overflow-y-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-lifted ring-1 ring-black/[0.03]"
           >
-            {results.length === 0 ? (
+            {isLoading ? (
+              <li className="flex items-center justify-center gap-2 px-3.5 py-6 text-center text-xs text-slate-400">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                Loading airports&hellip;
+              </li>
+            ) : results.length === 0 ? (
               <li className="px-3.5 py-6 text-center text-xs text-slate-400">
-                No airports match &ldquo;{query}&rdquo;
+                {query ? <>No airports match &ldquo;{query}&rdquo;</> : "No airports available"}
               </li>
             ) : (
               results.map((airport, index) => {

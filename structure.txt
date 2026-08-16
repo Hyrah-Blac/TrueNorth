@@ -1,6 +1,7 @@
 ﻿[FILE] .env
 [FILE] .gitignore
 [FILE] eslint.config.mjs
+[FILE] instrumentation.ts
 [FILE] next.config.ts
 [FILE] next-env.d.ts
 [FILE] package.json
@@ -10,29 +11,52 @@
 [DIR ] public\favicon
 [FILE] public\favicon\favicon.ico
 [DIR ] public\icons
+[FILE] public\icons\StockCake-Seaplane_Tropical_Landing-475792-standard.jpg
 [DIR ] public\images
 [DIR ] public\images\aircraft
 [DIR ] public\images\aircraft\cabins
-[FILE] public\images\aircraft\category.jpg
 [DIR ] public\images\aircraft\exteriors
-[FILE] public\images\aircraft\Heli.jpg
 [DIR ] public\images\aircraft\interiors
 [FILE] public\images\aircraft\interiors\Interior.jpg
 [DIR ] public\images\aircraft\placeholders
 [FILE] public\images\aircraft\Plane.jpg
-[FILE] public\images\aircraft\safari.jpg
 [FILE] public\images\aircraft\sign.jpg
 [DIR ] public\images\destinations
+[FILE] public\images\destinations\about.jpg
 [FILE] public\images\destinations\amboseli.jpg
-[FILE] public\images\destinations\destinations-hero.jpg
 [FILE] public\images\destinations\diani.jpg
+[FILE] public\images\destinations\juba.jpg
+[FILE] public\images\destinations\kigali.jpg
+[FILE] public\images\destinations\kilifi.jpg
+[FILE] public\images\destinations\kisumu.jpg
 [FILE] public\images\destinations\lamu.jpg
+[FILE] public\images\destinations\lodwar.jpg
 [FILE] public\images\destinations\maasai-mara.jpg
+[FILE] public\images\destinations\malindi.jpg
+[FILE] public\images\destinations\mombasa.jpg
 [FILE] public\images\destinations\mt-kenya.jpg
 [FILE] public\images\destinations\nairobi.jpg
+[FILE] public\images\destinations\pc.jpg
+[FILE] public\images\destinations\phone.jpg
+[FILE] public\images\destinations\tsavo.jpg
+[FILE] public\images\destinations\watamu.jpg
+[FILE] public\images\destinations\zanzibar.jpg
 [DIR ] public\images\gallery
 [DIR ] public\images\hero
-[FILE] public\images\hero\2292095.jpg
+[FILE] public\images\hero\airbus.jpg
+[FILE] public\images\hero\Full.jpg
+[FILE] public\images\hero\hunt.jpg
+[FILE] public\images\hero\hunt1.jpg
+[FILE] public\images\hero\hunt3.jpg
+[FILE] public\images\hero\hunt4.jpg
+[FILE] public\images\hero\hunt5.jpg
+[FILE] public\images\hero\hunt6.jpg
+[FILE] public\images\hero\hunter.jpg
+[FILE] public\images\hero\light-jet.jpg
+[FILE] public\images\hero\phone1.jpg
+[FILE] public\images\hero\phone2.jpg
+[FILE] public\images\hero\phone3.jpg
+[FILE] public\images\hero\turboprop.jpg
 [DIR ] public\images\partners
 [DIR ] public\images\team
 [DIR ] public\images\testimonials
@@ -40,6 +64,9 @@
 [FILE] public\logo\logo.png
 [DIR ] public\manifest
 [FILE] SEED-SETUP.md
+[FILE] sentry.client.config.ts
+[FILE] sentry.edge.config.ts
+[FILE] sentry.server.config.ts
 [FILE] SETUP-auth.md
 [DIR ] src
 [DIR ] src\app
@@ -101,6 +128,7 @@
 [DIR ] src\app\(customer)\dashboard\bookings
 [DIR ] src\app\(customer)\dashboard\bookings\[id]
 [FILE] src\app\(customer)\dashboard\bookings\[id]\page.tsx
+[FILE] src\app\(customer)\dashboard\bookings\layout.tsx
 [FILE] src\app\(customer)\dashboard\bookings\loading.tsx
 [FILE] src\app\(customer)\dashboard\bookings\page.tsx
 [FILE] src\app\(customer)\dashboard\error.tsx
@@ -110,13 +138,19 @@
 [DIR ] src\app\(customer)\dashboard\payments
 [DIR ] src\app\(customer)\dashboard\payments\[id]
 [FILE] src\app\(customer)\dashboard\payments\[id]\page.tsx
+[FILE] src\app\(customer)\dashboard\payments\layout.tsx
 [FILE] src\app\(customer)\dashboard\payments\loading.tsx
 [FILE] src\app\(customer)\dashboard\payments\page.tsx
+[DIR ] src\app\(customer)\dashboard\payments\paystack
+[DIR ] src\app\(customer)\dashboard\payments\paystack\callback
+[FILE] src\app\(customer)\dashboard\payments\paystack\callback\page.tsx
 [DIR ] src\app\(customer)\dashboard\profile
+[FILE] src\app\(customer)\dashboard\profile\layout.tsx
 [FILE] src\app\(customer)\dashboard\profile\page.tsx
 [DIR ] src\app\(customer)\dashboard\quotes
 [DIR ] src\app\(customer)\dashboard\quotes\[id]
 [FILE] src\app\(customer)\dashboard\quotes\[id]\page.tsx
+[FILE] src\app\(customer)\dashboard\quotes\layout.tsx
 [FILE] src\app\(customer)\dashboard\quotes\loading.tsx
 [FILE] src\app\(customer)\dashboard\quotes\page.tsx
 [FILE] src\app\(customer)\dashboard\template.tsx
@@ -145,6 +179,13 @@
 [DIR ] src\app\(public)\sso-callback
 [FILE] src\app\(public)\sso-callback\page.tsx
 [FILE] src\app\(public)\template.tsx
+[DIR ] src\app\(public)\ticket
+[DIR ] src\app\(public)\ticket\verify
+[DIR ] src\app\(public)\ticket\verify\[token]
+[FILE] src\app\(public)\ticket\verify\[token]\page.tsx
+[DIR ] src\app\.well-known
+[DIR ] src\app\.well-known\security.txt
+[FILE] src\app\.well-known\security.txt\route.ts
 [DIR ] src\app\api
 [DIR ] src\app\api\ai
 [DIR ] src\app\api\ai\chat
@@ -164,8 +205,6 @@
 [DIR ] src\app\api\bookings
 [DIR ] src\app\api\bookings\[id]
 [FILE] src\app\api\bookings\[id]\route.ts
-[DIR ] src\app\api\bookings\availability
-[FILE] src\app\api\bookings\availability\route.ts
 [DIR ] src\app\api\bookings\confirm
 [FILE] src\app\api\bookings\confirm\route.ts
 [FILE] src\app\api\bookings\route.ts
@@ -174,6 +213,8 @@
 [FILE] src\app\api\cron\booking-reminders\route.ts
 [DIR ] src\app\api\cron\cleanup-expired-quotes
 [FILE] src\app\api\cron\cleanup-expired-quotes\route.ts
+[DIR ] src\app\api\health
+[FILE] src\app\api\health\route.ts
 [DIR ] src\app\api\knowledge-base
 [DIR ] src\app\api\knowledge-base\[id]
 [FILE] src\app\api\knowledge-base\[id]\route.ts
@@ -181,6 +222,11 @@
 [DIR ] src\app\api\payments
 [DIR ] src\app\api\payments\[id]
 [FILE] src\app\api\payments\[id]\route.ts
+[DIR ] src\app\api\payments\paystack
+[DIR ] src\app\api\payments\paystack\initialize
+[FILE] src\app\api\payments\paystack\initialize\route.ts
+[DIR ] src\app\api\payments\paystack\verify
+[FILE] src\app\api\payments\paystack\verify\route.ts
 [FILE] src\app\api\payments\route.ts
 [DIR ] src\app\api\payments\verify
 [FILE] src\app\api\payments\verify\route.ts
@@ -192,9 +238,15 @@
 [DIR ] src\app\api\quotes\reject
 [FILE] src\app\api\quotes\reject\route.ts
 [FILE] src\app\api\quotes\route.ts
+[DIR ] src\app\api\tickets
+[DIR ] src\app\api\tickets\[ticketId]
+[DIR ] src\app\api\tickets\[ticketId]\pdf
+[FILE] src\app\api\tickets\[ticketId]\pdf\route.ts
 [DIR ] src\app\api\upload
 [DIR ] src\app\api\upload\aircraft
 [FILE] src\app\api\upload\aircraft\route.ts
+[DIR ] src\app\api\upload\avatar
+[FILE] src\app\api\upload\avatar\route.ts
 [DIR ] src\app\api\upload\documents
 [FILE] src\app\api\upload\documents\route.ts
 [DIR ] src\app\api\webhooks
@@ -202,15 +254,19 @@
 [FILE] src\app\api\webhooks\clerk\route.ts
 [DIR ] src\app\api\webhooks\mpesa
 [FILE] src\app\api\webhooks\mpesa\route.ts
+[DIR ] src\app\api\webhooks\paystack
+[FILE] src\app\api\webhooks\paystack\route.ts
+[FILE] src\app\apple-icon.png
 [FILE] src\app\error.tsx
 [FILE] src\app\globals.css
+[FILE] src\app\icon.png
 [FILE] src\app\layout.tsx
 [FILE] src\app\not-found.tsx
 [FILE] src\app\robots.ts
 [FILE] src\app\sitemap.ts
 [DIR ] src\components
 [DIR ] src\components\about
-[FILE] src\components\about\AboutHero.tsx
+[FILE] src\components\about\AboutIntro.tsx
 [FILE] src\components\about\StorySection.tsx
 [DIR ] src\components\admin
 [DIR ] src\components\admin\aircraft
@@ -243,8 +299,11 @@
 [FILE] src\components\admin\tables\AdminQuoteRow.tsx
 [FILE] src\components\admin\tables\AircraftTable.tsx
 [FILE] src\components\admin\tables\AirportTable.tsx
+[FILE] src\components\admin\tables\BookingSearchBox.tsx
 [FILE] src\components\admin\tables\CustomerSearchBox.tsx
 [FILE] src\components\admin\tables\KnowledgeBaseTable.tsx
+[FILE] src\components\admin\tables\PaymentDateFilter.tsx
+[FILE] src\components\admin\tables\PaymentSearchBox.tsx
 [DIR ] src\components\aircraft
 [DIR ] src\components\aircraft\amenities
 [FILE] src\components\aircraft\amenities\AmenitiesList.tsx
@@ -265,8 +324,11 @@
 [DIR ] src\components\booking
 [DIR ] src\components\booking\BookingCard
 [FILE] src\components\booking\BookingCard\BookingCard.tsx
+[FILE] src\components\booking\BookingCard\BookingPaymentStatusBadge.tsx
 [FILE] src\components\booking\BookingCard\BookingsTable.tsx
 [FILE] src\components\booking\BookingCard\BookingStatusBadge.tsx
+[FILE] src\components\booking\BookingCard\CustomerBookingPaymentStatusBadge.tsx
+[FILE] src\components\booking\BookingCard\CustomerBookingStatusBadge.tsx
 [DIR ] src\components\booking\BookingForm
 [DIR ] src\components\booking\BookingSummary
 [FILE] src\components\booking\BookingSummary\BookingActionsPanel.tsx
@@ -281,12 +343,12 @@
 [DIR ] src\components\dashboard\stats
 [FILE] src\components\dashboard\StatusFilterTabs.tsx
 [DIR ] src\components\dashboard\widgets
+[FILE] src\components\dashboard\widgets\AvatarUploader.tsx
 [FILE] src\components\dashboard\widgets\ProfileForm.tsx
 [DIR ] src\components\destinations
 [FILE] src\components\destinations\DestinationCard.tsx
 [FILE] src\components\destinations\DestinationsExplorer.tsx
 [FILE] src\components\destinations\DestinationsHero.tsx
-[FILE] src\components\destinations\RouteMapPlaceholder.tsx
 [DIR ] src\components\feedback
 [DIR ] src\components\feedback\EmptyState
 [DIR ] src\components\feedback\ErrorState
@@ -310,9 +372,11 @@
 [DIR ] src\components\fleet\hero
 [FILE] src\components\fleet\hero\FleetHero.tsx
 [DIR ] src\components\forms
+[FILE] src\components\forms\AirportCombobox.tsx
 [FILE] src\components\forms\DocumentUploader.tsx
 [FILE] src\components\forms\FormField.tsx
 [FILE] src\components\forms\Select.tsx
+[FILE] src\components\forms\SelectMenu.tsx
 [FILE] src\components\forms\Textarea.tsx
 [FILE] src\components\forms\TextInput.tsx
 [FILE] src\components\forms\ToggleSwitch.tsx
@@ -338,15 +402,19 @@
 [DIR ] src\components\payment\MpesaButton
 [FILE] src\components\payment\MpesaButton\MpesaButton.tsx
 [DIR ] src\components\payment\PaymentCard
-[FILE] src\components\payment\PaymentCard\PaymentCard.tsx
-[FILE] src\components\payment\PaymentCard\PaymentsTable.tsx
+[FILE] src\components\payment\PaymentCard\CustomerPaymentStatusBadge.tsx
+[FILE] src\components\payment\PaymentCard\paymentMeta.ts
 [FILE] src\components\payment\PaymentCard\PaymentStatusBadge.tsx
+[DIR ] src\components\payment\PaymentCheckout
+[FILE] src\components\payment\PaymentCheckout\PaymentCheckout.tsx
+[FILE] src\components\payment\PaymentRow.tsx
 [DIR ] src\components\payment\Receipt
 [FILE] src\components\payment\Receipt\Receipt.tsx
 [DIR ] src\components\quote
 [FILE] src\components\quote\CharterRequestForm.tsx
-[FILE] src\components\quote\QuoteCard.tsx
-[FILE] src\components\quote\QuotesTable.tsx
+[FILE] src\components\quote\CustomerQuoteStatusBadge.tsx
+[FILE] src\components\quote\QuoteDecisionPanel.tsx
+[FILE] src\components\quote\QuoteRow.tsx
 [FILE] src\components\quote\QuoteStatusBadge.tsx
 [FILE] src\components\quote\StepIndicator.tsx
 [DIR ] src\components\quote\steps
@@ -376,6 +444,9 @@
 [DIR ] src\components\shared\skeleton
 [FILE] src\components\shared\skeleton\Skeleton.tsx
 [FILE] src\components\shared\SkipLink.tsx
+[FILE] src\components\shared\WrongAccountNotice.tsx
+[DIR ] src\components\ticket
+[FILE] src\components\ticket\TicketCard.tsx
 [DIR ] src\components\ui
 [DIR ] src\components\ui\animations
 [DIR ] src\components\ui\charts
@@ -384,14 +455,11 @@
 [FILE] src\components\whatsapp\WhatsAppButton.tsx
 [DIR ] src\constants
 [DIR ] src\content
-[FILE] src\content\airports.ts
 [FILE] src\content\company.ts
 [FILE] src\content\destinations.ts
-[FILE] src\content\faq.ts
 [FILE] src\content\fleet-categories.ts
 [FILE] src\content\navigation.ts
 [FILE] src\content\services.ts
-[FILE] src\content\social-links.ts
 [FILE] src\content\testimonials.ts
 [DIR ] src\database
 [FILE] src\database\connection.ts
@@ -405,6 +473,8 @@
 [FILE] src\database\constants\payment-status.ts
 [FILE] src\database\constants\quote-status.ts
 [FILE] src\database\constants\roles.ts
+[FILE] src\database\constants\ticket-email-status.ts
+[FILE] src\database\constants\ticket-status.ts
 [DIR ] src\database\indexes
 [FILE] src\database\indexes\ensureIndexes.ts
 [DIR ] src\database\interfaces
@@ -420,6 +490,7 @@
 [FILE] src\database\models\Payment.ts
 [FILE] src\database\models\Quote.ts
 [FILE] src\database\models\SiteSettings.ts
+[FILE] src\database\models\Ticket.ts
 [FILE] src\database\models\User.ts
 [DIR ] src\database\plugins
 [FILE] src\database\plugins\slug.ts
@@ -428,16 +499,21 @@
 [DIR ] src\database\seed
 [FILE] src\database\seed\seed.ts
 [DIR ] src\emails
+[FILE] src\emails\AdminCancellationRequested.tsx
 [FILE] src\emails\AdminNewBooking.tsx
 [FILE] src\emails\AdminNewQuote.tsx
+[FILE] src\emails\AdminQuoteDeclined.tsx
 [FILE] src\emails\BookingCancelled.tsx
+[FILE] src\emails\BookingCompleted.tsx
 [FILE] src\emails\BookingConfirmation.tsx
+[FILE] src\emails\BookingCreated.tsx
 [FILE] src\emails\BookingReminder.tsx
 [DIR ] src\emails\components
 [FILE] src\emails\components\EmailLayout.tsx
 [FILE] src\emails\PaymentReceipt.tsx
 [FILE] src\emails\QuoteApproved.tsx
 [FILE] src\emails\QuoteRejected.tsx
+[FILE] src\emails\TicketConfirmation.tsx
 [DIR ] src\features
 [DIR ] src\features\admin
 [DIR ] src\features\admin\actions
@@ -455,6 +531,7 @@
 [FILE] src\features\admin\lib\getAnalytics.ts
 [FILE] src\features\admin\lib\getBookingsForAdmin.ts
 [FILE] src\features\admin\lib\getCustomersForAdmin.ts
+[FILE] src\features\admin\lib\getOperationsDashboard.ts
 [FILE] src\features\admin\lib\getPaymentsForAdmin.ts
 [FILE] src\features\admin\lib\getQuotesForAdmin.ts
 [FILE] src\features\admin\README.md
@@ -473,15 +550,16 @@
 [FILE] src\features\ai\components\cards\EmptyResultCard.tsx
 [FILE] src\features\ai\components\cards\ToolResultRail.tsx
 [FILE] src\features\ai\components\ChatInput.tsx
+[FILE] src\features\ai\components\CompassWatermark.tsx
 [FILE] src\features\ai\components\ConciergeButton.tsx
 [FILE] src\features\ai\components\ConciergeHeader.tsx
 [FILE] src\features\ai\components\ConciergePanel.tsx
 [FILE] src\features\ai\components\ConciergePanelWithProvider.tsx
+[FILE] src\features\ai\components\ConfirmNewConversation.tsx
 [FILE] src\features\ai\components\ErrorState.tsx
 [FILE] src\features\ai\components\FollowUpSuggestions.tsx
 [FILE] src\features\ai\components\MessageBubble.tsx
 [FILE] src\features\ai\components\MessageList.tsx
-[FILE] src\features\ai\components\QuoteProgress.tsx
 [FILE] src\features\ai\components\TypingIndicator.tsx
 [FILE] src\features\ai\components\WelcomeScreen.tsx
 [DIR ] src\features\ai\context
@@ -493,6 +571,7 @@
 [FILE] src\features\ai\lib\api.ts
 [FILE] src\features\ai\lib\markdown.tsx
 [FILE] src\features\ai\lib\pageContext.ts
+[FILE] src\features\ai\lib\quoteStatus.ts
 [FILE] src\features\ai\lib\session.ts
 [FILE] src\features\ai\lib\storage.ts
 [FILE] src\features\ai\lib\toolResults.ts
@@ -511,6 +590,8 @@
 [DIR ] src\features\aircraft\types
 [DIR ] src\features\aircraft\utils
 [DIR ] src\features\airport
+[DIR ] src\features\airport\hooks
+[FILE] src\features\airport\hooks\useAirports.ts
 [DIR ] src\features\airport\schemas
 [FILE] src\features\airport\schemas\airport.schema.ts
 [DIR ] src\features\auth
@@ -561,8 +642,12 @@
 [DIR ] src\features\payment\hooks
 [DIR ] src\features\payment\lib
 [FILE] src\features\payment\lib\applyMpesaResult.ts
+[FILE] src\features\payment\lib\applyPaystackResult.ts
+[FILE] src\features\payment\lib\creditBookingForPayment.ts
 [FILE] src\features\payment\lib\getPayments.ts
 [FILE] src\features\payment\lib\initiatePayment.ts
+[FILE] src\features\payment\lib\initiatePaystackPayment.ts
+[FILE] src\features\payment\lib\verifyPaystackPayment.ts
 [FILE] src\features\payment\README.md
 [DIR ] src\features\payment\schemas
 [FILE] src\features\payment\schemas\payment.schema.ts
@@ -570,12 +655,15 @@
 [DIR ] src\features\payment\utils
 [DIR ] src\features\quote
 [DIR ] src\features\quote\actions
+[FILE] src\features\quote\actions\customerQuote.actions.ts
 [FILE] src\features\quote\actions\quote.actions.ts
 [DIR ] src\features\quote\components
 [DIR ] src\features\quote\hooks
 [DIR ] src\features\quote\lib
+[FILE] src\features\quote\lib\acceptQuote.ts
 [FILE] src\features\quote\lib\approveQuote.ts
 [FILE] src\features\quote\lib\createQuote.ts
+[FILE] src\features\quote\lib\declineQuote.ts
 [FILE] src\features\quote\lib\getQuotes.ts
 [FILE] src\features\quote\lib\linkQuoteCustomer.ts
 [FILE] src\features\quote\lib\rejectQuote.ts
@@ -584,6 +672,15 @@
 [FILE] src\features\quote\schemas\quote.schema.ts
 [DIR ] src\features\quote\types
 [DIR ] src\features\quote\utils
+[DIR ] src\features\ticket
+[DIR ] src\features\ticket\lib
+[FILE] src\features\ticket\lib\generateQrCode.ts
+[FILE] src\features\ticket\lib\generateTicketPdf.tsx
+[FILE] src\features\ticket\lib\getTicketForBooking.ts
+[FILE] src\features\ticket\lib\issueTicketForBooking.ts
+[FILE] src\features\ticket\lib\sendTicketConfirmationEmail.ts
+[FILE] src\features\ticket\lib\ticketVerificationUrl.ts
+[FILE] src\features\ticket\lib\verifyTicket.ts
 [DIR ] src\hooks
 [FILE] src\hooks\useCompareList.ts
 [DIR ] src\jobs
@@ -603,6 +700,7 @@
 [FILE] src\lib\ai\services\airport.service.ts
 [FILE] src\lib\ai\services\company.service.ts
 [FILE] src\lib\ai\services\knowledge.service.ts
+[FILE] src\lib\ai\services\quote.service.ts
 [DIR ] src\lib\ai\tools
 [FILE] src\lib\ai\tools\definitions.ts
 [FILE] src\lib\ai\tools\executor.ts
@@ -611,14 +709,19 @@
 [FILE] src\lib\api\cloudinaryClient.ts
 [FILE] src\lib\api\google-maps.ts
 [FILE] src\lib\api\mpesa.ts
+[FILE] src\lib\api\mpesaResultCodes.ts
+[FILE] src\lib\api\paystack.ts
 [FILE] src\lib\api\resend.ts
 [FILE] src\lib\api\response.ts
+[FILE] src\lib\api\retry.ts
 [DIR ] src\lib\auth
 [FILE] src\lib\auth\session.ts
 [DIR ] src\lib\config
 [FILE] src\lib\config\env.ts
+[FILE] src\lib\config\media.ts
 [FILE] src\lib\config\site.ts
 [FILE] src\lib\config\siteSettings.ts
+[FILE] src\lib\customerLabels.ts
 [DIR ] src\lib\errors
 [FILE] src\lib\errors\AppError.ts
 [FILE] src\lib\errors\HttpError.ts
@@ -626,6 +729,7 @@
 [DIR ] src\lib\logging
 [FILE] src\lib\logging\logger.ts
 [DIR ] src\lib\security
+[FILE] src\lib\security\audit.ts
 [FILE] src\lib\security\csrf.ts
 [FILE] src\lib\security\headers.ts
 [FILE] src\lib\security\verifyCronSecret.ts
@@ -649,6 +753,7 @@
 [FILE] src\types\knowledge-base.ts
 [FILE] src\types\payment.ts
 [FILE] src\types\quote.ts
+[FILE] src\types\ticket.ts
 [FILE] src\types\user.ts
 [DIR ] src\utils
 [FILE] src\utils\currency.ts

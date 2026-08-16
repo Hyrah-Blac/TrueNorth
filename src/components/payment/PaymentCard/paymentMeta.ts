@@ -1,4 +1,4 @@
-import { Smartphone, Landmark, Banknote, type LucideIcon } from "lucide-react";
+import { Smartphone, Landmark, Banknote, CreditCard, type LucideIcon } from "lucide-react";
 import type { PaymentMethod, PaymentStatus } from "@/database/constants/payment-status";
 
 /**
@@ -8,6 +8,7 @@ import type { PaymentMethod, PaymentStatus } from "@/database/constants/payment-
  */
 export const PAYMENT_METHOD_META: Record<PaymentMethod, { label: string; icon: LucideIcon }> = {
   mpesa: { label: "M-Pesa", icon: Smartphone },
+  card: { label: "Card", icon: CreditCard },
   bank_transfer: { label: "Bank transfer", icon: Landmark },
   cash: { label: "Cash", icon: Banknote },
 };

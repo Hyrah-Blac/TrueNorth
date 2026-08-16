@@ -8,6 +8,7 @@ export type AuditAction =
   | "quote.customer_decline"
   | "booking.cancel"
   | "booking.status_change"
+  | "booking.trip_details_update"
   | "user.role_change"
   | "user.deactivate"
   | "user.activate"

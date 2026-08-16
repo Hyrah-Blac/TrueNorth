@@ -168,7 +168,9 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
               <RequirementsStep register={register} errors={errors} watch={watch} setValue={setValue} />
             ) : null}
             {step === 4 ? <ContactStep register={register} errors={errors} /> : null}
-            {step === 5 ? <ReviewStep values={getValues()} aircraftOptions={aircraftOptions} /> : null}
+            {step === 5 ? (
+              <ReviewStep values={getValues()} aircraftOptions={aircraftOptions} onEditStep={setStep} />
+            ) : null}
           </div>
         </div>
 

@@ -68,6 +68,7 @@ async function buildPaymentQuery(filters: AdminPaymentFilters): Promise<Record<s
       { paymentNumber: regex },
       { "mpesa.mpesaReceiptNumber": regex },
       { "mpesa.checkoutRequestId": regex },
+      { "paystack.reference": regex },
       { booking: { $in: matchingBookings.map((b) => b._id) } },
       { customer: { $in: matchingCustomers.map((c) => c._id) } },
     ];

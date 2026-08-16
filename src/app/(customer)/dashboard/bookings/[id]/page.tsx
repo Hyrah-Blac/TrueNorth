@@ -11,18 +11,23 @@ import {
   CreditCard,
   Wallet,
   CaretLeft,
+  Ticket as TicketIcon,
+  Clock,
+  MapPinLine,
+  Phone,
 } from "@phosphor-icons/react/dist/ssr";
 import { CustomerBookingStatusBadge } from "@/components/booking/BookingCard/CustomerBookingStatusBadge";
 import { CustomerBookingPaymentStatusBadge } from "@/components/booking/BookingCard/CustomerBookingPaymentStatusBadge";
 import { BookingTimeline } from "@/components/booking/BookingTimeline/BookingTimeline";
 import { BookingActionsPanel } from "@/components/booking/BookingSummary/BookingActionsPanel";
-import { MpesaButton } from "@/components/payment/MpesaButton/MpesaButton";
+import { PaymentCheckout } from "@/components/payment/PaymentCheckout/PaymentCheckout";
 import { CustomerPaymentStatusBadge } from "@/components/payment/PaymentCard/CustomerPaymentStatusBadge";
 import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { Button } from "@/components/shared/buttons/Button";
 import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
 import { getMyBookingById } from "@/features/booking/lib/getBookings";
 import { getMyPaymentsForBooking } from "@/features/payment/lib/getPayments";
+import { ticketExistsForBooking } from "@/features/ticket/lib/getTicketForBooking";
 import { requireAuth } from "@/middleware/auth";
 import { checkUserRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { formatCurrency, calculatePaymentProgress, getBookingPaymentStatus } from "@/utils/currency";
@@ -75,6 +80,13 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
   const isTerminal = BOOKING_TERMINAL_STATUSES.includes(booking.status);
   const isConfirmed = booking.status === BOOKING_STATUSES.CONFIRMED;
   const needsPayment = !isTerminal && booking.balanceAmount > 0;
+  // Cheap existence check only — the ticket page itself re-verifies
+  // ownership and eligibility from scratch, this just decides whether
+  // to surface the link at all.
+  const hasTicket = booking.balanceAmount <= 0 && (await ticketExistsForBooking(booking._id));
+  const hasTripDetails = Boolean(
+    booking.departureTime || booking.fboName || booking.fboAddress || booking.groundContactPhone
+  );
 
   return (
     <div className="space-y-5">
@@ -103,6 +115,12 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
           <div className="flex flex-wrap items-center gap-2">
             <CustomerBookingStatusBadge status={booking.status} />
             <CustomerBookingPaymentStatusBadge status={paymentStatus} />
+            {hasTicket ? (
+              <Button href={`/dashboard/bookings/${booking._id}/ticket`} variant="outline" size="sm" className="gap-1.5">
+                <TicketIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                View Ticket
+              </Button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -208,6 +226,64 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
             ) : null}
           </div>
 
+          {/* Day-of-travel details — only rendered once ops has filled at
+              least one field in; an empty "TBD" card would just tell the
+              customer we don't know either, which isn't reassuring on
+              its own and is better left out until there's something to say. */}
+          {hasTripDetails ? (
+            <div className="rounded-xl border border-navy-900/10 bg-white p-5 sm:p-6">
+              <h2 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                <Clock className="h-3.5 w-3.5 text-champagne-500" aria-hidden="true" />
+                Day-of-travel
+              </h2>
+              <dl className="mt-4 grid grid-cols-1 gap-4 sm:mt-5 sm:grid-cols-2 sm:gap-5">
+                {booking.departureTime ? (
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
+                      Departure time
+                    </dt>
+                    <dd className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-navy-900">
+                      <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
+                      {booking.departureTime} local
+                    </dd>
+                  </div>
+                ) : null}
+                {booking.groundContactPhone ? (
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
+                      Ground contact
+                    </dt>
+                    <dd className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-navy-900">
+                      <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
+                      <a href={`tel:${booking.groundContactPhone}`} className="hover:text-sky-600">
+                        {booking.groundContactPhone}
+                      </a>
+                    </dd>
+                  </div>
+                ) : null}
+                {booking.fboName ? (
+                  <div className="sm:col-span-2">
+                    <dt className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
+                      FBO / Terminal
+                    </dt>
+                    <dd className="mt-1.5 flex items-start gap-1.5 text-xs font-medium text-navy-900">
+                      <MapPinLine className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
+                      <span>
+                        {booking.fboName}
+                        {booking.fboAddress ? (
+                          <span className="mt-0.5 block font-normal text-slate-500">{booking.fboAddress}</span>
+                        ) : null}
+                      </span>
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+              <p className="mt-4 text-[11px] text-slate-400">
+                Please arrive at least 45 minutes before departure.
+              </p>
+            </div>
+          ) : null}
+
           {/* Timeline */}
           <div className="rounded-xl border border-navy-900/10 bg-white p-5 sm:p-6">
             <h2 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
@@ -308,11 +384,12 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
             {/* M-Pesa payment or fully-paid state */}
             <div className="px-5 py-4 border-t border-navy-900/10 sm:px-6 sm:py-5">
               {booking.balanceAmount > 0 && canCancel ? (
-                <MpesaButton
+                <PaymentCheckout
                   bookingId={booking._id}
                   amount={booking.balanceAmount}
                   currency={booking.currency}
-                  resumeCheckoutRequestId={activePayment?.mpesa.checkoutRequestId}
+                  hasActivePayment={Boolean(activePayment)}
+                  activePaymentAuthorizationUrl={activePayment?.paystack?.authorizationUrl}
                 />
               ) : booking.balanceAmount <= 0 ? (
                 <InlineAlert tone="success">

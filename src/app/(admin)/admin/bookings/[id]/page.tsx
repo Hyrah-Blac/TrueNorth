@@ -6,6 +6,7 @@ import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStat
 import { BookingPaymentStatusBadge } from "@/components/booking/BookingCard/BookingPaymentStatusBadge";
 import { BookingTimeline } from "@/components/booking/BookingTimeline/BookingTimeline";
 import { BookingStatusActions } from "@/components/admin/dialogs/BookingStatusActions";
+import { BookingTripDetailsActions } from "@/components/admin/dialogs/BookingTripDetailsActions";
 import { getBookingForAdmin } from "@/features/admin/lib/getBookingsForAdmin";
 import { formatCurrency, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDate, formatDateTime } from "@/utils/date";
@@ -112,6 +113,21 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
                 bookingId={booking._id}
                 currentStatus={booking.status}
                 balanceAmount={booking.balanceAmount}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-7">
+            <h3 className="font-display text-base font-semibold text-navy-900">Day-of-travel details</h3>
+            <div className="mt-4">
+              <BookingTripDetailsActions
+                bookingId={booking._id}
+                details={{
+                  departureTime: booking.departureTime,
+                  fboName: booking.fboName,
+                  fboAddress: booking.fboAddress,
+                  groundContactPhone: booking.groundContactPhone,
+                }}
               />
             </div>
           </div>
