@@ -9,6 +9,7 @@ import { getMyTicketForBooking } from "@/features/ticket/lib/getTicketForBooking
 import { getTicketVerificationUrl } from "@/features/ticket/lib/ticketVerificationUrl";
 import { generateQrCodeDataUrl } from "@/features/ticket/lib/generateQrCode";
 import { getTicketAirportCities } from "@/features/ticket/lib/getTicketAirportNames";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 import { requireAuth } from "@/middleware/auth";
 import { checkUserRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { TICKET_STATUSES } from "@/database/constants/ticket-status";
@@ -92,6 +93,10 @@ export default async function BookingTicketPage({ params }: TicketPageProps) {
     booking.departureAirportCode,
     booking.destinationAirportCode,
   ]);
+  // Admin-configured contact info (Settings > General) rather than the
+  // hardcoded fallback in site.ts — see TicketCard's companyName/
+  // contactPhone/contactEmail props.
+  const settings = await getSiteSettings();
 
   return (
     <div className="space-y-4">
@@ -126,6 +131,9 @@ export default async function BookingTicketPage({ params }: TicketPageProps) {
         fboAddress={booking.fboAddress}
         departureAirportName={airportCities[booking.departureAirportCode]}
         destinationAirportName={airportCities[booking.destinationAirportCode]}
+        companyName={settings.companyName}
+        contactPhone={settings.phone}
+        contactEmail={settings.email}
       />
     </div>
   );

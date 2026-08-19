@@ -35,36 +35,38 @@ export default async function DestinationsPage() {
 
       <DestinationsHero />
 
-      <Section tone="slate" className="!pt-6 sm:!pt-8">
+      <Section tone="slate" className="!pt-5 !pb-8 sm:!pt-6 sm:!pb-10">
         <DestinationsExplorer />
       </Section>
 
-      <SectionGap size="lg" />
-
       <Section tone="white" size="slim">
-        <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 shadow-sm sm:min-h-[18rem] sm:flex-row">
-          <div className="flex w-full flex-col justify-center gap-5 bg-gradient-to-r from-white to-slate-100 p-8 sm:w-[45%] sm:shrink-0 md:p-10 lg:p-12">
-            <h3 className="font-display text-sm font-semibold text-navy-900 sm:text-base">
-              Don&apos;t See Your Destination?
-            </h3>
-            <p className="text-sm leading-relaxed text-slate-600">
-              If there&apos;s a runway or a helipad, we can likely fly it. Tell us the route and
-              we&apos;ll quote it directly.
-            </p>
-            <div>
-              <Button href="/request-charter" variant="blue" size="md">
-                Request a Route
-              </Button>
-            </div>
-          </div>
-          <div className="group relative h-64 w-full overflow-hidden sm:h-auto sm:flex-1">
+        <div className="relative flex min-h-[14rem] flex-col overflow-hidden rounded-2xl sm:min-h-[16rem] sm:flex-row">
+          {/* Image — absolute on mobile (behind scrim), right column on desktop */}
+          <div className="absolute inset-0 sm:relative sm:inset-auto sm:order-last sm:flex-1">
             <Image
               src="/images/destinations/nairobi.jpg"
               alt=""
               fill
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-              sizes="(min-width: 768px) 55vw, 100vw"
+              className="object-cover"
+              sizes="(min-width: 640px) 58vw, 100vw"
             />
+            <div className="absolute inset-0 bg-navy-900/65 sm:hidden" />
+          </div>
+
+          {/* Content */}
+          <div className="relative z-10 flex w-full flex-col justify-center gap-5 bg-navy-900 p-7 sm:w-[42%] sm:shrink-0 sm:p-8 md:p-10">
+            <div className="space-y-2.5">
+              <h3 className="font-editorial text-lg font-light leading-snug tracking-tight text-white sm:text-xl">
+                Don&apos;t see your destination?
+              </h3>
+              <p className="text-xs leading-relaxed text-slate-400">
+                If there&apos;s a runway or a helipad, we can fly it.
+                Tell us your route and we&apos;ll quote it directly.
+              </p>
+            </div>
+            <Button href="/request-charter" variant="champagne" size="sm">
+              Request a Route
+            </Button>
           </div>
         </div>
       </Section>

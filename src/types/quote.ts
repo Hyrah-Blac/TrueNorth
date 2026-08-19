@@ -46,6 +46,11 @@ export interface IQuote {
   departureDate: string;
   returnDate?: string;
   isRoundTrip: boolean;
+  // Customer's stated preference at request time (a broad window like
+  // "morning", or an exact "HH:MM" time) — see departureTimePreference
+  // on the Quote model. Shown to the admin as a hint when approving;
+  // not the confirmed time.
+  departureTimePreference?: string;
 
   aircraftPreference?: string | IAircraft;
   missionType: MissionType;
@@ -76,6 +81,11 @@ export interface IQuote {
   reviewedBy?: string | IQuoteReviewer;
   reviewedAt?: string;
   selectedAircraft?: string | IAircraft;
+  // Confirmed departure time ("HH:MM", 24-hour), set by the admin at
+  // approval alongside the aircraft and price — see departureTime on
+  // the Quote model. Distinct from departureTimePreference, which is
+  // the customer's stated preference at request time.
+  departureTime?: string;
   convertedBooking?: string;
 
   createdAt: string;

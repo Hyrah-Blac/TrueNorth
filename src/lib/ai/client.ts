@@ -2,6 +2,7 @@ import "server-only";
 import { GoogleGenAI, ApiError, FunctionCallingConfigMode, ThinkingLevel } from "@google/genai";
 import { AppError } from "@/lib/errors/AppError";
 import { logger } from "@/lib/logging/logger";
+import { getEnv } from "@/lib/config/env";
 import { MESSAGE_ROLES } from "@/database/constants/ai";
 import type { Content, FunctionDeclaration, Part, ThinkingConfig } from "@google/genai";
 import type {
@@ -21,11 +22,12 @@ const DEFAULT_TOP_P = 0.95;
 const DEFAULT_MAX_OUTPUT_TOKENS = 4096;
 
 function getConfig(): { apiKey: string; model: string } {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const { GEMINI_API_KEY, GEMINI_MODEL } = getEnv();
+  const apiKey = GEMINI_API_KEY;
   if (!apiKey) {
     throw new AppError("AI service is not configured. GEMINI_API_KEY is missing.", 503, true);
   }
-  const model = process.env.GEMINI_MODEL?.trim();
+  const model = GEMINI_MODEL?.trim();
   if (!model) {
     throw new AppError("AI service is not configured. GEMINI_MODEL is missing.", 503, true);
   }

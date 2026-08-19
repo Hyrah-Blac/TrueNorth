@@ -56,7 +56,7 @@ export default async function PaymentDetailPage({ params }: PaymentDetailPagePro
           All Payments
         </span>
       </Link>
-      <Receipt payment={payment} contactEmail={settings.email} />
+      <Receipt payment={payment} companyName={settings.companyName} contactEmail={settings.email} />
     </div>
   );
 }

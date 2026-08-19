@@ -26,6 +26,7 @@ import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { Button } from "@/components/shared/buttons/Button";
 import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
 import { getMyBookingById } from "@/features/booking/lib/getBookings";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { getMyPaymentsForBooking } from "@/features/payment/lib/getPayments";
 import { ticketExistsForBooking } from "@/features/ticket/lib/getTicketForBooking";
 import { requireAuth } from "@/middleware/auth";
@@ -73,11 +74,20 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
   const canCancel = !BOOKING_TERMINAL_STATUSES.includes(booking.status);
   const paymentProgress = calculatePaymentProgress(booking.totalAmount, booking.paidAmount);
   const paymentStatus = getBookingPaymentStatus(booking.totalAmount, booking.paidAmount);
-  const payments = await getMyPaymentsForBooking(booking._id);
-  const activePayment = payments.find(
+  const allPayments = await getMyPaymentsForBooking(booking._id);
+  // Only surface completed/refunded payments to customers — failed and
+  // pending attempts are internal noise that creates confusion, not clarity.
+  const payments = allPayments.filter(
+    (p) => p.status === PAYMENT_STATUSES.COMPLETED || p.status === PAYMENT_STATUSES.REFUNDED
+  );
+  const activePayment = allPayments.find(
     (p) => p.status === PAYMENT_STATUSES.PENDING || p.status === PAYMENT_STATUSES.PROCESSING
   );
   const isTerminal = BOOKING_TERMINAL_STATUSES.includes(booking.status);
+
+  const airportNames = await getAirportNamesByCodes([booking.departureAirportCode, booking.destinationAirportCode]);
+  const departureName = airportNames[booking.departureAirportCode.toUpperCase()]?.city ?? booking.departureAirportCode;
+  const destinationName = airportNames[booking.destinationAirportCode.toUpperCase()]?.city ?? booking.destinationAirportCode;
   const isConfirmed = booking.status === BOOKING_STATUSES.CONFIRMED;
   const needsPayment = !isTerminal && booking.balanceAmount > 0;
   // Cheap existence check only — the ticket page itself re-verifies
@@ -104,9 +114,11 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
               {booking.bookingNumber}
             </p>
             <h1 className="mt-1.5 font-editorial text-2xl font-light tracking-tight text-navy-900 sm:text-[1.75rem]">
-              {booking.departureAirportCode}{" "}
+              {departureName}{" "}
+              <span className="text-[0.8em] font-sans text-slate-400">({booking.departureAirportCode})</span>{" "}
               <span className="text-champagne-500">→</span>{" "}
-              {booking.destinationAirportCode}
+              {destinationName}{" "}
+              <span className="text-[0.8em] font-sans text-slate-400">({booking.destinationAirportCode})</span>
             </h1>
             <p className="mt-1 text-xs text-slate-500">
               Booked {formatDate(booking.createdAt)}
@@ -114,7 +126,13 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <CustomerBookingStatusBadge status={booking.status} />
-            <CustomerBookingPaymentStatusBadge status={paymentStatus} />
+            {/* "Pending" already reads as "Awaiting Payment" above — showing
+                the payment badge too would just repeat "Payment Required"
+                right next to it. Once the booking moves past pending, the
+                two badges track genuinely different things (e.g. a
+                confirmed booking can still be only partially paid), so the
+                payment badge earns its place from there on. */}
+            {booking.status !== "pending" ? <CustomerBookingPaymentStatusBadge status={paymentStatus} /> : null}
             {hasTicket ? (
               <Button href={`/dashboard/bookings/${booking._id}/ticket`} variant="outline" size="sm" className="gap-1.5">
                 <TicketIcon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -140,14 +158,16 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
 
       {/* Payment due banner */}
       {needsPayment && !activePayment ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
-          <div className="flex items-start gap-3">
-            <CurrencyCircleDollar className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" aria-hidden="true" />
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-50/60 px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+          <div className="flex items-center gap-3.5">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500/10">
+              <CurrencyCircleDollar className="h-5 w-5 text-blue-600" weight="fill" aria-hidden="true" />
+            </span>
             <div>
               <p className="text-sm font-semibold text-blue-900">
                 {formatCurrency(booking.balanceAmount, booking.currency)} outstanding
               </p>
-              <p className="mt-0.5 text-xs text-blue-700">
+              <p className="mt-0.5 text-xs text-blue-700/80">
                 Your booking is awaiting payment. Pay with M-Pesa to confirm your charter.
               </p>
             </div>
@@ -169,12 +189,6 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
             </h2>
 
             <dl className="mt-4 grid grid-cols-1 gap-4 sm:mt-5 sm:grid-cols-2 sm:gap-5">
-              <div>
-                <dt className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">Route</dt>
-                <dd className="font-editorial mt-1.5 text-lg font-medium text-navy-900">
-                  {booking.departureAirportCode} → {booking.destinationAirportCode}
-                </dd>
-              </div>
               <div>
                 <dt className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
                   {booking.returnDate ? "Dates" : "Date"}
@@ -199,21 +213,9 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
                 </dd>
               </div>
               {aircraftName ? (
-                <div className="sm:col-span-2 border-t border-navy-900/10 pt-4 sm:pt-5">
+                <div>
                   <dt className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">Aircraft</dt>
-                  <dd className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
-                    <span className="font-editorial text-base font-medium text-navy-900">{aircraftName}</span>
-                    {aircraft?.manufacturer || aircraft?.model ? (
-                      <span className="text-xs text-slate-500">
-                        {aircraft?.manufacturer} {aircraft?.model}
-                      </span>
-                    ) : null}
-                    {aircraft?.registration ? (
-                      <span className="spec-readout text-[11px] text-slate-400">
-                        Reg: {aircraft.registration}
-                      </span>
-                    ) : null}
-                  </dd>
+                  <dd className="mt-1.5 text-xs font-medium text-navy-900">{aircraftName}</dd>
                 </div>
               ) : null}
             </dl>
@@ -284,16 +286,21 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
             </div>
           ) : null}
 
-          {/* Timeline */}
-          <div className="rounded-xl border border-navy-900/10 bg-white p-5 sm:p-6">
-            <h2 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-              <ClockCounterClockwise className="h-3.5 w-3.5 text-champagne-500" aria-hidden="true" />
-              Booking timeline
-            </h2>
-            <div className="mt-4 sm:mt-5">
-              <BookingTimeline timeline={booking.timeline} />
+          {/* Timeline — only shown on active bookings. Once a booking is
+              terminal (completed or cancelled) the history of internal
+              status steps adds noise rather than clarity for the customer;
+              the header badges already communicate the final outcome. */}
+          {!isTerminal ? (
+            <div className="rounded-xl border border-navy-900/10 bg-white p-5 sm:p-6">
+              <h2 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                <ClockCounterClockwise className="h-3.5 w-3.5 text-champagne-500" aria-hidden="true" />
+                Booking timeline
+              </h2>
+              <div className="mt-4 sm:mt-5">
+                <BookingTimeline timeline={booking.timeline} />
+              </div>
             </div>
-          </div>
+          ) : null}
 
           {/* Manage booking */}
           {canCancel ? (
@@ -318,7 +325,7 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
         </div>
 
         {/* Right: payment panel */}
-        <aside className="order-1 h-fit space-y-4 lg:order-2 lg:sticky lg:top-24">
+        <aside className="order-1 h-fit space-y-4 lg:order-2">
           {/* Payment summary */}
           <div className="rounded-xl border border-navy-900/10 bg-white overflow-hidden">
             <div className="px-5 py-4 border-b border-navy-900/10 sm:px-6 sm:py-5">
@@ -381,7 +388,7 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
               </div>
             </dl>
 
-            {/* M-Pesa payment or fully-paid state */}
+            {/* M-Pesa payment, fully-paid state, or terminal receipt links */}
             <div className="px-5 py-4 border-t border-navy-900/10 sm:px-6 sm:py-5">
               {booking.balanceAmount > 0 && canCancel ? (
                 <PaymentCheckout
@@ -392,15 +399,40 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
                   activePaymentAuthorizationUrl={activePayment?.paystack?.authorizationUrl}
                 />
               ) : booking.balanceAmount <= 0 ? (
-                <InlineAlert tone="success">
-                  This booking is fully paid. Your charter is confirmed.
-                </InlineAlert>
+                <div className="space-y-3">
+                  <InlineAlert tone="success">
+                    This booking is fully paid. Your charter is confirmed.
+                  </InlineAlert>
+                  {/* On terminal bookings the payment history card is hidden,
+                      so surface receipt links here instead. */}
+                  {isTerminal && payments.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {payments.map((payment) =>
+                        payment.status === PAYMENT_STATUSES.COMPLETED ? (
+                          <Link
+                            key={payment._id}
+                            href={`/dashboard/payments/${payment._id}`}
+                            className="flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-1.5 text-[11px] font-medium text-slate-600 transition-colors hover:border-sky-300 hover:text-sky-700"
+                          >
+                            <Receipt className="h-3 w-3" aria-hidden="true" />
+                            {payments.filter((p) => p.status === PAYMENT_STATUSES.COMPLETED).length > 1
+                              ? `Receipt · ${formatCurrency(payment.amount, payment.currency)}`
+                              : "View receipt"}
+                          </Link>
+                        ) : null
+                      )}
+                    </div>
+                  ) : null}
+                </div>
               ) : null}
             </div>
           </div>
 
-          {/* Payment history */}
-          {payments.length > 0 ? (
+          {/* Payment history — only shown on active bookings with multiple
+              instalments. Terminal bookings don't need it: the summary above
+              already shows the total paid, and receipt links sit beneath the
+              confirmation message. */}
+          {!isTerminal && payments.length > 1 ? (
             <div className="rounded-xl border border-navy-900/10 bg-white p-5 sm:p-6">
               <h3 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                 <Wallet className="h-3.5 w-3.5 text-champagne-500" aria-hidden="true" />
@@ -408,10 +440,7 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
               </h3>
               <ul className="mt-3.5 space-y-3">
                 {payments.map((payment) => (
-                  <li
-                    key={payment._id}
-                    className="flex items-center justify-between gap-3"
-                  >
+                  <li key={payment._id} className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-editorial text-xs font-semibold text-navy-900">
                         {formatCurrency(payment.amount, payment.currency)}

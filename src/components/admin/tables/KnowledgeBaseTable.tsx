@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, BookOpen, Globe, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/shared/buttons/Button";
+import { FancyButton } from "@/components/shared/buttons/FancyButton";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { ConfirmDialog } from "@/components/admin/dialogs/ConfirmDialog";
 import { ListToolbar } from "@/components/admin/layout/ListToolbar";
@@ -72,16 +73,15 @@ export function KnowledgeBaseTable({ initialEntries, total }: KnowledgeBaseTable
   return (
     <div>
       <ListToolbar count={total} noun="entry" pluralNoun="entries">
-        <Button
-          variant="primary"
+        <FancyButton
           onClick={() => {
             setEditingEntry(null);
             setFormOpen(true);
           }}
-          icon={<Plus className="h-4 w-4" />}
+          icon={<Plus className="h-3.5 w-3.5" aria-hidden="true" />}
         >
           New Entry
-        </Button>
+        </FancyButton>
       </ListToolbar>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">

@@ -24,37 +24,43 @@ export default async function AdminQuotesPage({ searchParams }: AdminQuotesPageP
 
   return (
     <div>
-   <PageHeader
-  title="Quotes"
-  description="Review and respond to charter requests submitted from the public site."
-/>
-
-      <FilterTabs
-        options={[
-          { label: "All", href: "/admin/quotes", active: !status },
-          ...QUOTE_STATUS_VALUES.map((value) => ({
-            label: QUOTE_STATUS_LABELS[value],
-            href: `/admin/quotes?status=${value}`,
-            active: status === value,
-          })),
-        ]}
+      <PageHeader
+        variant="light"
+        showTitle={false}
+        title="Quotes"
+        description="Review and respond to charter requests submitted from the public site."
       />
 
-      <div className="mt-6">
-        <ListToolbar count={quotes.length} noun="quote" />
+      <div className="mb-6">
+        <FilterTabs
+          options={[
+            { label: "All", href: "/admin/quotes", active: !status },
+            ...QUOTE_STATUS_VALUES.map((value) => ({
+              label: QUOTE_STATUS_LABELS[value],
+              href: `/admin/quotes?status=${value}`,
+              active: status === value,
+            })),
+          ]}
+        />
       </div>
 
-      <div className="mt-4 space-y-4">
-        {quotes.length === 0 ? (
+      <ListToolbar count={quotes.length} noun="quote" />
+
+      {quotes.length === 0 ? (
+        <div className="py-16">
           <EmptyState
             icon={<FileText className="h-5 w-5" aria-hidden="true" />}
             title="No quotes found"
             description="Charter requests submitted from the public site will appear here."
           />
-        ) : (
-          quotes.map((quote) => <AdminQuoteRow key={quote._id} quote={quote} />)
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100">
+          {quotes.map((quote) => (
+            <AdminQuoteRow key={quote._id} quote={quote} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

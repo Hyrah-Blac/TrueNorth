@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { SealCheck, SealWarning } from "@phosphor-icons/react/dist/ssr";
-import { siteConfig } from "@/lib/config/site";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 import { verifyTicket } from "@/features/ticket/lib/verifyTicket";
 import { checkRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { formatDate } from "@/utils/date";
@@ -59,6 +59,11 @@ export default async function VerifyTicketPage({ params }: VerifyTicketPageProps
     );
   }
 
+  // Admin-configured company name (Settings > General) rather than
+  // the hardcoded site.ts fallback — only needed on this branch, so
+  // it's fetched after the invalid-ticket early return above.
+  const settings = await getSiteSettings();
+
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-6 py-16">
       <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-champagne-400/30 bg-white shadow-soft">
@@ -67,7 +72,7 @@ export default async function VerifyTicketPage({ params }: VerifyTicketPageProps
           <h1 className="font-display text-lg font-semibold uppercase tracking-[0.14em] text-white">
             Valid Charter Ticket
           </h1>
-          <p className="text-[0.6875rem] text-white/60">{siteConfig.name}</p>
+          <p className="text-[0.6875rem] text-white/60">{settings.companyName}</p>
         </div>
 
         <dl className="divide-y divide-navy-900/10 px-8 py-6">

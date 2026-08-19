@@ -66,7 +66,7 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
 
   return (
     <div>
-      <PageHeader title="Payments" description="Track deposits and balance payments across every booking." />
+      <PageHeader variant="light" showTitle={false} title="Payments" description="Track deposits and balance payments across every booking." />
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Matching payments" value={String(summary.total)} icon={Receipt} />
@@ -104,8 +104,8 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
         <ListToolbar count={total} noun="payment" />
       </div>
 
-      <div className="mt-4 space-y-4">
-        {payments.length === 0 ? (
+      {payments.length === 0 ? (
+        <div className="py-16">
           <EmptyState
             icon={<Receipt className="h-5 w-5" aria-hidden="true" />}
             title={activeFilterCount > 0 ? "No payments match your current filters" : "No payments found"}
@@ -115,10 +115,14 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
                 : "Payments will appear here once a customer pays a booking deposit or balance."
             }
           />
-        ) : (
-          payments.map((payment) => <AdminPaymentRow key={payment._id} payment={payment} />)
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100">
+          {payments.map((payment) => (
+            <AdminPaymentRow key={payment._id} payment={payment} />
+          ))}
+        </div>
+      )}
 
       <Pagination page={meta.page} totalPages={meta.totalPages} buildHref={(p) => buildHref({ page: p })} />
     </div>

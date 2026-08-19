@@ -17,17 +17,19 @@ interface BaseProps {
 // compare tray, etc). Secondary / outline-light: glass/white-text, for use
 // over photography or dark sections ONLY (white text is invisible on light
 // backgrounds). Outline: the light-background equivalent of secondary —
-// dark text, a neutral border, for use on white/slate surfaces. Blue: a
-// flat, static CTA pill — solid blue, white text, no color shift on hover
-// besides a shade change. Used where the button needs to stay visually
-// still (e.g. sitting next to a photo) rather than "lift off" like
-// primary used to.
+// dark text, a neutral border, for use on white/slate surfaces. Hover is
+// color-only (no translate) since outline buttons commonly sit inside
+// cards, where a "lift" reads as the whole card shifting rather than a
+// contained hover response. Blue: a flat, static CTA pill — solid blue,
+// white text, no color shift on hover besides a shade change. Used where
+// the button needs to stay visually still (e.g. sitting next to a photo)
+// rather than "lift off" like primary used to.
 const variantStyles: Record<ButtonVariant, string> = {
   primary: "border border-blue-500 bg-blue-500 text-white transition-colors hover:bg-blue-700 hover:border-blue-700",
   secondary:
     "border border-glass-border bg-glass-surface text-white backdrop-blur-md hover:border-sky-400 hover:bg-white/[0.08] hover:-translate-y-0.5",
   outline:
-    "border border-slate-300 text-navy-900 hover:border-sky-500 hover:text-sky-600 hover:-translate-y-0.5",
+    "border border-slate-300 bg-white text-navy-900 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-navy-900",
   "outline-light": "border border-white/25 text-white",
   ghost: "text-navy-900 hover:bg-slate-100",
   blue: "border border-blue-500 bg-blue-500 text-white transition-colors hover:bg-blue-700 hover:border-blue-700",
@@ -38,7 +40,7 @@ const variantStyles: Record<ButtonVariant, string> = {
 // standing alone in open space) reads oversized next to smaller
 // surrounding type.
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "px-5 py-2.5 text-[0.6875rem]",
+  sm: "px-5 py-2.5 text-xs",
   md: "px-7 py-3 text-xs",
   lg: "px-9 py-4 text-sm",
 };

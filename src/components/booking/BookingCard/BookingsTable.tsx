@@ -5,12 +5,14 @@ import { formatCurrency, calculatePaymentProgress } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import type { IBooking } from "@/types/booking";
 
+interface AirportNameInfo { name: string; city: string }
+
 /**
  * Stripe-dashboard-style table for larger screens. BookingCard continues
  * to handle the mobile (< md) view; both read from the same booking list
  * so there is a single source of truth, no separate fetch.
  */
-export function BookingsTable({ bookings }: { bookings: IBooking[] }) {
+export function BookingsTable({ bookings, airportNames = {} }: { bookings: IBooking[]; airportNames?: Record<string, AirportNameInfo> }) {
   return (
     <div className="hidden border-t border-slate-100 md:block">
       <table className="w-full text-left">
@@ -29,6 +31,8 @@ export function BookingsTable({ bookings }: { bookings: IBooking[] }) {
           {bookings.map((booking) => {
             const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
             const progress = calculatePaymentProgress(booking.totalAmount, booking.paidAmount);
+            const departureName = airportNames[booking.departureAirportCode.toUpperCase()]?.city ?? booking.departureAirportCode;
+            const destinationName = airportNames[booking.destinationAirportCode.toUpperCase()]?.city ?? booking.destinationAirportCode;
 
             return (
               <tr key={booking._id} className="group transition-colors hover:bg-sky-500/[0.04]">
@@ -42,7 +46,11 @@ export function BookingsTable({ bookings }: { bookings: IBooking[] }) {
                   {aircraftName ? <p className="mt-0.5 text-xs text-slate-500">{aircraftName}</p> : null}
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-600">
-                  {booking.departureAirportCode} → {booking.destinationAirportCode}
+                  {departureName}{" "}
+                  <span className="text-xs text-slate-400">({booking.departureAirportCode})</span>{" "}
+                  →{" "}
+                  {destinationName}{" "}
+                  <span className="text-xs text-slate-400">({booking.destinationAirportCode})</span>
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-600">{formatDate(booking.departureDate)}</td>
                 <td className="px-6 py-4">

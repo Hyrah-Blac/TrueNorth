@@ -25,7 +25,6 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks(.*)",
   "/api/aircraft(.*)",
   "/api/airports(.*)",
-  "/api/contact",
 ]);
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);

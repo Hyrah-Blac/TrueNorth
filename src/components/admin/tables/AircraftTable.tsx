@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, PlaneTakeoff, Loader2, X } from "lucide-react";
 import { Button } from "@/components/shared/buttons/Button";
+import { FancyButton } from "@/components/shared/buttons/FancyButton";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { AircraftFormDialog } from "@/components/admin/dialogs/AircraftFormDialog";
 import { ConfirmDialog } from "@/components/admin/dialogs/ConfirmDialog";
@@ -112,16 +113,15 @@ export function AircraftTable({ initialAircraft }: { initialAircraft: IAircraft[
   return (
     <div>
       <ListToolbar count={initialAircraft.length} noun="aircraft">
-        <Button
-          variant="primary"
+        <FancyButton
           onClick={() => {
             setEditingAircraft(null);
             setFormOpen(true);
           }}
-          icon={<Plus className="h-4 w-4" />}
+          icon={<Plus className="h-3.5 w-3.5" aria-hidden="true" />}
         >
           Add Aircraft
-        </Button>
+        </FancyButton>
       </ListToolbar>
 
       {selectedCount > 0 ? (

@@ -7,41 +7,47 @@ export interface FilterTabOption {
   count?: number;
 }
 
+// Matches the customer-side StatusFilterTabs (dashboard/quotes): a soft
+// bordered tray holding rounded pill tabs, active state marked by a
+// sky-blue border/fill rather than a solid dark gradient — so filter
+// controls look the same on both sides of the app. Horizontally
+// scrollable with a fade mask on narrow screens for rows with many labels.
+const SCROLL_FADE_MASK =
+  "[mask-image:linear-gradient(to_right,transparent,black_6px,black_calc(100%-6px),transparent)] sm:[mask-image:none]";
+
 export function FilterTabs({ options }: { options: FilterTabOption[] }) {
   return (
-    <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Filter by status">
-      {options.map((option) => (
-        <Link
-          key={option.href}
-          href={option.href}
-          role="tab"
-          aria-selected={option.active}
-          className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium tracking-wide transition-all duration-200 ${
-            option.active
-              ? "text-white shadow-soft"
-              : "bg-white border border-slate-200 text-slate-500 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
-          }`}
-          style={
-            option.active
-              ? {
-                  background: "linear-gradient(135deg, rgb(30 58 128) 0%, rgb(43 91 191) 100%)",
-                  boxShadow: "0 2px 8px rgb(43 91 191 / 0.25), inset 0 1px 0 rgb(255 255 255 / 0.1)",
-                }
-              : undefined
-          }
-        >
-          {option.label}
-          {typeof option.count === "number" ? (
-            <span
-              className={`spec-readout rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
-                option.active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-400"
-              }`}
-            >
-              {option.count}
-            </span>
-          ) : null}
-        </Link>
-      ))}
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] ring-1 ring-slate-900/[0.02] sm:p-3.5">
+      <div
+        role="tablist"
+        aria-label="Filter by status"
+        className={`scrollbar-none flex gap-1.5 overflow-x-auto pb-px sm:flex-wrap ${SCROLL_FADE_MASK}`}
+      >
+        {options.map((option) => (
+          <Link
+            key={option.href}
+            href={option.href}
+            role="tab"
+            aria-selected={option.active}
+            className={`inline-flex min-h-[1.75rem] shrink-0 items-center gap-2 rounded-full border px-3 py-1 text-[0.6875rem] font-medium uppercase tracking-wide whitespace-nowrap transition-all duration-300 ${
+              option.active
+                ? "border-sky-500 bg-sky-50 text-sky-700 shadow-[inset_0_0_0_1px_rgba(14,165,233,0.15)]"
+                : "border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-navy-900"
+            }`}
+          >
+            {option.label}
+            {typeof option.count === "number" ? (
+              <span
+                className={`spec-readout rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
+                  option.active ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-400"
+                }`}
+              >
+                {option.count}
+              </span>
+            ) : null}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

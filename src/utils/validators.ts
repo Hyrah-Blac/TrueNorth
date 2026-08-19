@@ -4,6 +4,12 @@ export const GENERAL_PHONE_REGEX = /^\+?[0-9]{9,15}$/;
 export const AIRPORT_CODE_REGEX = /^[A-Z]{3,4}$/;
 export const OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/;
 export const MPESA_TRANSACTION_ID_REGEX = /^[A-Z0-9]{10}$/;
+// 24-hour "HH:MM" — matches the native <input type="time"> value format
+// exactly (e.g. "09:30", "17:05"). Shared by the quote-approval and
+// booking trip-details schemas so a departure time entered at either
+// point (see ApproveQuoteDialog.tsx / BookingTripDetailsActions.tsx)
+// is validated identically.
+export const LOCAL_TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export function isValidEmail(value: string): boolean {
   return EMAIL_REGEX.test(value.trim());

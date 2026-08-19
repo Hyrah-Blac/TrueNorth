@@ -6,6 +6,7 @@ import { Button } from "@/components/shared/buttons/Button";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { StatusFilterTabs } from "@/components/dashboard/StatusFilterTabs";
 import { getMyQuotes } from "@/features/quote/lib/getQuotes";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { QUOTE_STATUS_VALUES, QUOTE_STATUS_LABELS, type QuoteStatus } from "@/database/constants/quote-status";
 
 export const metadata: Metadata = { title: "My Quotes" };
@@ -21,6 +22,13 @@ export default async function QuotesPage({ searchParams }: QuotesPageProps) {
     : undefined;
 
   const quotes = await getMyQuotes(status);
+
+  // One batched lookup for every route on the page — city names read far
+  // friendlier to a customer than bare ICAO codes ("Nairobi" vs "FZFE"),
+  // and a single query here is far cheaper than resolving inside each row.
+  const airportNames = await getAirportNamesByCodes(
+    quotes.flatMap((quote) => [quote.departureAirportCode, quote.destinationAirportCode])
+  );
 
   const filterOptions = [
     { label: "All", href: "/dashboard/quotes", active: !status },
@@ -61,7 +69,7 @@ export default async function QuotesPage({ searchParams }: QuotesPageProps) {
       ) : (
         <div className="divide-y divide-slate-100 border-t border-slate-100">
           {quotes.map((quote) => (
-            <QuoteRow key={quote._id} quote={quote} />
+            <QuoteRow key={quote._id} quote={quote} airportNames={airportNames} />
           ))}
         </div>
       )}

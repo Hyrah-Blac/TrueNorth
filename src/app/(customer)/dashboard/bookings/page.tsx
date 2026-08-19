@@ -7,6 +7,7 @@ import { Button } from "@/components/shared/buttons/Button";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { StatusFilterTabs } from "@/components/dashboard/StatusFilterTabs";
 import { getMyBookings } from "@/features/booking/lib/getBookings";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { getBookingIdsWithTickets } from "@/features/ticket/lib/getTicketForBooking";
 import { BOOKING_STATUS_VALUES, BOOKING_STATUS_LABELS, type BookingStatus } from "@/database/constants/booking-status";
 
@@ -23,7 +24,10 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
     : undefined;
 
   const bookings = await getMyBookings(status);
-  const ticketedBookingIds = await getBookingIdsWithTickets(bookings.map((b) => b._id));
+  const [ticketedBookingIds, airportNames] = await Promise.all([
+    getBookingIdsWithTickets(bookings.map((b) => b._id)),
+    getAirportNamesByCodes(bookings.flatMap((b) => [b.departureAirportCode, b.destinationAirportCode])),
+  ]);
 
   const filterOptions = [
     { label: "All", href: "/dashboard/bookings", active: !status },
@@ -57,10 +61,10 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
           />
         ) : (
           <>
-            <BookingsTable bookings={bookings} />
+            <BookingsTable bookings={bookings} airportNames={airportNames} />
             <div className="space-y-4 md:hidden">
               {bookings.map((booking) => (
-                <BookingCard key={booking._id} booking={booking} hasTicket={ticketedBookingIds.has(booking._id)} />
+                <BookingCard key={booking._id} booking={booking} hasTicket={ticketedBookingIds.has(booking._id)} airportNames={airportNames} />
               ))}
             </div>
           </>

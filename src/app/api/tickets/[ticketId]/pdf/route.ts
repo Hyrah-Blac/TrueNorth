@@ -5,6 +5,7 @@ import { getTicketVerificationUrl } from "@/features/ticket/lib/ticketVerificati
 import { generateQrCodeDataUrl } from "@/features/ticket/lib/generateQrCode";
 import { generateTicketPdf } from "@/features/ticket/lib/generateTicketPdf";
 import { getTicketAirportCities } from "@/features/ticket/lib/getTicketAirportNames";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 import { checkRateLimit, getRequestKey, RATE_LIMITS } from "@/middleware/rate-limit";
 import { resolveErrorMessage } from "@/lib/api/response";
 import { logger } from "@/lib/logging/logger";
@@ -49,6 +50,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       booking.departureAirportCode,
       booking.destinationAirportCode,
     ]);
+    // Admin-configured contact info (Settings > General) rather than
+    // the hardcoded fallback in site.ts — see generateTicketPdf's
+    // companyName/contactPhone/contactEmail fields.
+    const settings = await getSiteSettings();
 
     let pdfBuffer: Buffer;
     try {
@@ -70,6 +75,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         fboAddress: booking.fboAddress,
         departureAirportName: airportCities[booking.departureAirportCode],
         destinationAirportName: airportCities[booking.destinationAirportCode],
+        companyName: settings.companyName,
+        contactPhone: settings.phone,
+        contactEmail: settings.email,
       });
     } catch (pdfError) {
       // A PDF-rendering failure is a genuine server error, not a

@@ -17,6 +17,7 @@ export function PageHeader({
   variant = "dark",
   backHref,
   backLabel,
+  showTitle = true,
 }: {
   eyebrow?: string;
   title: string;
@@ -25,6 +26,7 @@ export function PageHeader({
   variant?: PageHeaderVariant;
   backHref?: string;
   backLabel?: string;
+  showTitle?: boolean;
 }) {
   const styles = VARIANT_STYLES[variant];
 
@@ -45,14 +47,22 @@ export function PageHeader({
             <p className={`spec-readout text-xs uppercase tracking-widest2 ${styles.eyebrow}`}>{eyebrow}</p>
           ) : null}
           <h1
-            className={`font-editorial text-4xl font-light tracking-tight ${styles.title} ${
-              eyebrow ? "mt-1.5" : ""
-            }`}
+            className={
+              showTitle
+                ? `font-editorial text-4xl font-light tracking-tight ${styles.title} ${eyebrow ? "mt-1.5" : ""}`
+                : "sr-only"
+            }
           >
             {title}
           </h1>
           {description ? (
-            <p className={`mt-2 max-w-lg text-sm leading-relaxed ${styles.description}`}>{description}</p>
+            <p
+              className={`text-sm leading-relaxed ${styles.description} ${
+                showTitle ? "mt-2 max-w-lg" : eyebrow ? "mt-1.5 max-w-lg" : "max-w-lg"
+              }`}
+            >
+              {description}
+            </p>
           ) : null}
         </div>
         {actions ? <div className="flex shrink-0 items-center gap-3">{actions}</div> : null}

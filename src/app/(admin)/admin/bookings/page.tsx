@@ -8,6 +8,7 @@ import { FilterTabs } from "@/components/admin/layout/FilterTabs";
 import { ListToolbar } from "@/components/admin/layout/ListToolbar";
 import { Pagination } from "@/components/shared/Pagination";
 import { getBookingsForAdmin } from "@/features/admin/lib/getBookingsForAdmin";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { buildPaginationMeta } from "@/utils/pagination";
 import { BOOKING_STATUS_VALUES, BOOKING_STATUS_LABELS, type BookingStatus } from "@/database/constants/booking-status";
 import {
@@ -40,6 +41,9 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
     search,
     page,
   });
+  const airportNames = await getAirportNamesByCodes(
+    bookings.flatMap((b) => [b.departureAirportCode, b.destinationAirportCode])
+  );
   const meta = buildPaginationMeta(total, page, limit);
 
   function buildHref(overrides: { status?: string; payment?: string; page?: number }) {
@@ -62,6 +66,8 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
   return (
     <div>
       <PageHeader
+        variant="light"
+        showTitle={false}
         title="Bookings"
         description="Manage confirmed charters and track each one through to completion."
       />
@@ -95,8 +101,8 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
         </ListToolbar>
       </div>
 
-      <div className="mt-4 space-y-4">
-        {bookings.length === 0 ? (
+      {bookings.length === 0 ? (
+        <div className="py-16">
           <EmptyState
             icon={<PlaneTakeoff className="h-5 w-5" aria-hidden="true" />}
             title={activeFilterCount > 0 ? "No bookings match your current filters" : "No bookings found"}
@@ -110,10 +116,14 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
                 : "Bookings will appear here once a quote is approved and converted."
             }
           />
-        ) : (
-          bookings.map((booking) => <AdminBookingRow key={booking._id} booking={booking} />)
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100">
+          {bookings.map((booking) => (
+            <AdminBookingRow key={booking._id} booking={booking} airportNames={airportNames} />
+          ))}
+        </div>
+      )}
 
       <Pagination page={meta.page} totalPages={meta.totalPages} buildHref={(p) => buildHref({ page: p })} />
     </div>

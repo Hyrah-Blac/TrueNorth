@@ -56,6 +56,8 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader
+        variant="light"
+        showTitle={false}
         title="Overview"
         description="A snapshot of what needs attention today, plus revenue and customer activity across the business."
       />

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { BOOKING_STATUS_VALUES } from "@/database/constants/booking-status";
 import type { BookingStatus } from "@/database/constants/booking-status";
-import { OBJECT_ID_REGEX } from "@/utils/validators";
+import { OBJECT_ID_REGEX, LOCAL_TIME_REGEX } from "@/utils/validators";
 
 const statusEnum = z.enum(BOOKING_STATUS_VALUES as [BookingStatus, ...BookingStatus[]]);
 const objectId = z.string().regex(OBJECT_ID_REGEX, "Invalid ID");
@@ -53,8 +53,25 @@ const optionalTrimmed = (max: number) =>
     .optional()
     .transform((value) => (value ? value : undefined));
 
+// Matches the native <input type="time"> value format exactly
+// (24-hour "HH:MM", e.g. "09:30" or "17:05") — see
+// BookingTripDetailsActions.tsx, which now uses that input type
+// instead of free text specifically so this can never mismatch what
+// the browser actually sends. Normally this field arrives already
+// set — it's collected once, up front, when the admin approves the
+// quote (see approveQuoteSchema) — this dialog exists for the cases
+// that need adjusting or backfilling afterwards.
+const optionalTime = () =>
+  z
+    .string()
+    .trim()
+    .regex(LOCAL_TIME_REGEX, "Enter a valid 24-hour time, e.g. 09:30")
+    .optional()
+    .or(z.literal(""))
+    .transform((value) => (value ? value : undefined));
+
 export const updateBookingTripDetailsSchema = z.object({
-  departureTime: optionalTrimmed(20),
+  departureTime: optionalTime(),
   fboName: optionalTrimmed(200),
   fboAddress: optionalTrimmed(300),
   groundContactPhone: optionalTrimmed(30),

@@ -24,6 +24,11 @@ import { formatCurrency } from "@/utils/currency";
 import { MISSION_TYPE_LABELS } from "@/database/constants/mission-type";
 import { AIRCRAFT_CATEGORY_LABELS } from "@/database/constants/aircraft";
 import { QUOTE_TERMINAL_STATUSES, QUOTE_STATUSES } from "@/database/constants/quote-status";
+import {
+  DEPARTURE_TIME_PREFERENCE_LABELS,
+  type DepartureTimePreference,
+} from "@/database/constants/departure-time-preference";
+import { LOCAL_TIME_REGEX } from "@/utils/validators";
 import { NotFoundError, isAppError } from "@/lib/errors/AppError";
 
 export const metadata: Metadata = { title: "Quote Details" };
@@ -100,6 +105,23 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
               <Clock className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
               Submitted {formatDateTime(quote.createdAt)}
             </div>
+            {quote.departureTime ? (
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <Clock className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                Confirmed departure time: {quote.departureTime}
+              </div>
+            ) : quote.departureTimePreference ? (
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <Clock className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                Requested{" "}
+                {LOCAL_TIME_REGEX.test(quote.departureTimePreference)
+                  ? quote.departureTimePreference
+                  : (DEPARTURE_TIME_PREFERENCE_LABELS[
+                      quote.departureTimePreference as DepartureTimePreference
+                    ] ?? quote.departureTimePreference
+                    ).toLowerCase()}
+              </div>
+            ) : null}
           </div>
 
           <dl className="mt-6 space-y-3 border-t border-slate-100 pt-6">
@@ -177,6 +199,9 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
                 preferredAircraftId={preferredAircraftId}
                 hasCustomer={Boolean(quote.customer)}
                 suggestedEmail={quote.contactInfo.email}
+                currentDepartureDate={quote.departureDate}
+                currentDepartureTime={quote.departureTime}
+                departureTimePreference={quote.departureTimePreference}
               />
             </div>
           </div>

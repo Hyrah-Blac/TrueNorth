@@ -4,6 +4,8 @@ export interface QuoteApprovedProps {
   customerName: string;
   quoteNumber: string;
   quotedAmount: string;
+  departureDate: string;
+  departureTime?: string;
   validUntil?: string;
   quoteUrl: string;
   contact?: EmailContact;
@@ -13,6 +15,8 @@ export default function QuoteApproved({
   customerName,
   quoteNumber,
   quotedAmount,
+  departureDate,
+  departureTime,
   validUntil,
   quoteUrl,
   contact,
@@ -30,6 +34,7 @@ export default function QuoteApproved({
       </EmailText>
 
       <EmailDetailRow label="Quote reference" value={quoteNumber} />
+      <EmailDetailRow label="Departure" value={departureTime ? `${departureDate}, ${departureTime}` : departureDate} />
       <EmailDetailRow label="Quoted amount" value={quotedAmount} />
       {validUntil ? <EmailDetailRow label="Valid until" value={validUntil} /> : null}
 

@@ -3,7 +3,9 @@ import { MISSION_TYPE_VALUES } from "@/database/constants/mission-type";
 import type { MissionType } from "@/database/constants/mission-type";
 import { QUOTE_STATUS_VALUES } from "@/database/constants/quote-status";
 import type { QuoteStatus } from "@/database/constants/quote-status";
-import { GENERAL_PHONE_REGEX, OBJECT_ID_REGEX } from "@/utils/validators";
+import { DEPARTURE_TIME_PREFERENCE_VALUES } from "@/database/constants/departure-time-preference";
+import type { DepartureTimePreference } from "@/database/constants/departure-time-preference";
+import { GENERAL_PHONE_REGEX, OBJECT_ID_REGEX, LOCAL_TIME_REGEX } from "@/utils/validators";
 
 const missionEnum = z.enum(MISSION_TYPE_VALUES as [MissionType, ...MissionType[]]);
 const statusEnum = z.enum(QUOTE_STATUS_VALUES as [QuoteStatus, ...QuoteStatus[]]);
@@ -19,12 +21,43 @@ const phoneField = z
   .transform((value) => value.replace(/[\s-]/g, ""))
   .pipe(z.string().regex(GENERAL_PHONE_REGEX, "Enter a valid phone number"));
 
+// Matches the native <input type="time"> value format exactly
+// (24-hour "HH:MM", e.g. "09:30") — see ApproveQuoteDialog.tsx, which
+// uses that input type. Collecting this alongside the aircraft at
+// approval means the customer's ticket already has a departure time
+// the moment they pay, instead of it only being added by ops
+// afterwards (see BookingTripDetailsActions.tsx, which now exists for
+// adjustments rather than first entry).
+const optionalTime = () =>
+  z
+    .string()
+    .trim()
+    .regex(LOCAL_TIME_REGEX, "Enter a valid 24-hour time, e.g. 09:30")
+    .optional()
+    .or(z.literal(""))
+    .transform((value) => (value ? value : undefined));
+
 const attachmentSchema = z.object({
   publicId: z.string().min(1),
   resourceType: z.enum(["image", "raw"]),
   fileName: z.string().min(1),
   fileType: z.string().min(1),
 });
+
+const departureTimePreferenceEnum = z.enum(
+  DEPARTURE_TIME_PREFERENCE_VALUES as [DepartureTimePreference, ...DepartureTimePreference[]]
+);
+
+// Either a broad window ("morning", "evening", etc. — see
+// DEPARTURE_TIME_PREFERENCE_VALUES) or, when the customer picks "Set
+// time" in the picker, an exact 24-hour time in the same "HH:MM"
+// format as the admin-side departureTime field. Distinct from that
+// admin field: this is the customer's stated preference at request
+// time, not the confirmed time ops assigns at approval — see
+// departureTime on the Quote model.
+const departureTimePreferenceField = z
+  .union([departureTimePreferenceEnum, z.string().trim().regex(LOCAL_TIME_REGEX, "Enter a valid 24-hour time, e.g. 09:30")])
+  .optional();
 
 export const createQuoteSchema = z
   .object({
@@ -40,6 +73,7 @@ export const createQuoteSchema = z
     departureDate: z.coerce.date(),
     returnDate: z.coerce.date().optional(),
     isRoundTrip: z.boolean().default(false),
+    departureTimePreference: departureTimePreferenceField,
     aircraftPreference: objectId.optional(),
     missionType: missionEnum,
     budgetRangeMin: z.number().min(0).optional(),
@@ -81,6 +115,13 @@ export const approveQuoteSchema = z.object({
   quotedAmount: z.number().min(1, "Quoted amount is required"),
   quotedCurrency: z.string().trim().length(3).default("KES"),
   validUntil: z.coerce.date().optional(),
+  // Lets the admin confirm or correct the day of flight at the same
+  // time as the time below — the customer's requested departureDate is
+  // used as the default in the dialog, but ops may need to move it
+  // (aircraft availability, slot changes) before sending the priced
+  // quote back to the customer.
+  departureDate: z.coerce.date().optional(),
+  departureTime: optionalTime(),
   adminNotes: z.string().trim().max(2000).optional(),
 });
 

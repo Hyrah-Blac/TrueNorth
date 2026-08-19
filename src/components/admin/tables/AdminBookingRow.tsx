@@ -1,57 +1,51 @@
 import Link from "next/link";
-import { PlaneTakeoff, ArrowUpRight } from "lucide-react";
+import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStatusBadge";
 import { BookingPaymentStatusBadge } from "@/components/booking/BookingCard/BookingPaymentStatusBadge";
 import { formatCurrency, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import type { IBooking } from "@/types/booking";
 
-export function AdminBookingRow({ booking }: { booking: IBooking }) {
+interface AirportNameInfo { name: string; city: string }
+
+// Divided list row, same shape as the customer-side QuoteRow
+// (dashboard/quotes/page.tsx) — no card border, a soft hover wash, and an
+// absolutely-positioned caret so it doesn't consume layout space.
+export function AdminBookingRow({ booking, airportNames = {} }: { booking: IBooking; airportNames?: Record<string, AirportNameInfo> }) {
   const customer = typeof booking.customer === "object" && booking.customer !== null ? booking.customer : null;
   const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
   const paymentStatus = getBookingPaymentStatus(booking.totalAmount, booking.paidAmount);
+  const departureName = airportNames[booking.departureAirportCode.toUpperCase()]?.city ?? booking.departureAirportCode;
+  const destinationName = airportNames[booking.destinationAirportCode.toUpperCase()]?.city ?? booking.destinationAirportCode;
 
   return (
     <Link
       href={`/admin/bookings/${booking._id}`}
-      className="group flex flex-col gap-4 rounded-xl border border-slate-200 bg-white px-6 py-5 transition-all duration-300 hover:border-sky-200 sm:flex-row sm:items-center sm:justify-between"
+      className="group relative -mx-3 flex flex-col gap-3 rounded-lg px-3 py-5 pr-8 transition-colors hover:bg-sky-500/[0.035] sm:flex-row sm:items-center sm:justify-between sm:pr-9"
     >
-      {/* Left — icon + identity */}
-      <div className="flex items-center gap-4">
-        <span
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-105"
-          style={{
-            background: "linear-gradient(135deg, rgb(219 229 247) 0%, rgb(189 205 241) 100%)",
-            color: "rgb(30 58 128)",
-            boxShadow: "0 1px 4px rgb(43 91 191 / 0.15)",
-          }}
-        >
-          <PlaneTakeoff className="h-5 w-5" aria-hidden="true" />
-        </span>
-
-        <div className="min-w-0">
-          <p className="spec-readout text-[11px] text-slate-400">{booking.bookingNumber}</p>
-          <p className="mt-0.5 truncate font-editorial text-lg font-light text-navy-900 transition-colors group-hover:text-sky-700">
-            {customer ? `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim() : "—"}
-          </p>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
-            <span className="spec-readout">{booking.departureAirportCode} → {booking.destinationAirportCode}</span>
-            <span className="text-slate-300" aria-hidden="true">·</span>
-            <span>{formatDate(booking.departureDate)}</span>
-            {aircraftName ? (
-              <>
-                <span className="text-slate-300" aria-hidden="true">·</span>
-                <span>{aircraftName}</span>
-              </>
-            ) : null}
-          </div>
+      <div className="min-w-0">
+        <p className="spec-readout text-[11px] text-slate-400">{booking.bookingNumber}</p>
+        <p className="mt-0.5 truncate font-editorial text-xl font-light text-navy-900">
+          {customer ? `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim() : "—"}
+        </p>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
+          <span className="spec-readout">
+            {departureName} ({booking.departureAirportCode}) → {destinationName} ({booking.destinationAirportCode})
+          </span>
+          <span className="text-slate-300" aria-hidden="true">·</span>
+          <span>{formatDate(booking.departureDate)}</span>
+          {aircraftName ? (
+            <>
+              <span className="text-slate-300" aria-hidden="true">·</span>
+              <span>{aircraftName}</span>
+            </>
+          ) : null}
         </div>
       </div>
 
-      {/* Right — amount + statuses + caret */}
       <div className="flex shrink-0 items-center gap-4">
         <div className="text-right">
-          <p className="spec-readout text-base font-semibold text-navy-900">
+          <p className="spec-readout text-sm font-semibold text-navy-900">
             {formatCurrency(booking.totalAmount, booking.currency)}
           </p>
           {booking.balanceAmount > 0 ? (
@@ -62,11 +56,12 @@ export function AdminBookingRow({ booking }: { booking: IBooking }) {
         </div>
         <BookingPaymentStatusBadge status={paymentStatus} />
         <BookingStatusBadge status={booking.status} />
-        <ArrowUpRight
-          className="h-4 w-4 shrink-0 text-slate-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-sky-500"
-          aria-hidden="true"
-        />
       </div>
+
+      <CaretRight
+        className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300 transition-colors group-hover:text-sky-500 sm:right-1.5"
+        aria-hidden="true"
+      />
     </Link>
   );
 }

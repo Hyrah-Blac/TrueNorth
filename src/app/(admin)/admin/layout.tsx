@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import {
   SquaresFour,
   AirplaneTakeoff,
@@ -33,7 +34,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <DashboardShell items={navItems} title="Admin">
-      {children}
+      {/* Every `font-editorial` class in the admin subtree (row names in
+          AdminQuoteRow/AdminBookingRow/AdminPaymentRow, PageHeader titles)
+          resolves through --font-editorial. Re-point it to the shared
+          Fraunces variable here, same as the customer dashboard/quotes,
+          bookings, payments, and profile layouts — otherwise it silently
+          falls back to the root Poppins value and rows lose the serif
+          treatment they were styled to match. */}
+      <div style={{ "--font-editorial": "var(--font-dashboard-serif)" } as CSSProperties}>{children}</div>
     </DashboardShell>
   );
 }

@@ -1,62 +1,94 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Loader2 } from "lucide-react";
-import { StepIndicator } from "./StepIndicator";
-import { TripDetailsStep } from "./steps/TripDetailsStep";
-import { MissionAircraftStep, type AircraftOption } from "./steps/MissionAircraftStep";
-import { RequirementsStep } from "./steps/RequirementsStep";
-import { ContactStep } from "./steps/ContactStep";
-import { ReviewStep } from "./steps/ReviewStep";
+import { TripSearchBar, type TripSearchBarValues } from "./TripSearchBar";
+import { DetailsContactStep } from "./steps/DetailsContactStep";
 import { Button } from "@/components/shared/buttons/Button";
+import { Reveal } from "@/components/shared/Reveal";
+import { HorizonDivider } from "@/components/layout/section/Section";
 import { SuccessState } from "@/components/feedback/SuccessState/SuccessState";
 import { createQuoteSchema, type CreateQuoteInput } from "@/features/quote/schemas/quote.schema";
 import { submitCharterRequest } from "@/features/quote/actions/quote.actions";
-
-const STEPS = ["Trip Details", "Mission & Aircraft", "Requirements", "Contact", "Review"];
-
-// Heading + one-line description shown above each step's fields. Kept
-// alongside STEPS (same index) rather than duplicated inside each Step
-// component, so there's one place that owns the step copy.
-const STEP_META: { title: string; description: string }[] = [
-  { title: "Trip details", description: "Where and when you'd like to fly." },
-  { title: "Mission & aircraft", description: "What this trip is for, and any aircraft preference." },
-  { title: "Requirements", description: "Special requests, equipment, or cargo we should know about." },
-  { title: "Contact", description: "How our team should reach you with a quote." },
-  { title: "Review", description: "Check everything over before you send it." },
+// Fields validated before leaving the search bar and revealing the
+// contact section — keeps trip-detail errors from surfacing under the
+// contact fields, and vice versa.
+const TRIP_FIELDS: (keyof CreateQuoteInput)[] = [
+  "passengerCount",
+  "departureAirportCode",
+  "destinationAirportCode",
+  "departureDate",
+  "returnDate",
+  "isRoundTrip",
 ];
 
-// Fields validated before advancing past each step — keeps errors
-// scoped to what's visible instead of surfacing step-5 errors on step 1.
-const STEP_FIELDS: (keyof CreateQuoteInput)[][] = [
-  ["passengerCount", "departureAirportCode", "destinationAirportCode", "departureDate", "returnDate", "isRoundTrip"],
-  ["missionType", "aircraftPreference", "budgetRangeMin", "budgetRangeMax"],
-  [
-    "specialRequests",
-    "hasMedicalEquipment",
-    "medicalEquipmentDetails",
-    "hasVipRequirements",
-    "vipRequirementsDetails",
-    "hasCargo",
-    "cargoDetails",
-    "hasPets",
-    "petsDetails",
-    "hasDangerousGoods",
-    "dangerousGoodsDetails",
-  ],
-  ["contactInfo"],
-  [],
-];
+// Autosave: a customer who accidentally reloads (or the tab crashes,
+// or they hit back/forward) mid-form shouldn't have to start the whole
+// trip + contact flow over. Draft is scoped to sessionStorage rather
+// than localStorage — it survives a reload within the same tab, which
+// is the actual complaint, without leaving a customer's name/email/
+// phone sitting in the browser indefinitely once the tab is closed.
+const DRAFT_STORAGE_KEY = "charterRequestDraft:v1";
+const DRAFT_SAVE_DEBOUNCE_MS = 400;
+
+interface CharterRequestDraft {
+  step: 1 | 2;
+  trip: Partial<CreateQuoteInput>;
+  contact: Partial<ContactFieldsInput>;
+}
+
+function loadDraft(): CharterRequestDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as CharterRequestDraft;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(draft: CharterRequestDraft) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+  } catch {
+    // Storage can fail (private browsing, quota) — silently skipping the
+    // autosave isn't worth surfacing to the customer mid-form.
+  }
+}
+
+function clearDraft() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+// Small, form-only schema for the two name fields the new design splits
+// out of contactInfo.fullName (Title / First name / Last name). These
+// aren't part of createQuoteSchema or the Quote database model — they're
+// combined into a single contactInfo.fullName string right before
+// submission, so the backend, admin views, and emails all keep working
+// against the same fullName shape they already expect.
+const contactFieldsSchema = z.object({
+  title: z.string().trim().max(20).optional(),
+  firstName: z.string().trim().min(1, "First name is required").max(60),
+  lastName: z.string().trim().min(1, "Last name is required").max(60),
+});
+export type ContactFieldsInput = z.infer<typeof contactFieldsSchema>;
 
 interface CharterRequestFormProps {
-  aircraftOptions: AircraftOption[];
   defaultValues?: Partial<CreateQuoteInput>;
 }
 
-export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRequestFormProps) {
-  const [step, setStep] = useState(1);
+export function CharterRequestForm({ defaultValues }: CharterRequestFormProps) {
+  const [step, setStep] = useState<1 | 2>(1);
   const [isPending, startTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [quoteNumber, setQuoteNumber] = useState<string | null>(null);
@@ -66,14 +98,27 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
     handleSubmit,
     watch,
     trigger,
-    getValues,
     setValue,
     setError,
+    reset,
     formState: { errors },
   } = useForm<CreateQuoteInput>({
     resolver: zodResolver(createQuoteSchema),
     defaultValues: {
       isRoundTrip: false,
+      // The search bar always displays "1 Passenger" out of the box (it
+      // has to show something), so the underlying field needs the same
+      // default — otherwise a customer who never touches the passenger
+      // stepper would hit a "required" validation error on a field that
+      // visually already looked filled in.
+      passengerCount: 1,
+      // Mission type, aircraft preference, budget range, and the
+      // equipment/VIP/cargo/pets/dangerous-goods flags no longer have
+      // their own steps in this flow (see DetailsContactStep) — they
+      // keep sane defaults here so the schema still validates, and any
+      // of them can still arrive prefilled via query params (e.g. a
+      // "Request this aircraft" link from the fleet page).
+      missionType: "other",
       hasMedicalEquipment: false,
       hasVipRequirements: false,
       hasCargo: false,
@@ -84,22 +129,116 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
     },
   });
 
-  async function goNext() {
-    const fields = STEP_FIELDS[step - 1];
-    const valid = fields.length === 0 ? true : await trigger(fields);
-    if (valid) setStep((current) => Math.min(current + 1, STEPS.length));
+  const {
+    register: registerContact,
+    handleSubmit: handleContactSubmit,
+    watch: watchContact,
+    reset: resetContact,
+    formState: { errors: contactErrors },
+  } = useForm<ContactFieldsInput>({
+    resolver: zodResolver(contactFieldsSchema),
+    defaultValues: { title: "Mr." },
+  });
+
+  // Restore a saved draft once, on mount. Runs after both forms exist so
+  // reset() has something to reset from; the effect intentionally only
+  // fires once (empty deps) — restoring is a one-time hydration, not an
+  // ongoing sync.
+  const hasRestoredDraft = useRef(false);
+  useEffect(() => {
+    if (hasRestoredDraft.current) return;
+    hasRestoredDraft.current = true;
+
+    const draft = loadDraft();
+    if (!draft) return;
+
+    if (draft.trip) reset((current) => ({ ...current, ...draft.trip }));
+    if (draft.contact) resetContact((current) => ({ ...current, ...draft.contact }));
+    if (draft.step) setStep(draft.step);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const watchedTrip = watch();
+  const watchedContact = watchContact();
+
+  // The trip form's schema requires contactInfo.fullName, but the title/
+  // first/last name fields live on the separate contact form and only get
+  // combined into fullName inside onSubmit — which runs too late, since
+  // handleSubmit's own zod validation already needs contactInfo.fullName
+  // to be present *before* onSubmit is called. Keep it synced onto the
+  // trip form as the customer types so that validation (and therefore
+  // submission) actually passes.
+  useEffect(() => {
+    const fullName = [watchedContact.title, watchedContact.firstName, watchedContact.lastName]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    setValue("contactInfo.fullName", fullName, { shouldValidate: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedContact.title, watchedContact.firstName, watchedContact.lastName]);
+
+  // Autosave both forms' current values (plus which step the customer is
+  // on) to sessionStorage, debounced so a reload never loses more than a
+  // few hundred milliseconds of typing.
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!hasRestoredDraft.current) return;
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveDraft({ step, trip: watchedTrip, contact: watchedContact });
+    }, DRAFT_SAVE_DEBOUNCE_MS);
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, JSON.stringify(watchedTrip), JSON.stringify(watchedContact)]);
+
+  const tripValues = watch([
+    "departureAirportCode",
+    "destinationAirportCode",
+    "departureDate",
+    "returnDate",
+    "isRoundTrip",
+    "departureTimePreference",
+    "passengerCount",
+  ]);
+  const searchBarValues: TripSearchBarValues = {
+    departureAirportCode: tripValues[0] ?? "",
+    destinationAirportCode: tripValues[1] ?? "",
+    departureDate: tripValues[2] ? String(tripValues[2]) : "",
+    returnDate: tripValues[3] ? String(tripValues[3]) : undefined,
+    isRoundTrip: tripValues[4] ?? false,
+    departureTimePreference: tripValues[5] ?? undefined,
+    passengerCount: tripValues[6] ?? 1,
+  };
+
+  // TripSearchBarValues' keys are a subset of CreateQuoteInput's, but
+  // react-hook-form's setValue overloads key off a literal Path<T>
+  // rather than a generic passed-through key, so this goes through a
+  // loosely-typed helper rather than fighting that generic at every
+  // call site.
+  const setTripValue = setValue as (field: keyof TripSearchBarValues, value: unknown, options?: { shouldValidate?: boolean }) => void;
+
+  function handleSearchBarChange<K extends keyof TripSearchBarValues>(field: K, value: TripSearchBarValues[K]) {
+    // returnDate is optional in the schema (z.coerce.date().optional()),
+    // but optional() only treats `undefined` as "not provided" — an
+    // empty string still gets passed to `new Date("")`, which is an
+    // Invalid Date, surfacing a spurious "Invalid date" error whenever
+    // the return date is cleared or round-trip is toggled off. Coerce
+    // that case to undefined before it reaches the resolver.
+    const nextValue = field === "returnDate" && value === "" ? undefined : value;
+    setTripValue(field, nextValue, { shouldValidate: true });
+  }
+
+  async function goToDetails() {
+    const valid = await trigger(TRIP_FIELDS);
+    if (valid) setStep(2);
   }
 
   function goBack() {
-    setStep((current) => Math.max(current - 1, 1));
+    setStep(1);
   }
 
-  // Every button in this flow is type="button" — submission never happens
-  // via a native <form> submit event (no Enter-to-submit, no implicit
-  // submission, no risk of a same-node type="button" -> type="submit"
-  // swap misfiring a submit in some browsers when Continue turns into
-  // Submit on the last step). The only path to onSubmit running is the
-  // Review step's button explicitly calling handleSubmit(onSubmit).
   function handleKeyDown(event: React.KeyboardEvent<HTMLFormElement>) {
     if (event.key === "Enter" && event.target instanceof HTMLElement && event.target.tagName !== "TEXTAREA") {
       event.preventDefault();
@@ -107,23 +246,31 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
   }
 
   function onSubmit(data: CreateQuoteInput) {
-    setSubmitError(null);
+    handleContactSubmit((contact) => {
+      setSubmitError(null);
 
-    startTransition(async () => {
-      const result = await submitCharterRequest(data);
+      const fullName = [contact.title, contact.firstName, contact.lastName].filter(Boolean).join(" ").trim();
 
-      if (!result.success) {
-        if (result.fieldErrors) {
-          for (const [field, message] of Object.entries(result.fieldErrors)) {
-            setError(field as keyof CreateQuoteInput, { message });
+      startTransition(async () => {
+        const result = await submitCharterRequest({
+          ...data,
+          contactInfo: { ...data.contactInfo, fullName },
+        });
+
+        if (!result.success) {
+          if (result.fieldErrors) {
+            for (const [field, message] of Object.entries(result.fieldErrors)) {
+              setError(field as keyof CreateQuoteInput, { message });
+            }
           }
+          setSubmitError(result.error ?? "Something went wrong. Please try again.");
+          return;
         }
-        setSubmitError(result.error ?? "Something went wrong. Please try again.");
-        return;
-      }
 
-      setQuoteNumber(result.quoteNumber ?? null);
-    });
+        clearDraft();
+        setQuoteNumber(result.quoteNumber ?? null);
+      });
+    })();
   }
 
   if (quoteNumber) {
@@ -137,72 +284,55 @@ export function CharterRequestForm({ aircraftOptions, defaultValues }: CharterRe
   }
 
   return (
-    <div>
-      <StepIndicator steps={STEPS} currentStep={step} />
+    <form onSubmit={(event) => event.preventDefault()} onKeyDown={handleKeyDown}>
+      <TripSearchBar
+        values={searchBarValues}
+        onChange={handleSearchBarChange}
+        errors={{
+          departureAirportCode: errors.departureAirportCode?.message,
+          destinationAirportCode: errors.destinationAirportCode?.message,
+          departureDate: errors.departureDate?.message,
+          returnDate: errors.returnDate?.message,
+        }}
+        onSubmit={step === 1 ? goToDetails : undefined}
+      />
 
-      {/* No border/shadow/bg here — this form is only ever rendered inside
-          the white card wrapper on the request-charter page, which already
-          supplies the card chrome. Keeping this bare avoids a nested
-          double-card look. */}
-      <form onSubmit={(event) => event.preventDefault()} onKeyDown={handleKeyDown} className="mt-6 sm:mt-7">
-        <div key={step}>
-          <h2 className="font-editorial text-[1.375rem] font-light text-navy-900 sm:text-2xl">
-            {STEP_META[step - 1].title}
-          </h2>
-          <p className="mt-1.5 text-sm text-slate-600">{STEP_META[step - 1].description}</p>
+      {step === 2 ? (
+        <Reveal variant="fade-up" className="mt-12 sm:mt-16">
+          <HorizonDivider className="mb-10 sm:mb-14" />
 
-          <div className="mt-5 sm:mt-6">
-            {step === 1 ? (
-              <TripDetailsStep register={register} errors={errors} watch={watch} setValue={setValue} />
-            ) : null}
-            {step === 2 ? (
-              <MissionAircraftStep
-                register={register}
-                errors={errors}
-                watch={watch}
-                setValue={setValue}
-                aircraftOptions={aircraftOptions}
-              />
-            ) : null}
-            {step === 3 ? (
-              <RequirementsStep register={register} errors={errors} watch={watch} setValue={setValue} />
-            ) : null}
-            {step === 4 ? <ContactStep register={register} errors={errors} /> : null}
-            {step === 5 ? (
-              <ReviewStep values={getValues()} aircraftOptions={aircraftOptions} onEditStep={setStep} />
-            ) : null}
-          </div>
-        </div>
+          <DetailsContactStep
+            register={register}
+            errors={errors}
+            contactRegister={registerContact}
+            contactErrors={contactErrors}
+          />
 
-        {submitError ? (
-          <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-            {submitError}
-          </p>
-        ) : null}
+          {submitError ? (
+            <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+              {submitError}
+            </p>
+          ) : null}
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5 sm:mt-7 sm:pt-6">
-          <Button type="button" variant="ghost" onClick={goBack} className={step === 1 ? "invisible" : ""}>
-            Back
-          </Button>
-
-          {step < STEPS.length ? (
-            <Button key="continue" type="button" variant="primary" onClick={goNext}>
-              Continue
+          <div className="mt-10 flex flex-col-reverse items-center gap-4 sm:mt-12 sm:flex-row sm:justify-between">
+            <Button type="button" variant="outline" size="md" onClick={goBack} className="w-full sm:w-auto">
+              Back
             </Button>
-          ) : (
+
             <Button
-              key="submit"
               type="button"
               variant="primary"
+              size="md"
               onClick={handleSubmit(onSubmit)}
               disabled={isPending}
               icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
+              className="w-full sm:w-auto"
             >
               {isPending ? "Submitting…" : "Submit Charter Request"}
             </Button>
-          )}
-        </div>
-      </form>
-    </div>
+          </div>
+        </Reveal>
+      ) : null}
+    </form>
   );
 }

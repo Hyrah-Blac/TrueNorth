@@ -28,34 +28,52 @@ export interface TicketPdfData {
   destinationAirportName?: string;
   /** Defaults to "issued" if omitted, so existing callers that don't pass it keep getting the PAID IN FULL badge unchanged. */
   status?: TicketStatus;
+  /**
+   * Contact details shown in the header/footer. All three are
+   * optional and fall back to the static defaults in site.ts — but
+   * every real caller should pass the admin-configured values from
+   * getSiteSettings() (see app/api/tickets/[ticketId]/pdf/route.ts,
+   * the ticket page, and sendTicketConfirmationEmail.ts) so a phone
+   * number or email changed in admin settings shows up on the ticket
+   * without a code deploy.
+   */
+  companyName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
 }
 
-// Brand colors pulled from src/styles/variables.css — kept as plain hex
-// here since react-pdf renders independently of the site's Tailwind/CSS
-// custom-property pipeline. Only built-in Helvetica weights are used
-// (no custom font registration/network fetch), which keeps generation
-// fast and works reliably in a serverless function.
+// Ticket colour palette (Phase 7 — colour refinement pass). Mirrors
+// the exact palette in components/ticket/TicketCard.tsx so the
+// emailed/downloaded PDF and the on-site ticket read as one document.
+// Kept as plain hex here (rather than importing from the web
+// component) since react-pdf renders independently of the site's
+// Tailwind/CSS custom-property pipeline and can't consume JSX/CSS
+// exports. Only built-in Helvetica weights are used (no custom font
+// registration/network fetch), which keeps generation fast and works
+// reliably in a serverless function.
 const COLORS = {
-  navy: "#0b1622",
-  white: "#ffffff",
-  slate: "#475569",
-  slateLight: "#94a3b8",
-  slateFaint: "#cbd5e1",
-  hairline: "#e2e8f0",
-  champagne: "#c8a95b",
-  champagneLight: "#d9c489",
-  paidGreen: "#15803d",
+  navy: "#071A2B", // primary deep midnight navy — header band only
+  ivory: "#FAF9F6", // the one document field colour
+  white: "#ffffff", // reserved for the QR chip — highest contrast for scanning
+  ink: "#101828", // primary text, airport codes
+  textSecondary: "#667085", // supporting text
+  labelMuted: "#8492A6", // small uppercase field labels
+  hairline: "#D9DEE5", // all dividers/borders
+  gold: "#C6A15B", // champagne gold — route/verification/micro-label accents
+  goldLine: "#E4D3AE", // lighter gold tint, for the route line itself
+  goldOnNavy: "#D6B978", // soft gold highlight — legible on the navy header
+  paidGreen: "#176B4D",
+  paidBg: "#ECF7F1",
   invalidRed: "#b91c1c",
   invalidRedBg: "#fef2f2",
-  panel: "#f8fafc",
 };
 
 const styles = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
     fontSize: 10,
-    color: COLORS.navy,
-    backgroundColor: COLORS.white,
+    color: COLORS.ink,
+    backgroundColor: COLORS.ivory,
   },
   // Full-bleed navy header band, matching the web ticket's navy header
   // so the emailed PDF and the on-site ticket read as the same document.
@@ -77,14 +95,14 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: 7.5,
-    color: COLORS.champagneLight,
+    color: COLORS.goldOnNavy,
     letterSpacing: 2,
     marginTop: 5,
   },
   ticketLabel: {
     fontSize: 8,
     fontFamily: "Helvetica-Bold",
-    color: COLORS.champagneLight,
+    color: COLORS.goldOnNavy,
     letterSpacing: 1.5,
     textAlign: "right",
   },
@@ -95,32 +113,32 @@ const styles = StyleSheet.create({
     textAlign: "right",
     marginTop: 6,
   },
-  // Status strip, directly under the navy band — mirrors the web ticket's
-  // slate strip between the header and the journey.
+  // Status strip — a hairline-bounded band on the same ivory field as
+  // the rest of the page, not a separate grey panel; keeps the
+  // document to one background colour throughout (mirrors the web
+  // ticket's Phase 7 colour refinement).
   statusStrip: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: COLORS.panel,
-    borderBottom: `1 solid ${COLORS.hairline}`,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.hairline,
     paddingHorizontal: 40,
     paddingVertical: 10,
   },
   bookingLabel: {
     fontSize: 8,
-    color: COLORS.slateLight,
+    color: COLORS.labelMuted,
     letterSpacing: 0.5,
   },
   bookingValue: {
     fontFamily: "Helvetica-Bold",
     fontSize: 8,
-    color: COLORS.slate,
+    color: COLORS.textSecondary,
   },
   statusPill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
     borderRadius: 9,
     paddingVertical: 4,
     paddingHorizontal: 9,
@@ -152,10 +170,11 @@ const styles = StyleSheet.create({
   },
   journeyLabel: {
     textAlign: "center",
+    fontFamily: "Helvetica-Bold",
     fontSize: 8,
-    color: COLORS.slateLight,
-    letterSpacing: 3,
-    marginTop: 26,
+    color: COLORS.gold,
+    letterSpacing: 3.5,
+    marginTop: 30,
   },
   routeRow: {
     flexDirection: "row",
@@ -169,16 +188,18 @@ const styles = StyleSheet.create({
   },
   routeCode: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 34,
+    fontSize: 36,
+    color: COLORS.ink,
+    letterSpacing: -0.5,
   },
   routeCity: {
     fontSize: 9,
-    color: COLORS.slate,
+    color: COLORS.textSecondary,
     marginTop: 4,
   },
   routeCaption: {
     fontSize: 7,
-    color: COLORS.slateLight,
+    color: COLORS.labelMuted,
     letterSpacing: 1.5,
     marginTop: 5,
   },
@@ -186,12 +207,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: 90,
-    marginTop: 18,
+    marginTop: 19,
   },
   routeLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.champagneLight,
+    backgroundColor: COLORS.goldLine,
   },
   // A small rotated square rather than a text glyph — the base-14 PDF
   // fonts only cover WinAnsi/Latin-1, so symbol characters (✦, ✓, ⚠)
@@ -200,20 +221,21 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     marginHorizontal: 6,
-    backgroundColor: COLORS.champagne,
+    backgroundColor: COLORS.gold,
     transform: "rotate(45deg)",
   },
   travelDate: {
     textAlign: "center",
     fontFamily: "Helvetica-Bold",
     fontSize: 11,
+    color: COLORS.ink,
     letterSpacing: 1,
     marginTop: 22,
   },
   travelTime: {
     fontFamily: "Helvetica",
     fontSize: 9,
-    color: COLORS.slate,
+    color: COLORS.textSecondary,
   },
   divider: {
     borderTopWidth: 1,
@@ -232,30 +254,42 @@ const styles = StyleSheet.create({
   qrColumn: {
     width: 130,
     alignItems: "center",
-    borderLeft: `1 solid ${COLORS.hairline}`,
+    borderLeftWidth: 1,
+    borderLeftColor: COLORS.hairline,
     paddingLeft: 20,
   },
   qrHeading: {
+    fontFamily: "Helvetica-Bold",
     fontSize: 7,
-    color: COLORS.slateLight,
+    color: COLORS.gold,
     letterSpacing: 1.5,
     textAlign: "center",
     marginBottom: 8,
   },
+  // The QR chip stays pure white (not ivory) — highest contrast
+  // against the QR's own black modules is what keeps it reliably
+  // scannable, on screen and printed.
+  qrImageWrap: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.hairline,
+    borderRadius: 4,
+    padding: 6,
+  },
   qrImage: {
-    width: 110,
-    height: 110,
+    width: 100,
+    height: 100,
   },
   qrCaption: {
     fontSize: 7,
-    color: COLORS.slateLight,
+    color: COLORS.labelMuted,
     letterSpacing: 1,
     textAlign: "center",
     marginTop: 8,
   },
   qrTicketNumber: {
     fontSize: 7,
-    color: COLORS.slateFaint,
+    color: COLORS.labelMuted,
     textAlign: "center",
     marginTop: 2,
   },
@@ -269,17 +303,23 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 7.5,
-    color: COLORS.slateLight,
+    color: COLORS.labelMuted,
     letterSpacing: 1.5,
     marginBottom: 4,
   },
   detailValue: {
     fontSize: 11,
     fontFamily: "Helvetica-Bold",
+    color: COLORS.ink,
   },
   // Pinned to the page bottom (not inline) so a short single-page
   // document — the normal case here — still reads as intentionally
   // composed rather than trailing off with a large empty gap.
+  // Pinned to the page bottom (not inline) so a short single-page
+  // document — the normal case here — still reads as intentionally
+  // composed rather than trailing off with a large empty gap. Uses
+  // the same ivory field as the rest of the page (no grey panel) —
+  // separation comes from the dotted divider alone.
   footer: {
     position: "absolute",
     bottom: 0,
@@ -287,7 +327,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 40,
     paddingVertical: 20,
-    backgroundColor: COLORS.panel,
+    backgroundColor: COLORS.ivory,
   },
   securityDivider: {
     marginBottom: 14,
@@ -301,34 +341,35 @@ const styles = StyleSheet.create({
   },
   securityDividerDots: {
     fontSize: 7,
-    color: COLORS.slateFaint,
+    color: COLORS.hairline,
     letterSpacing: 4,
     marginHorizontal: 8,
   },
   footerBadge: {
     fontSize: 7.5,
     fontFamily: "Helvetica-Bold",
-    color: COLORS.champagne,
+    color: COLORS.gold,
     letterSpacing: 1.5,
     textAlign: "center",
   },
   footerHeading: {
     fontSize: 9,
     fontFamily: "Helvetica-Bold",
+    color: COLORS.ink,
     letterSpacing: 1,
     textAlign: "center",
     marginTop: 8,
   },
   footerText: {
     fontSize: 8,
-    color: COLORS.slate,
+    color: COLORS.textSecondary,
     textAlign: "center",
     lineHeight: 1.5,
     marginTop: 6,
   },
   footerContact: {
     fontSize: 7.5,
-    color: COLORS.slateLight,
+    color: COLORS.labelMuted,
     textAlign: "center",
     letterSpacing: 0.5,
     marginTop: 10,
@@ -354,23 +395,30 @@ const styles = StyleSheet.create({
  * applied there.
  *
  * Visual language mirrors components/ticket/TicketCard.tsx (Phase 6 —
- * premium redesign): a full-bleed navy header, a single restrained
- * champagne-gold accent on the route marker and labels, and generous
- * whitespace, so the emailed/printed document and the on-site ticket
- * read as one design system rather than two.
+ * premium redesign; Phase 7 — colour refinement): a single warm-ivory
+ * field, a full-bleed deep-midnight-navy header, and champagne gold
+ * reserved for route/verification/micro-label accents only — never a
+ * background fill — so the emailed/printed document and the on-site
+ * ticket read as one design system rather than two.
  */
 export async function generateTicketPdf(data: TicketPdfData): Promise<Buffer> {
   const status = data.status ?? TICKET_STATUSES.ISSUED;
   const isValid = status === TICKET_STATUSES.ISSUED;
+  // Admin-configured contact details (getSiteSettings()) take
+  // priority; site.ts is only the fallback for a caller that somehow
+  // didn't pass them — see the TicketPdfData doc comment above.
+  const companyName = data.companyName ?? siteConfig.name;
+  const contactPhone = data.contactPhone ?? siteConfig.phoneDisplay;
+  const contactEmail = data.contactEmail ?? siteConfig.email;
 
   const doc = (
-    <Document title={`${siteConfig.name} — ${data.ticketNumber}`} author={siteConfig.name}>
+    <Document title={`${companyName} — ${data.ticketNumber}`} author={companyName}>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.headerBand}>
           <View style={styles.headerRow}>
             <View>
-              <Text style={styles.companyName}>{siteConfig.name.toUpperCase()}</Text>
+              <Text style={styles.companyName}>{companyName.toUpperCase()}</Text>
               <Text style={styles.tagline}>PRIVATE AVIATION</Text>
             </View>
             <View>
@@ -382,7 +430,7 @@ export async function generateTicketPdf(data: TicketPdfData): Promise<Buffer> {
 
         {/* Status strip */}
         <View style={styles.statusStrip}>
-          <View style={{ ...styles.statusPill, borderColor: isValid ? "#bbf7d0" : "#fecaca" }}>
+          <View style={{ ...styles.statusPill, backgroundColor: isValid ? COLORS.paidBg : COLORS.invalidRedBg }}>
             <View style={{ ...styles.statusDot, backgroundColor: isValid ? COLORS.paidGreen : COLORS.invalidRed }} />
             <Text style={isValid ? styles.paidBadge : styles.invalidBadge}>
               {isValid ? "PAID IN FULL" : TICKET_STATUS_LABELS[status].toUpperCase()}
@@ -472,7 +520,7 @@ export async function generateTicketPdf(data: TicketPdfData): Promise<Buffer> {
                     <Text style={styles.detailLabel}>FBO / TERMINAL</Text>
                     <Text style={styles.detailValue}>{data.fboName}</Text>
                     {data.fboAddress ? (
-                      <Text style={{ fontSize: 8.5, color: COLORS.slate, marginTop: 3 }}>{data.fboAddress}</Text>
+                      <Text style={{ fontSize: 8.5, color: COLORS.textSecondary, marginTop: 3 }}>{data.fboAddress}</Text>
                     ) : null}
                   </View>
                 ) : null}
@@ -481,8 +529,10 @@ export async function generateTicketPdf(data: TicketPdfData): Promise<Buffer> {
 
             <View style={styles.qrColumn}>
               <Text style={styles.qrHeading}>DIGITAL{"\n"}VERIFICATION</Text>
-              {/* eslint-disable-next-line jsx-a11y/alt-text -- this is react-pdf's <Image> (PDF rendering primitive), not an HTML/next <img>; it has no alt prop */}
-              <Image src={data.qrCodeDataUrl} style={styles.qrImage} />
+              <View style={styles.qrImageWrap}>
+                {/* eslint-disable-next-line jsx-a11y/alt-text -- this is react-pdf's <Image> (PDF rendering primitive), not an HTML/next <img>; it has no alt prop */}
+                <Image src={data.qrCodeDataUrl} style={styles.qrImage} />
+              </View>
               <Text style={styles.qrCaption}>SCAN TO VERIFY</Text>
               <Text style={styles.qrTicketNumber}>{data.ticketNumber}</Text>
             </View>
@@ -499,12 +549,12 @@ export async function generateTicketPdf(data: TicketPdfData): Promise<Buffer> {
           <Text style={styles.footerBadge}>VERIFIED DIGITAL CREDENTIAL</Text>
           <Text style={styles.footerHeading}>PRIVATE CHARTER CONFIRMATION</Text>
           <Text style={styles.footerText}>
-            This document confirms your private charter reservation with {siteConfig.name}.{"\n"}
+            This document confirms your private charter reservation with {companyName}.{"\n"}
             Please retain this confirmation and present it digitally or in printed form when required.{"\n"}
             Verify authenticity at {data.verificationUrl}
           </Text>
           <Text style={styles.footerContact}>
-            {siteConfig.name}  ·  {siteConfig.url.replace(/^https?:\/\//, "")}  ·  {siteConfig.email}  ·  {siteConfig.phoneDisplay}
+            {companyName}  ·  {siteConfig.url.replace(/^https?:\/\//, "")}  ·  {contactEmail}  ·  {contactPhone}
           </Text>
         </View>
       </Page>

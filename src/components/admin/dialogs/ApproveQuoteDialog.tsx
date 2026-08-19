@@ -13,7 +13,14 @@ import { Textarea } from "@/components/forms/Textarea";
 import { Button } from "@/components/shared/buttons/Button";
 import { approveQuoteSchema, type ApproveQuoteInput } from "@/features/quote/schemas/quote.schema";
 import { adminApproveQuote } from "@/features/admin/actions/quote.actions";
-import type { AircraftOption } from "@/components/quote/steps/MissionAircraftStep";
+import {
+  DEPARTURE_TIME_PREFERENCE_LABELS,
+  DEPARTURE_TIME_PREFERENCE_RANGES,
+  type DepartureTimePreference,
+} from "@/database/constants/departure-time-preference";
+import { LOCAL_TIME_REGEX } from "@/utils/validators";
+import { formatDateForInput } from "@/utils/date";
+import type { AircraftOptionResult } from "@/features/aircraft/lib/getAircraft";
 
 export function ApproveQuoteDialog({
   open,
@@ -21,12 +28,27 @@ export function ApproveQuoteDialog({
   quoteId,
   aircraftOptions,
   preferredAircraftId,
+  currentDepartureDate,
+  currentDepartureTime,
+  departureTimePreference,
 }: {
   open: boolean;
   onClose: () => void;
   quoteId: string;
-  aircraftOptions: AircraftOption[];
+  aircraftOptions: AircraftOptionResult[];
   preferredAircraftId?: string;
+  // The customer's originally requested date, used as the departure
+  // date field's default — the admin only needs to touch it when the
+  // day is actually changing (aircraft availability, slot shifts).
+  currentDepartureDate?: string;
+  // Set only once a quote has already been approved before (e.g. the
+  // admin reopens this dialog to adjust pricing) — prefills the time
+  // field with whatever was previously confirmed.
+  currentDepartureTime?: string;
+  // The customer's stated preference at request time — a window like
+  // "morning" or an exact "HH:MM" — shown as a hint, not a default,
+  // since it's a preference rather than a confirmed time.
+  departureTimePreference?: string;
 }) {
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -37,7 +59,13 @@ export function ApproveQuoteDialog({
     formState: { errors, isSubmitting },
   } = useForm<ApproveQuoteInput>({
     resolver: zodResolver(approveQuoteSchema),
-    defaultValues: { quoteId, aircraftId: preferredAircraftId, quotedCurrency: "KES" },
+    defaultValues: {
+      quoteId,
+      aircraftId: preferredAircraftId,
+      quotedCurrency: "KES",
+      departureDate: currentDepartureDate ? formatDateForInput(currentDepartureDate) : undefined,
+      departureTime: currentDepartureTime,
+    },
   });
 
   async function onSubmit(data: ApproveQuoteInput) {
@@ -52,6 +80,17 @@ export function ApproveQuoteDialog({
     onClose();
     router.refresh();
   }
+
+  const isExactPreference = Boolean(departureTimePreference && LOCAL_TIME_REGEX.test(departureTimePreference));
+  const preferenceHint = departureTimePreference
+    ? isExactPreference
+      ? `Customer requested ${departureTimePreference}`
+      : `Customer requested ${DEPARTURE_TIME_PREFERENCE_LABELS[departureTimePreference as DepartureTimePreference] ?? departureTimePreference}${
+          DEPARTURE_TIME_PREFERENCE_RANGES[departureTimePreference as DepartureTimePreference]
+            ? ` (${DEPARTURE_TIME_PREFERENCE_RANGES[departureTimePreference as DepartureTimePreference]})`
+            : ""
+        }`
+    : undefined;
 
   return (
     <Modal open={open} onClose={onClose} title="Approve Charter Request">
@@ -68,6 +107,26 @@ export function ApproveQuoteDialog({
             ))}
           </Select>
         </FormField>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FormField label="Departure date" htmlFor="departureDate" error={errors.departureDate?.message}>
+            <TextInput
+              id="departureDate"
+              type="date"
+              {...register("departureDate", {
+                setValueAs: (value) => (value === "" ? undefined : value),
+              })}
+            />
+          </FormField>
+          <FormField
+            label="Departure time"
+            htmlFor="departureTime"
+            hint={preferenceHint ?? "Optional"}
+            error={errors.departureTime?.message}
+          >
+            <TextInput id="departureTime" type="time" {...register("departureTime")} />
+          </FormField>
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField label="Quoted amount (KES)" htmlFor="quotedAmount" required error={errors.quotedAmount?.message}>

@@ -34,8 +34,16 @@ export const fleetCategories: FleetCategoryContent[] = [
     bestFor: "Cross-border executive travel",
   },
   {
+    category: "heavy_jet",
+    label: "Heavy Jet",
+    shortLabel: "Heavy Jet",
+    description:
+      "Long-range cabins with the legs for intercontinental sectors and the space for a full team to work, sleep, or entertain in transit.",
+    bestFor: "Intercontinental travel, large delegations",
+  },
+  {
     category: "utility",
-    label: "Utility Aircraft",
+    label: "Utility & Bush Aircraft",
     shortLabel: "Utility",
     description:
       "Rugged, dependable airframes built for unpaved strips, mixed passenger-and-cargo loads, and remote field operations.",
@@ -43,8 +51,8 @@ export const fleetCategories: FleetCategoryContent[] = [
   },
   {
     category: "medevac",
-    label: "Medical Evacuation",
-    shortLabel: "Medevac",
+    label: "Air Ambulance",
+    shortLabel: "Air Ambulance",
     description:
       "Stretcher-configured aircraft with medical equipment mounts, on standby for time-critical patient transfers.",
     bestFor: "Emergency and inter-facility transfers",
@@ -59,8 +67,8 @@ export const fleetCategories: FleetCategoryContent[] = [
   },
   {
     category: "cargo",
-    label: "Cargo Aircraft",
-    shortLabel: "Cargo",
+    label: "Freight Aircraft",
+    shortLabel: "Freight",
     description:
       "Freight capacity for time-sensitive or oversized loads across the region — available on request.",
     bestFor: "Freight and logistics runs",

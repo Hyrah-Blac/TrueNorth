@@ -52,6 +52,7 @@ export function CustomerActionsPanel({
       <div className="flex flex-wrap gap-3">
         <Button
           variant="outline"
+          size="sm"
           onClick={handleRoleToggle}
           disabled={isPending}
           icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
@@ -60,6 +61,7 @@ export function CustomerActionsPanel({
         </Button>
         <Button
           variant="ghost"
+          size="sm"
           onClick={handleActiveToggle}
           disabled={isPending}
           className={isActive ? "!text-red-600 hover:!bg-red-50" : ""}

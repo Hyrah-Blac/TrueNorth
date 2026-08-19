@@ -1,6 +1,7 @@
 import "server-only";
 import connectToDatabase from "@/database/connection";
 import Airport from "@/database/models/Airport";
+import { escapeRegExp } from "@/utils/validators";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -69,7 +70,13 @@ export async function searchAirportsForAI(
   const filter: Record<string, unknown> = { status: "active" };
 
   if (params.query) filter.$text = { $search: params.query };
-  if (params.country) filter.country = { $regex: params.country, $options: "i" };
+  // Escaped before use — this filter is reachable from the public,
+  // unauthenticated AI chat endpoint, and the model's tool-call args
+  // are only trimmed/truncated (see executor.ts's safeString), not
+  // regex-escaped. Without this, a crafted value like `(a+)+$` would
+  // reach Mongo as a live regex — a ReDoS vector — the same way an
+  // unescaped admin search box would (see escapeRegExp's docstring).
+  if (params.country) filter.country = { $regex: escapeRegExp(params.country), $options: "i" };
   if (params.minRunwayLengthM !== undefined && params.minRunwayLengthM > 0) {
     filter.runwayLengthM = { $gte: params.minRunwayLengthM };
   }

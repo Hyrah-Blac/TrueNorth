@@ -2,6 +2,7 @@ export const AIRCRAFT_CATEGORIES = {
   HELICOPTER: "helicopter",
   TURBOPROP: "turboprop",
   LIGHT_JET: "light_jet",
+  HEAVY_JET: "heavy_jet",
   UTILITY: "utility",
   MEDEVAC: "medevac",
   SAFARI: "safari",
@@ -16,10 +17,11 @@ export const AIRCRAFT_CATEGORY_LABELS: Record<AircraftCategory, string> = {
   helicopter: "Helicopter",
   turboprop: "Executive Turboprop",
   light_jet: "Light Business Jet",
-  utility: "Utility Aircraft",
-  medevac: "Medical Evacuation",
+  heavy_jet: "Heavy Jet",
+  utility: "Utility & Bush Aircraft",
+  medevac: "Air Ambulance",
   safari: "Safari Aircraft",
-  cargo: "Cargo Aircraft",
+  cargo: "Freight Aircraft",
 };
 
 export const AIRCRAFT_STATUSES = {
@@ -37,4 +39,3 @@ export const AIRCRAFT_STATUS_LABELS: Record<AircraftStatus, string> = {
   maintenance: "In Maintenance",
   inactive: "Inactive",
 };
-

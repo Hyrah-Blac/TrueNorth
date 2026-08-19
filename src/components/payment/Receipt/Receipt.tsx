@@ -10,10 +10,11 @@ import type { IPayment } from "@/types/payment";
 
 interface ReceiptProps {
   payment: IPayment;
+  companyName?: string;
   contactEmail?: string;
 }
 
-export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptProps) {
+export function Receipt({ payment, companyName = siteConfig.name, contactEmail = siteConfig.email }: ReceiptProps) {
   const bookingNumber =
     typeof payment.booking === "object" && payment.booking !== null
       ? payment.booking.bookingNumber
@@ -82,7 +83,7 @@ export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptPro
         <div className="border-b border-navy-900/10 px-6 py-5 sm:px-8 sm:py-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="font-editorial text-base font-light text-navy-900 sm:text-lg">{siteConfig.name}</p>
+              <p className="font-editorial text-base font-light text-navy-900 sm:text-lg">{companyName}</p>
               <p className="mt-0.5 text-[0.6875rem] text-slate-500">{contactEmail}</p>
             </div>
             <button
@@ -130,7 +131,7 @@ export function Receipt({ payment, contactEmail = siteConfig.email }: ReceiptPro
         {/* Footer */}
         <div className="border-t border-navy-900/10 bg-slate-50/60 px-6 py-5 sm:px-8 sm:py-6">
           <p className="text-center text-[0.6875rem] leading-relaxed text-slate-500">
-            This receipt confirms payment received by {siteConfig.name}.{" "}
+            This receipt confirms payment received by {companyName}.{" "}
             <span className="mt-0.5 block">Retain for your records.</span>
           </p>
         </div>

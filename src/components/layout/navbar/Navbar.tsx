@@ -47,22 +47,21 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // stays constant so nothing jumps.
 //
 // Fleet / Destinations / About are inline top-bar links (visible from lg
-// upward). The hamburger stays visible at every breakpoint — on mobile
-// it's still the only way to reach Fleet/Destinations/About, and at
-// every screen size it holds the account/dashboard items (Bookings,
-// Quotes, Payments, Profile, Sign Out) plus Contact and auth, since
-// dashboards are admin-only and customers reach their own data through
-// this menu instead of a sidebar.
+// upward). The hamburger stays visible at every breakpoint and is the
+// only account entry point at every breakpoint — dashboards are
+// admin-only, so customers reach their own data through links in that
+// panel rather than a sidebar. There's no separate avatar in the bar
+// itself; the panel's own name/email header links to Profile (see
+// MobileNav.tsx).
 //
 // The centered logo mark is suppressed while the bar is transparent, but
 // only on the home hero ("/") — that's the only page where the Hero
 // component renders its own logo over the "Adventure, above & beyond"
 // line, so showing it here too would double it up. Every other hero
-// route (fleet, destinations, about, request-charter) keeps the navbar
-// logo visible even while transparent, since nothing else on those pages
-// is showing it. It fades back in the moment the bar goes solid (scroll,
-// menu open, or a non-hero route), in sync with the same background-color
-// transition.
+// route (fleet, destinations, about) keeps the navbar logo visible even
+// while transparent, since nothing else on those pages is showing it.
+// It fades back in the moment the bar goes solid (scroll, menu open, or
+// a non-hero route), in sync with the same background-color transition.
 // ---------------------------------------------------------------------------
 
 // Routes whose top section is a full-bleed dark/image hero — these are the
@@ -70,7 +69,12 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // sense. Every other route opens straight into a white page background,
 // so the bar needs to start solid there or its white text and logo
 // disappear against the page underneath it.
-const HERO_ROUTES = ["/", "/fleet", "/destinations", "/about", "/request-charter", "/contact"];
+//
+// request-charter used to have a dark navy/photo hero here too, but the
+// charter request flow now opens straight into a plain white page (the
+// VistaJet-style "Request a quote" layout — see the page component), so
+// it moved out of this list to match every other plain-white route.
+const HERO_ROUTES = ["/", "/fleet", "/destinations", "/about", "/contact"];
 
 // Contact and about now use a light, white-washed photo (not the dark
 // ones used on the other hero routes), so a transparent bar there still
@@ -157,10 +161,10 @@ export function Navbar({ phone }: { phone: string }) {
   const textSolid = showSolid || isLightHero;
 
   // Only the home hero renders its own oversized logo over "Adventure,
-  // above & beyond" — the other hero routes (fleet, destinations, about,
-  // request-charter) don't duplicate it, so the navbar's own logo should
-  // stay visible on those even while the bar is transparent. It's only
-  // suppressed here on "/" while transparent, to avoid showing it twice.
+  // above & beyond" — the other hero routes (fleet, destinations, about)
+  // don't duplicate it, so the navbar's own logo should stay visible on
+  // those even while the bar is transparent. It's only suppressed here
+  // on "/" while transparent, to avoid showing it twice.
   const isHomeHero = pathname === "/";
   const showLogo = !(isHomeHero && !showSolid);
 

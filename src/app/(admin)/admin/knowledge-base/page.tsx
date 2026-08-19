@@ -31,6 +31,8 @@ export default async function AdminKnowledgeBasePage({ searchParams }: Props) {
   return (
     <div>
       <PageHeader
+        variant="light"
+        showTitle={false}
         title="Knowledge Base"
         description="Manage the AI concierge knowledge base. Published public entries are available to the AI for charter guidance."
       />

@@ -7,6 +7,7 @@ import { PaymentStatusBadge } from "@/components/payment/PaymentCard/PaymentStat
 import { Receipt } from "@/components/payment/Receipt/Receipt";
 import { RecheckPaymentButton } from "@/components/admin/dialogs/RecheckPaymentButton";
 import { getPaymentForAdmin } from "@/features/admin/lib/getPaymentsForAdmin";
+import { getSiteSettings } from "@/lib/config/siteSettings";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate, formatDateTime } from "@/utils/date";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
@@ -28,6 +29,10 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
     if (isAppError(error) && error instanceof NotFoundError) notFound();
     throw error;
   }
+  // Same admin-configured contact info the customer-facing payment
+  // page already passes to <Receipt /> — this admin view previously
+  // relied on the component's hardcoded site.ts fallback instead.
+  const settings = await getSiteSettings();
 
   const customer = typeof payment.customer === "object" && payment.customer !== null ? payment.customer : null;
   const booking = typeof payment.booking === "object" && payment.booking !== null ? payment.booking : null;
@@ -149,7 +154,9 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
             </div>
           ) : null}
 
-          {payment.status === PAYMENT_STATUSES.COMPLETED ? <Receipt payment={payment} /> : null}
+          {payment.status === PAYMENT_STATUSES.COMPLETED ? (
+            <Receipt payment={payment} companyName={settings.companyName} contactEmail={settings.email} />
+          ) : null}
         </div>
 
         <aside className="h-fit rounded-xl border border-slate-200 bg-white p-7">
@@ -184,3 +191,4 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
     </div>
   );
 }
+

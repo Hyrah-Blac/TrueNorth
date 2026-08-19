@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CheckCircle, Warning, Clock, Question, Ticket as TicketIcon } from "@phosphor-icons/react/dist/ssr";
+import { CheckCircle, Warning, Clock, Question, Ticket as TicketIcon, Receipt } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/shared/buttons/Button";
 import { checkPaystackPaymentStatusAction } from "@/features/payment/actions/payment.actions";
 import { getMyPaymentById } from "@/features/payment/lib/getPayments";
@@ -111,10 +111,10 @@ export default async function PaystackCallbackPage({ searchParams }: PaystackCal
                 <Button
                   href={`/dashboard/bookings/${charter.bookingId}/ticket`}
                   variant="primary"
-                  size="lg"
+                  size="sm"
                   className="w-full justify-center gap-1.5 sm:w-auto"
                 >
-                  <TicketIcon className="h-4 w-4" aria-hidden="true" />
+                  <TicketIcon className="h-3.5 w-3.5" aria-hidden="true" />
                   View Ticket
                 </Button>
               ) : (
@@ -125,7 +125,7 @@ export default async function PaystackCallbackPage({ searchParams }: PaystackCal
                 <Button
                   href={`/dashboard/bookings/${charter.bookingId}`}
                   variant="primary"
-                  size="lg"
+                  size="sm"
                   className="w-full justify-center sm:w-auto"
                 >
                   View Booking
@@ -135,9 +135,10 @@ export default async function PaystackCallbackPage({ searchParams }: PaystackCal
                 <Button
                   href={`/dashboard/payments/${result.paymentId}`}
                   variant="outline"
-                  size="lg"
-                  className="w-full justify-center sm:w-auto"
+                  size="sm"
+                  className="w-full justify-center gap-1.5 sm:w-auto"
                 >
+                  <Receipt className="h-3.5 w-3.5" aria-hidden="true" />
                   View Receipt
                 </Button>
               ) : null}

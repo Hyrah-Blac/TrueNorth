@@ -6,6 +6,7 @@ import type { Icon } from "@phosphor-icons/react";
 import {
   AirplaneTilt,
   Airplane,
+  AirplaneInFlight,
   AirTrafficControl,
   Ambulance,
   Binoculars,
@@ -27,6 +28,7 @@ const CATEGORY_ICONS: Record<AircraftCategory, Icon> = {
   helicopter: AirTrafficControl,
   turboprop: AirplaneTilt,
   light_jet: Airplane,
+  heavy_jet: AirplaneInFlight,
   utility: Wrench,
   medevac: Ambulance,
   safari: Binoculars,

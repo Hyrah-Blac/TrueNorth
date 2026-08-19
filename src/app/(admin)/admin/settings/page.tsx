@@ -13,11 +13,13 @@ export default async function AdminSettingsPage() {
   return (
     <div>
       <PageHeader
+        variant="light"
+        showTitle={false}
         title="Settings"
         description="All public-facing company information is sourced from here. Changes are live immediately."
       />
 
-      <div className="max-w-2xl rounded-xl border border-slate-200 bg-white p-8">
+      <div className="max-w-5xl">
         <SettingsForm
           defaultValues={{
             companyName: settings.companyName,

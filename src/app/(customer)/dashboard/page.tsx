@@ -1,6 +1,8 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { ArrowRight, AirplaneTakeoff, FileText, CurrencyCircleDollar, CheckCircle } from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { StatCard } from "@/components/dashboard/cards/StatCard";
 import { BookingCard } from "@/components/booking/BookingCard/BookingCard";
 import { QuoteRow } from "@/components/quote/QuoteRow";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
@@ -8,6 +10,7 @@ import { Button } from "@/components/shared/buttons/Button";
 import { getMyBookings } from "@/features/booking/lib/getBookings";
 import { getMyQuotes } from "@/features/quote/lib/getQuotes";
 import { getBookingIdsWithTickets } from "@/features/ticket/lib/getTicketForBooking";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { formatCurrency } from "@/utils/currency";
 import { BOOKING_STATUSES } from "@/database/constants/booking-status";
 import { QUOTE_STATUSES } from "@/database/constants/quote-status";
@@ -17,6 +20,12 @@ export default async function DashboardOverviewPage() {
   // Batched (one query for every card) rather than one ticketExistsForBooking
   // call per BookingCard rendered below.
   const ticketedBookingIds = await getBookingIdsWithTickets(bookings.map((b) => b._id));
+  // Same batching for QuoteRow's route display — one lookup for every
+  // quote shown here, so city names ("Nairobi → Aketi") render instead of
+  // bare codes, matching the full Quotes list.
+  const airportNames = await getAirportNamesByCodes(
+    quotes.flatMap((quote) => [quote.departureAirportCode, quote.destinationAirportCode])
+  );
 
   const activeBookings = bookings.filter(
     (b) => b.status !== BOOKING_STATUSES.COMPLETED && b.status !== BOOKING_STATUSES.CANCELLED
@@ -39,16 +48,11 @@ export default async function DashboardOverviewPage() {
   const hasUrgentItems = quotesNeedingAction.length > 0 || bookingsNeedingPayment.length > 0;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10" style={{ "--font-editorial": "var(--font-dashboard-serif)" } as CSSProperties}>
       <PageHeader
         variant="light"
         title="Your Charter Portal"
         description="Manage your bookings, review quotes, and track payments."
-        actions={
-          <Button href="/request-charter" variant="primary" size="sm">
-            New Charter Request
-          </Button>
-        }
       />
 
       {/* Attention-required banner */}
@@ -113,65 +117,44 @@ export default async function DashboardOverviewPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Active trips</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-950/5 text-navy-900">
-              <AirplaneTakeoff className="h-4 w-4" aria-hidden="true" />
-            </span>
-          </div>
-          <p className="spec-readout mt-3 text-3xl font-semibold text-navy-900">{activeBookings.length}</p>
-          <p className="mt-1 text-xs text-slate-500">
-            {activeBookings.length === 0 ? "No active flights" : "In progress or upcoming"}
-          </p>
-        </div>
+        <StatCard
+          label="Active trips"
+          value={String(activeBookings.length)}
+          hint={activeBookings.length === 0 ? "No active flights" : "In progress or upcoming"}
+          icon={AirplaneTakeoff}
+        />
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Open quotes</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-950/5 text-navy-900">
-              <FileText className="h-4 w-4" aria-hidden="true" />
-            </span>
-          </div>
-          <p className="spec-readout mt-3 text-3xl font-semibold text-navy-900">
-            {quotes.filter((q) => q.status === QUOTE_STATUSES.PENDING || q.status === QUOTE_STATUSES.REVIEWING || q.status === QUOTE_STATUSES.APPROVED).length}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            {quotesNeedingAction.length > 0
-              ? `${quotesNeedingAction.length} ready to accept`
-              : "No action needed"}
-          </p>
-        </div>
+        <StatCard
+          label="Open quotes"
+          value={String(
+            quotes.filter(
+              (q) =>
+                q.status === QUOTE_STATUSES.PENDING ||
+                q.status === QUOTE_STATUSES.REVIEWING ||
+                q.status === QUOTE_STATUSES.APPROVED
+            ).length
+          )}
+          hint={quotesNeedingAction.length > 0 ? `${quotesNeedingAction.length} ready to accept` : "No action needed"}
+          icon={FileText}
+        />
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Balance due</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-950/5 text-navy-900">
-              <CurrencyCircleDollar className="h-4 w-4" aria-hidden="true" />
-            </span>
-          </div>
-          <p className="spec-readout mt-3 text-2xl font-semibold text-navy-900">
-            {formatCurrency(outstandingBalance)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            {bookingsNeedingPayment.length === 0
+        <StatCard
+          label="Balance due"
+          value={formatCurrency(outstandingBalance)}
+          hint={
+            bookingsNeedingPayment.length === 0
               ? "All payments up to date"
-              : `Across ${bookingsNeedingPayment.length} booking${bookingsNeedingPayment.length === 1 ? "" : "s"}`}
-          </p>
-        </div>
+              : `Across ${bookingsNeedingPayment.length} booking${bookingsNeedingPayment.length === 1 ? "" : "s"}`
+          }
+          icon={CurrencyCircleDollar}
+        />
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-soft">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Confirmed</p>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 text-green-600">
-              <CheckCircle className="h-4 w-4" aria-hidden="true" />
-            </span>
-          </div>
-          <p className="spec-readout mt-3 text-3xl font-semibold text-navy-900">{confirmedBookings.length}</p>
-          <p className="mt-1 text-xs text-slate-500">
-            {confirmedBookings.length === 0 ? "None confirmed yet" : "Charter confirmed"}
-          </p>
-        </div>
+        <StatCard
+          label="Confirmed"
+          value={String(confirmedBookings.length)}
+          hint={confirmedBookings.length === 0 ? "None confirmed yet" : "Charter confirmed"}
+          icon={CheckCircle}
+        />
       </div>
 
       {!hasAnyActivity ? (
@@ -195,7 +178,7 @@ export default async function DashboardOverviewPage() {
           <div>
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <h2 className="font-display text-xl font-semibold text-navy-900">Your bookings</h2>
+                <h2 className="font-editorial text-lg font-light text-navy-900">Your bookings</h2>
                 <p className="mt-0.5 text-sm text-slate-500">
                   {bookings.length === 0 ? "No bookings yet" : `${bookings.length} total`}
                 </p>
@@ -237,7 +220,7 @@ export default async function DashboardOverviewPage() {
           <div>
             <div className="mb-2 flex items-center justify-between">
               <div>
-                <h2 className="font-display text-xl font-semibold text-navy-900">Charter quotes</h2>
+                <h2 className="font-editorial text-lg font-light text-navy-900">Charter quotes</h2>
                 <p className="mt-0.5 text-sm text-slate-500">
                   {quotes.length === 0 ? "No quotes yet" : `${quotes.length} total`}
                 </p>
@@ -264,7 +247,7 @@ export default async function DashboardOverviewPage() {
             ) : (
               <div className="divide-y divide-slate-100 border-t border-slate-100">
                 {sortedQuotes.slice(0, 3).map((quote) => (
-                  <QuoteRow key={quote._id} quote={quote} />
+                  <QuoteRow key={quote._id} quote={quote} airportNames={airportNames} />
                 ))}
               </div>
             )}

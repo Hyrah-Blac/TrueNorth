@@ -6,7 +6,7 @@ import { Button } from "@/components/shared/buttons/Button";
 import { ApproveQuoteDialog } from "@/components/admin/dialogs/ApproveQuoteDialog";
 import { RejectQuoteDialog } from "@/components/admin/dialogs/RejectQuoteDialog";
 import { LinkCustomerDialog } from "@/components/admin/dialogs/LinkCustomerDialog";
-import type { AircraftOption } from "@/components/quote/steps/MissionAircraftStep";
+import type { AircraftOptionResult } from "@/features/aircraft/lib/getAircraft";
 
 export function QuoteReviewPanel({
   quoteId,
@@ -14,12 +14,18 @@ export function QuoteReviewPanel({
   preferredAircraftId,
   hasCustomer,
   suggestedEmail,
+  currentDepartureDate,
+  currentDepartureTime,
+  departureTimePreference,
 }: {
   quoteId: string;
-  aircraftOptions: AircraftOption[];
+  aircraftOptions: AircraftOptionResult[];
   preferredAircraftId?: string;
   hasCustomer: boolean;
   suggestedEmail?: string;
+  currentDepartureDate?: string;
+  currentDepartureTime?: string;
+  departureTimePreference?: string;
 }) {
   const [dialog, setDialog] = useState<"approve" | "reject" | "link" | null>(null);
 
@@ -68,6 +74,9 @@ export function QuoteReviewPanel({
         quoteId={quoteId}
         aircraftOptions={aircraftOptions}
         preferredAircraftId={preferredAircraftId}
+        currentDepartureDate={currentDepartureDate}
+        currentDepartureTime={currentDepartureTime}
+        departureTimePreference={departureTimePreference}
       />
 
       <RejectQuoteDialog open={dialog === "reject"} onClose={() => setDialog(null)} quoteId={quoteId} />

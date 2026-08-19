@@ -7,23 +7,24 @@ import { Button } from "@/components/shared/buttons/Button";
 import { fleetCategories } from "@/content/fleet-categories";
 import type { AircraftCategory } from "@/database/constants/aircraft";
 
-// The two categories we have real photography for get the large image
+// The categories we have real photography for get the large image
 // treatment; the rest use a refined dark gradient card so nothing looks
 // like a placeholder pretending to be a photo.
 const categoryImages: Partial<Record<AircraftCategory, string>> = {
   light_jet: "/images/hero/light-jet.jpg",
-  turboprop: "/images/hero/turboprop.jpg",
+  turboprop: "/images/gallery/pop.jpg",
+  heavy_jet: "/images/gallery/done.jpg",
 };
 
-// Deliberately showing only a couple of categories here rather than all
-// seven — the homepage is a teaser, not the catalog. Showing everything
+// Deliberately showing only a few categories here rather than all
+// eight — the homepage is a teaser, not the catalog. Showing everything
 // up front gives people no reason to click through to /fleet; showing
-// two strong examples and then pointing at "five more categories" does.
-const FEATURED_CATEGORIES: AircraftCategory[] = ["light_jet", "turboprop"];
+// strong examples and then pointing at "more categories" does.
+const FEATURED_CATEGORIES: AircraftCategory[] = ["light_jet", "turboprop", "heavy_jet"];
 
 // Image used in the closing "full fleet" CTA panel below — kept as its
 // own constant since it's not tied to a category like the ones above.
-const FLEET_CTA_IMAGE = "/images/hero/Full.jpg";
+const FLEET_CTA_IMAGE = "/images/gallery/fleet.jpg";
 
 export function FleetCategoriesSection() {
   const featured = fleetCategories.filter((item) => FEATURED_CATEGORIES.includes(item.category));
@@ -40,7 +41,7 @@ export function FleetCategoriesSection() {
       <div className="mt-10 flex flex-col gap-8 sm:gap-10">
         {featured.map((item, index) => {
           const image = categoryImages[item.category];
-          // Zigzag layout: first row shows image-right/text-left, the
+          // Zigzag layout: first row shows text-left/image-right, the
           // next flips to image-left/text-right.
           const reversed = index % 2 !== 0;
 
@@ -48,7 +49,7 @@ export function FleetCategoriesSection() {
             <Link
               key={item.category}
               href={`/fleet?category=${item.category}`}
-              className={`group relative flex flex-col overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-900/40 focus-visible:ring-offset-2 sm:min-h-[16rem] md:min-h-[20rem] lg:min-h-[22rem] ${
+              className={`relative flex flex-col overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-900/40 focus-visible:ring-offset-2 sm:min-h-[16rem] md:min-h-[20rem] lg:min-h-[22rem] ${
                 reversed ? "sm:flex-row-reverse" : "sm:flex-row"
               }`}
             >
@@ -57,13 +58,13 @@ export function FleetCategoriesSection() {
                   reversed ? "from-slate-200 to-white" : "from-white to-slate-200"
                 }`}
               >
-                <h3 className="font-display text-sm font-semibold text-navy-900 transition-colors duration-300 group-hover:text-navy-700 sm:text-base md:text-lg lg:text-lg">
+                <h3 className="font-display text-sm font-semibold text-navy-900 sm:text-base md:text-lg lg:text-lg">
                   {item.label}
                 </h3>
                 <p className="mt-2 max-w-sm text-xs leading-relaxed text-slate-600 sm:mt-3 sm:text-xs md:text-sm">
                   {item.description}
                 </p>
-                <span className="mt-4 inline-block w-fit text-xs font-medium tracking-wide text-navy-900/70 transition-all duration-500 ease-out group-hover:tracking-wider group-hover:text-navy-900">
+                <span className="mt-4 inline-block w-fit text-xs font-medium tracking-wide text-navy-900/70">
                   Explore aircraft
                 </span>
               </div>
@@ -74,11 +75,11 @@ export function FleetCategoriesSection() {
                     src={image}
                     alt={item.label}
                     fill
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    className="object-cover"
                     sizes="(min-width: 768px) 55vw, 100vw"
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-navy-900 via-navy-800 to-slate-800 transition-transform duration-700 ease-out group-hover:scale-105">
+                  <div className="absolute inset-0 bg-gradient-to-br from-navy-900 via-navy-800 to-slate-800">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08),transparent_60%)]" />
                   </div>
                 )}
@@ -88,19 +89,19 @@ export function FleetCategoriesSection() {
         })}
       </div>
 
-      {/* Closing CTA — image-right / text-left, mirroring the featured
+      {/* Closing CTA — image-left / text-right, mirroring the featured
           rows above but calmer: no link-wrap, no hover state, just a
           clear "there's more" moment before the button. Sized and
           typeset to match the featured rows above so the whole section
           reads as one consistent system rather than two different
           components stacked together. */}
-      <div className="mt-8 flex flex-col overflow-hidden sm:min-h-[16rem] sm:flex-row md:min-h-[20rem] lg:min-h-[22rem]">
-        <div className="flex w-full flex-col justify-center gap-5 bg-gradient-to-r from-white to-slate-100 p-6 sm:w-[45%] sm:shrink-0 sm:p-8 md:p-10 lg:p-12">
+      <div className="mt-8 flex flex-col overflow-hidden sm:min-h-[16rem] sm:flex-row-reverse md:min-h-[20rem] lg:min-h-[22rem]">
+        <div className="order-2 flex w-full flex-col justify-center gap-5 bg-gradient-to-r from-slate-200 to-white p-6 sm:order-none sm:w-[45%] sm:shrink-0 sm:p-8 md:p-10 lg:p-12">
           <h3 className="font-display text-sm font-semibold text-navy-900 sm:text-base md:text-lg lg:text-lg">
             The Full Fleet
           </h3>
           <p className="max-w-sm text-xs leading-relaxed text-slate-600 sm:text-xs md:text-sm">
-            Plus {remainingCount} more categories — helicopters, utility, medevac, safari, and cargo aircraft, each matched to a different kind of mission.
+            Plus {remainingCount} more categories — helicopters, utility, air ambulance, safari, and cargo aircraft, each matched to a different kind of mission.
           </p>
           <div>
             <Button href="/fleet" variant="blue" size="md">
@@ -109,7 +110,7 @@ export function FleetCategoriesSection() {
           </div>
         </div>
 
-        <div className="relative h-56 w-full overflow-hidden sm:h-auto sm:flex-1">
+        <div className="relative order-1 h-56 w-full overflow-hidden sm:order-none sm:h-auto sm:flex-1">
           <Image
             src={FLEET_CTA_IMAGE}
             alt="The full aircraft fleet"

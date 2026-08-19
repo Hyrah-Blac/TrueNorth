@@ -151,7 +151,7 @@ export function ProfileForm({ defaultValues, initials, name, email, memberSince,
             hint="Optional — e.g. +254 7XX XXX XXX"
             error={errors.phone?.message}
           >
-            <TextInput id="phone" type="tel" {...register("phone")} />
+            <TextInput id="phone" type="tel" numeric {...register("phone")} />
           </FormField>
         </div>
       </div>

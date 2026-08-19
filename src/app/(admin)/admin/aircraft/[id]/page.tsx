@@ -23,6 +23,8 @@ export default async function AdminAircraftDetailPage({ params }: Props) {
   return (
     <div>
       <PageHeader
+        variant="light"
+        showTitle={false}
         title={aircraft.name}
         description={`${aircraft.manufacturer} ${aircraft.model} · ${aircraft.registration}`}
         backHref="/admin/aircraft"

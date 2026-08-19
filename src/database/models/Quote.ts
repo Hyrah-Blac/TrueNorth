@@ -35,6 +35,11 @@ export interface QuoteDocument
   departureDate: Date;
   returnDate?: Date;
   isRoundTrip: boolean;
+  // Customer's stated preference at request time — a broad window
+  // ("morning", "evening", ...) or an exact "HH:MM" time if they used
+  // "Set time" in the picker. Distinct from departureTime below, which
+  // is the confirmed time ops assigns once the quote is approved.
+  departureTimePreference?: string;
 
   aircraftPreference?: Types.ObjectId;
   missionType: MissionType;
@@ -70,6 +75,13 @@ export interface QuoteDocument
   // re-select it, and without creating the booking before the
   // customer has actually agreed to the quoted terms.
   selectedAircraft?: Types.ObjectId;
+  // Local departure time ("HH:MM", 24-hour), collected in the same
+  // approval step as the aircraft — see ApproveQuoteDialog.tsx. Copied
+  // onto the Booking at acceptance (see acceptQuote.ts) so a customer
+  // who pays and lands straight on their ticket already sees a time,
+  // instead of it only being added by ops after the fact. Optional:
+  // the admin may not always know it yet when pricing the request.
+  departureTime?: string;
   convertedBooking?: Types.ObjectId;
 
   createdAt: Date;
@@ -129,6 +141,7 @@ const QuoteSchema = new Schema<QuoteDocument>(
     departureDate: { type: Date, required: [true, "Departure date is required"] },
     returnDate: { type: Date },
     isRoundTrip: { type: Boolean, default: false },
+    departureTimePreference: { type: String, trim: true, maxlength: 20 },
 
     aircraftPreference: { type: Schema.Types.ObjectId, ref: "Aircraft" },
     missionType: { type: String, enum: MISSION_TYPE_VALUES, required: true, index: true },
@@ -164,6 +177,7 @@ const QuoteSchema = new Schema<QuoteDocument>(
     reviewedBy: { type: Schema.Types.ObjectId, ref: "User" },
     reviewedAt: { type: Date },
     selectedAircraft: { type: Schema.Types.ObjectId, ref: "Aircraft" },
+    departureTime: { type: String, trim: true, maxlength: 20 },
     convertedBooking: { type: Schema.Types.ObjectId, ref: "Booking" },
   },
   { timestamps: true }

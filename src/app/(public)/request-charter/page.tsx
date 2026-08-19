@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Container } from "@/components/layout/container/Container";
 import { CharterRequestForm } from "@/components/quote/CharterRequestForm";
-import { getAircraftOptions, getAircraftByIdOrSlug } from "@/features/aircraft/lib/getAircraft";
+import { Reveal } from "@/components/shared/Reveal";
+import { AboutIntro } from "@/components/about/AboutIntro";
+import { getAircraftByIdOrSlug } from "@/features/aircraft/lib/getAircraft";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 import { recordQuoteStart } from "@/lib/ai/analytics";
 import type { CreateQuoteInput } from "@/features/quote/schemas/quote.schema";
@@ -40,10 +41,7 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
     await recordQuoteStart();
   }
 
-  const [aircraftOptions, prefillAircraft] = await Promise.all([
-    getAircraftOptions(),
-    params.aircraft ? getAircraftByIdOrSlug(params.aircraft) : Promise.resolve(null),
-  ]);
+  const prefillAircraft = params.aircraft ? await getAircraftByIdOrSlug(params.aircraft) : null;
 
   const passengerCount = params.passengers ? Number.parseInt(params.passengers, 10) : undefined;
 
@@ -60,74 +58,79 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
         }
       : undefined;
 
+  const heading = prefillAircraft ? `Request the ${prefillAircraft.name}.` : "Request a quote for your next flight.";
+
   return (
-    <section className="relative overflow-hidden bg-navy-950 lg:flex lg:min-h-screen lg:items-center lg:py-20">
-      {/* Background photo — now spans the whole section at every breakpoint
-          (not just a band up top), because the mobile form panel below is
-          a frosted-glass surface that needs the photo actually visible
-          behind it, not just peeking above it. */}
-      <div className="absolute inset-0" aria-hidden="true">
-        <Image src="/images/destinations/nairobi.jpg" alt="" fill priority className="object-cover" sizes="100vw" />
+    <>
+      <section className="bg-white pt-32 sm:pt-40 lg:pt-44">
+        <Container>
+          <Reveal variant="fade-up">
+            <div>
+              {/*
+                This headline deliberately breaks from the site's usual
+                font-editorial (which resolves to Poppins, a geometric
+                sans) in favor of Fraunces — already loaded globally for
+                the dashboard's serif sections, see layout.tsx — to get
+                the classic serif look VistaJet's own headline uses.
+                Scoped to just this h1 via an arbitrary Tailwind font-
+                family value, not a change to font-editorial itself, so
+                every other page's headings (Home, Fleet, Destinations,
+                About, Contact) are untouched. Stays on one line from sm
+                up (matching the reference); below that, nowrap is
+                dropped so it wraps onto two lines instead of overflowing
+                the viewport — even at the clamp's smallest size, the full
+                sentence is wider than the smallest phone screens, and
+                nowrap there caused horizontal overflow rather than a
+                clean wrap. Sized down from the original 4rem ceiling to
+                2.75rem — reads as refined editorial type rather than a
+                shouty banner headline, closer in scale to the body copy
+                beneath it.
+              */}
+              <h1
+                className="text-[clamp(1.25rem,0.5rem+2.4vw,2.75rem)] font-normal leading-[1.15] tracking-tight text-navy-900 sm:whitespace-nowrap"
+                style={{ fontFamily: '"Fraunces", "Iowan Old Style", "Georgia", serif' }}
+              >
+                {prefillAircraft ? (
+                  <>
+                    Request the <span className="text-champagne-600">{prefillAircraft.name}</span>.
+                  </>
+                ) : (
+                  heading
+                )}
+              </h1>
 
-        {/* Desktop treatment — darkens the LEFT side only, where the white
-            hero text sits, fading to fully transparent by the card's
-            column on the right so the photo stays bright and visible
-            behind the frosted card instead of being darkened along with
-            the text side. */}
-        <div className="absolute inset-x-0 top-0 hidden h-40 bg-gradient-to-b from-navy-950/70 to-transparent lg:block" />
-        <div className="absolute inset-0 hidden bg-gradient-to-r from-navy-950/80 via-navy-950/25 to-transparent lg:block" />
-
-        {/* Mobile treatment — just enough to keep the fixed navbar's
-            light-colored text legible at the very top. Nothing darkens
-            the rest of the photo, since it needs to read clearly through
-            the frosted form panel below. */}
-        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-navy-950/70 to-transparent lg:hidden" />
-      </div>
-
-      {/* Visually-hidden but still announced/indexed heading for mobile,
-          since the decorative text panel carrying the real <h1> is hidden
-          below `lg` — keeps the page's heading structure intact for
-          screen readers and SEO even though nothing changes visually. */}
-      <h1 className="sr-only lg:hidden">
-        {prefillAircraft ? `Request the ${prefillAircraft.name}` : "Tell us about your mission"}
-      </h1>
-
-      <Container className="relative">
-        <div className="grid gap-0 lg:items-center lg:gap-12 lg:grid-cols-[0.85fr_1.15fr]">
-          <div className="hidden lg:block">
-            <h1 className="font-editorial max-w-xl text-[1.75rem] font-light leading-[1.15] tracking-tight text-white sm:text-4xl lg:text-5xl">
-              {prefillAircraft ? `Request the ${prefillAircraft.name}` : "Tell us about your mission"}
-            </h1>
-            <div className="mt-6 h-px w-12 bg-white/20" />
-            <p className="mt-6 max-w-md text-xs leading-relaxed text-slate-200 sm:text-sm">
-              Fill in your route, dates, and requirements. Our operations team typically responds
-              with aircraft recommendations and pricing within a few hours.
-            </p>
-          </div>
-
-          {/* -mx-6 cancels Container's own px-6 gutter below `lg`, so this
-              panel runs edge-to-edge and fills the full mobile viewport —
-              a dedicated full-screen "sheet" for entering details. It's a
-              translucent white surface (bg-white/55, no blur) at every
-              breakpoint — enough opacity to keep text and fields clearly
-              legible, while still letting the photo tint through rather
-              than blocking it outright. The individual input fields keep
-              their own solid white background regardless, so legibility
-              there isn't affected either way. The fixed navbar sits
-              transparently on top of it too, so pt-28 pushes the actual
-              visible content (step indicator etc.) down clear of the bar
-              instead of starting underneath it. At `lg` it becomes an
-              inset rounded card (shadow, ring, corners) sitting beside
-              the hero text, instead of the full-bleed mobile sheet. */}
-          <div className="-mx-6 lg:mx-0">
-            <div className="flex min-h-[100dvh] min-w-0 flex-col justify-start bg-white/55 lg:min-h-0 lg:justify-center lg:overflow-hidden lg:rounded-[28px] lg:shadow-lifted lg:ring-1 lg:ring-black/[0.04]">
-              <div className="px-6 pb-8 pt-28 sm:px-7 sm:pb-10 sm:pt-32 lg:p-8">
-                <CharterRequestForm aircraftOptions={aircraftOptions} defaultValues={defaultValues} />
-              </div>
+              <p className="mt-5 max-w-2xl text-sm leading-relaxed tracking-wide text-slate-600">
+                Every flight is unique and our expert teams work diligently to create the perfect flight that meets
+                both your travel requirements and personal preferences every time you fly. To find the most suitable
+                flying solution for your next journey, please provide as much information as you can below and we
+                will offer a tailored recommendation accompanied by a quotation.
+              </p>
             </div>
-          </div>
-        </div>
-      </Container>
-    </section>
+          </Reveal>
+
+          {/*
+            The search bar runs the full Container width, same as the
+            heading/paragraph above — in the VistaJet reference the whole
+            block (text and bar) shares one wide column, not a narrow
+            text column with a wider bar underneath it.
+          */}
+          <Reveal variant="fade-up" delayMs={120} className="mt-10 sm:mt-14 lg:mt-16">
+            <CharterRequestForm defaultValues={defaultValues} />
+          </Reveal>
+        </Container>
+      </section>
+
+      {/*
+        Reuses the About page's full-bleed photo hero (AboutIntro) as a
+        closing visual right before the footer — but with showText=false,
+        since that heading/copy ("Built around the mission...") is
+        specific to the About page and doesn't belong here. Just the
+        photo + light wash + top/bottom gradient treatment. The section
+        above has no bottom padding of its own (see its className) since
+        AboutIntro already carries its own top padding — stacking both
+        left a large blank gap between the search bar and the photo.
+      */}
+      <AboutIntro showText={false} />
+    </>
   );
 }

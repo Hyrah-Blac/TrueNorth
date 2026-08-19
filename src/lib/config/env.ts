@@ -47,6 +47,13 @@ const envSchema = z.object({
   ADMIN_NOTIFICATION_EMAIL: z.string().email("ADMIN_NOTIFICATION_EMAIL must be a valid email address"),
 
   CRON_SECRET: z.string().min(16, "CRON_SECRET should be a long random string"),
+
+  GEMINI_API_KEY: z.string().min(1, "GEMINI_API_KEY is required"),
+  GEMINI_MODEL: z.string().min(1, "GEMINI_MODEL is required"),
+
+  // Optional: only set when Clerk is configured with a custom Frontend
+  // API domain (see buildCspHeader in src/lib/security/headers.ts).
+  CLERK_FRONTEND_API_DOMAIN: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -82,6 +89,9 @@ export function getEnv(): Env {
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     ADMIN_NOTIFICATION_EMAIL: process.env.ADMIN_NOTIFICATION_EMAIL,
     CRON_SECRET: process.env.CRON_SECRET,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    GEMINI_MODEL: process.env.GEMINI_MODEL,
+    CLERK_FRONTEND_API_DOMAIN: process.env.CLERK_FRONTEND_API_DOMAIN,
   });
 
   if (!parsed.success) {

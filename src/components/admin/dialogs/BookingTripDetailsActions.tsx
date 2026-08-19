@@ -11,6 +11,7 @@ import { TextInput } from "@/components/forms/TextInput";
 import { adminUpdateBookingTripDetails } from "@/features/admin/actions/booking.actions";
 
 export interface BookingTripDetails {
+  /** 24-hour "HH:MM" local time, e.g. "09:30" — enforced by the native <input type="time"> below and re-validated server-side (updateBookingTripDetailsSchema). */
   departureTime?: string;
   fboName?: string;
   fboAddress?: string;
@@ -130,9 +131,14 @@ export function BookingTripDetailsActions({
         </p>
 
         <div className="mt-5 space-y-4">
-          <FormField label="Departure time" htmlFor="departureTime" hint="Local time, e.g. 09:30">
+          <FormField
+            label="Departure time"
+            htmlFor="departureTime"
+            hint="Local time — shown to the customer exactly as selected, with no timezone conversion"
+          >
             <TextInput
               id="departureTime"
+              type="time"
               value={departureTime}
               onChange={(event) => setDepartureTime(event.target.value)}
               disabled={isPending}

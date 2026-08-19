@@ -2,6 +2,7 @@ import "server-only";
 import connectToDatabase from "@/database/connection";
 import Aircraft from "@/database/models/Aircraft";
 import { AIRCRAFT_STATUSES } from "@/database/constants/aircraft";
+import { escapeRegExp } from "@/utils/validators";
 import type { MissionType } from "@/database/constants/mission-type";
 import type { AircraftCategory } from "@/database/constants/aircraft";
 
@@ -123,7 +124,13 @@ export async function searchAircraftForAI(
   if (params.wifiAvailable === true) filter.wifiAvailable = true;
   if (params.shortRunwayCapable === true) filter.shortRunwayCapable = true;
   if (params.region) {
-    filter.operatingRegions = { $regex: params.region, $options: "i" };
+    // Escaped before use — same reasoning as searchAirportsForAI's
+    // `country` filter: this is reachable from the public,
+    // unauthenticated AI chat endpoint, and tool-call args are only
+    // trimmed/truncated (see executor.ts's safeString), not
+    // regex-escaped. Without this, a crafted value would reach Mongo
+    // as a live regex — a ReDoS vector.
+    filter.operatingRegions = { $regex: escapeRegExp(params.region), $options: "i" };
   }
 
   const limit = Math.min(params.limit ?? 5, 10);

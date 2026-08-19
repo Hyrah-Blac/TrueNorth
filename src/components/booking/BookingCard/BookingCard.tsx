@@ -6,8 +6,20 @@ import { formatDate } from "@/utils/date";
 import type { IBooking } from "@/types/booking";
 import { BOOKING_STATUSES } from "@/database/constants/booking-status";
 
-export function BookingCard({ booking, hasTicket = false }: { booking: IBooking; hasTicket?: boolean }) {
+interface AirportNameInfo { name: string; city: string }
+
+export function BookingCard({
+  booking,
+  hasTicket = false,
+  airportNames = {},
+}: {
+  booking: IBooking;
+  hasTicket?: boolean;
+  airportNames?: Record<string, AirportNameInfo>;
+}) {
   const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
+  const departureName = airportNames[booking.departureAirportCode.toUpperCase()]?.city ?? booking.departureAirportCode;
+  const destinationName = airportNames[booking.destinationAirportCode.toUpperCase()]?.city ?? booking.destinationAirportCode;
   const progress = calculatePaymentProgress(booking.totalAmount, booking.paidAmount);
   const paymentStatus = getBookingPaymentStatus(booking.totalAmount, booking.paidAmount);
   const isTerminal = booking.status === BOOKING_STATUSES.COMPLETED || booking.status === BOOKING_STATUSES.CANCELLED;
@@ -46,9 +58,11 @@ export function BookingCard({ booking, hasTicket = false }: { booking: IBooking;
                 {booking.bookingNumber}
               </p>
               <p className="mt-0.5 font-display text-base font-medium text-navy-900">
-                {booking.departureAirportCode}{" "}
+                {departureName}{" "}
+                <span className="text-xs font-normal text-slate-400">({booking.departureAirportCode})</span>{" "}
                 <span className="text-slate-400">→</span>{" "}
-                {booking.destinationAirportCode}
+                {destinationName}{" "}
+                <span className="text-xs font-normal text-slate-400">({booking.destinationAirportCode})</span>
               </p>
               {aircraftName ? (
                 <p className="mt-0.5 text-xs text-slate-500">{aircraftName}</p>

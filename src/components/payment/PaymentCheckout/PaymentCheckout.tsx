@@ -70,12 +70,7 @@ export function PaymentCheckout({
           </div>
         </div>
         {activePaymentAuthorizationUrl ? (
-          <Button
-            href={activePaymentAuthorizationUrl}
-            variant="outline"
-            size="lg"
-            className="w-full justify-center"
-          >
+          <Button href={activePaymentAuthorizationUrl} variant="primary" size="sm" className="w-full justify-center">
             Resume payment
           </Button>
         ) : null}
@@ -97,41 +92,58 @@ export function PaymentCheckout({
           <span>Choose payment method</span>
           <span className="normal-case tracking-normal text-slate-500">{formatCurrency(amount, currency)}</span>
         </p>
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-          <Button
+        {/* Selectable cards (icon chip + label + a leading radio dot) read
+            as a proper checkout method picker — the pattern Stripe/Paystack
+            themselves use — rather than two same-shaped buttons that just
+            happen to sit side by side. Each card gets its own brand tint
+            (M-Pesa green, a neutral navy for card) instead of one channel
+            being visually "primary" over the other. */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <button
             type="button"
-            variant="primary"
-            size="lg"
-            className="w-full justify-center"
             onClick={() => handlePay("mobile_money")}
             disabled={pendingChannel !== null}
-            icon={
-              pendingChannel === "mobile_money" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <DeviceMobile className="h-4 w-4" />
-              )
-            }
+            className="group relative flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left transition-all hover:border-green-300 hover:shadow-[0_2px_8px_rgba(15,23,42,0.06)] disabled:pointer-events-none disabled:opacity-60"
           >
-            M-Pesa
-          </Button>
-          <Button
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-500/10">
+              {pendingChannel === "mobile_money" ? (
+                <Loader2 className="h-4 w-4 animate-spin text-green-600" aria-hidden="true" />
+              ) : (
+                <DeviceMobile className="h-4 w-4 text-green-600" weight="fill" aria-hidden="true" />
+              )}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-navy-900">M-Pesa</span>
+              <span className="block text-xs text-slate-500">Pay by mobile money</span>
+            </span>
+            <span
+              className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300 transition-colors group-hover:border-green-400"
+              aria-hidden="true"
+            />
+          </button>
+
+          <button
             type="button"
-            variant="outline"
-            size="lg"
-            className="w-full justify-center"
             onClick={() => handlePay("card")}
             disabled={pendingChannel !== null}
-            icon={
-              pendingChannel === "card" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CreditCard className="h-4 w-4" />
-              )
-            }
+            className="group relative flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left transition-all hover:border-navy-900/25 hover:shadow-[0_2px_8px_rgba(15,23,42,0.06)] disabled:pointer-events-none disabled:opacity-60"
           >
-            Debit / Credit Card
-          </Button>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-900/5">
+              {pendingChannel === "card" ? (
+                <Loader2 className="h-4 w-4 animate-spin text-navy-700" aria-hidden="true" />
+              ) : (
+                <CreditCard className="h-4 w-4 text-navy-700" weight="fill" aria-hidden="true" />
+              )}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-navy-900">Debit / Credit Card</span>
+              <span className="block text-xs text-slate-500">Visa, Mastercard &amp; more</span>
+            </span>
+            <span
+              className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300 transition-colors group-hover:border-navy-400"
+              aria-hidden="true"
+            />
+          </button>
         </div>
       </div>
 

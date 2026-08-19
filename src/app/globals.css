@@ -148,15 +148,32 @@
     -webkit-backdrop-filter: blur(16px);
   }
 
-  /* Shimmer skeleton — a slow diagonal sweep rather than a flat pulse,
-     used for loading states across the app. */
+  /* Shimmer skeleton — a two-layer sweep: a neutral slate wave underneath
+     with a champagne-gold wash on top at a slight angle. Slower ease (2s)
+     than the previous flat pulse so the motion reads as deliberate rather
+     than mechanical. Both layers share the same background-position so the
+     waves stay in sync; animate-shimmer (in tailwind.config) drives the
+     background-position from 200% → -200%. */
   .skeleton {
-    background-image: linear-gradient(
-      90deg,
-      rgb(var(--color-slate-50)) 25%,
-      rgb(var(--color-slate-200)) 37%,
-      rgb(var(--color-slate-50)) 63%
-    );
-    background-size: 400% 100%;
+    background-image:
+      linear-gradient(
+        105deg,
+        rgba(var(--color-champagne-500) / 0)    0%,
+        rgba(var(--color-champagne-500) / 0.06) 35%,
+        rgba(var(--color-champagne-500) / 0.10) 50%,
+        rgba(var(--color-champagne-500) / 0.06) 65%,
+        rgba(var(--color-champagne-500) / 0)    100%
+      ),
+      linear-gradient(
+        90deg,
+        rgb(var(--color-slate-50))  0%,
+        rgb(var(--color-slate-100)) 30%,
+        rgb(var(--color-slate-50))  50%,
+        rgb(var(--color-slate-100)) 70%,
+        rgb(var(--color-slate-50))  100%
+      );
+    background-size: 300% 100%, 400% 100%;
+    animation-duration: 2s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
   }
 }

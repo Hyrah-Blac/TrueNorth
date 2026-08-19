@@ -122,7 +122,7 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
             </div>
           </div>
 
-          <aside className="h-fit rounded-2xl border border-slate-200/70 bg-white p-6 shadow-soft lg:sticky lg:top-28">
+          <aside className="h-fit rounded-2xl border border-slate-200/70 bg-white p-6 shadow-soft">
             <div className="border-b border-slate-100 pb-5">
               <SpecStrip aircraft={aircraft} size="lg" />
             </div>

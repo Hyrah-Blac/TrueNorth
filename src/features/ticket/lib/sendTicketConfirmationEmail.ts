@@ -131,6 +131,10 @@ async function deliverTicketConfirmationEmail(ticket: TicketDocument): Promise<v
     booking.departureAirportCode,
     booking.destinationAirportCode,
   ]);
+  // Fetched once, up front, so both the PDF attachment and the email
+  // body use the same admin-configured contact info (Settings >
+  // General) rather than the hardcoded fallback in site.ts.
+  const settings = await getSiteSettings();
 
   // Reuses the exact same PDF generator as the dashboard download
   // route (Phase 2) — see generateTicketPdf.tsx. Not a second PDF
@@ -154,9 +158,10 @@ async function deliverTicketConfirmationEmail(ticket: TicketDocument): Promise<v
     fboAddress: booking.fboAddress,
     departureAirportName: airportCities[booking.departureAirportCode],
     destinationAirportName: airportCities[booking.destinationAirportCode],
+    companyName: settings.companyName,
+    contactPhone: settings.phone,
+    contactEmail: settings.email,
   });
-
-  const settings = await getSiteSettings();
 
   await sendEmailWithAttachment({
     to: customer.email,

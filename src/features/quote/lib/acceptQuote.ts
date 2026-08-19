@@ -21,6 +21,13 @@ import BookingCreated from "@/emails/BookingCreated";
  * moment the booking is actually created — see approveQuote.ts for why
  * the admin's approval step no longer does this itself.
  *
+ * departureTime is copied straight across from the quote (set by the
+ * admin at approval, alongside the aircraft) rather than being left
+ * for ops to add later — see BookingTripDetailsActions.tsx, which now
+ * exists for adjustments rather than first entry. This means a
+ * customer who pays and is redirected straight to their ticket
+ * already sees a departure time whenever the admin knew it upfront.
+ *
  * Ownership/state are checked against a plain read first so we can
  * return an accurate error (not found / not yours / wrong status /
  * expired). The actual transition then goes through a conditional
@@ -97,6 +104,7 @@ export async function acceptQuoteById(
             departureAirportCode: updatedQuote.departureAirportCode,
             destinationAirportCode: updatedQuote.destinationAirportCode,
             departureDate: updatedQuote.departureDate,
+            departureTime: updatedQuote.departureTime,
             returnDate: updatedQuote.returnDate,
             isRoundTrip: updatedQuote.isRoundTrip,
             missionType: updatedQuote.missionType,
@@ -151,7 +159,7 @@ export async function acceptQuoteById(
 
   await sendEmail({
     to: claimed.contactInfo.email,
-    subject: `Booking ${booking.bookingNumber} created — payment required`,
+    subject: `Booking ${booking.bookingNumber} created — payment pending`,
     react: BookingCreated({
       customerName: claimed.contactInfo.fullName,
       bookingNumber: booking.bookingNumber,

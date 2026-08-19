@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Check, X } from "lucide-react";
-import { ArrowRight } from "@phosphor-icons/react";
 import { Modal } from "@/components/shared/modals/Modal";
 import { Button } from "@/components/shared/buttons/Button";
 import { Textarea } from "@/components/forms/Textarea";
@@ -13,7 +12,24 @@ import { customerAcceptQuote, customerDeclineQuote } from "@/features/quote/acti
 
 type DialogState = "accept" | "decline" | null;
 
-export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; quoteNumber: string }) {
+export interface QuoteProposalSummary {
+  route: string;
+  date: string;
+  passengers: string;
+  aircraft?: string;
+  price?: string;
+}
+
+export function QuoteDecisionPanel({
+  quoteId,
+  quoteNumber,
+  summary,
+}: {
+  quoteId: string;
+  quoteNumber: string;
+  /** Concise proposal facts shown in the accept-confirmation dialog — presentation only, not read by the accept/decline logic itself. */
+  summary?: QuoteProposalSummary;
+}) {
   const router = useRouter();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [isPending, setIsPending] = useState(false);
@@ -66,37 +82,62 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
       <div className="space-y-3">
         <Button
           variant="primary"
-          size="lg"
+          size="sm"
           className="w-full justify-center"
           onClick={() => setDialog("accept")}
-          icon={<ArrowRight className="h-4 w-4" />}
         >
-          Accept &amp; Proceed to Payment
+          Accept proposal
         </Button>
         <button
           type="button"
           className="w-full text-center text-sm text-slate-400 transition-colors hover:text-red-600"
           onClick={() => setDialog("decline")}
         >
-          Decline this quote
+          Decline proposal
         </button>
       </div>
 
       {/* Accept confirmation modal */}
-      <Modal open={dialog === "accept"} onClose={closeDialog} title="Accept this charter quote?" maxWidth="md">
-        <div className="space-y-4">
+      <Modal open={dialog === "accept"} onClose={closeDialog} title="Accept this charter proposal?" maxWidth="md">
+        <div className="space-y-5">
+          {summary ? (
+            <dl className="space-y-2 border-b border-slate-100 pb-4 text-sm">
+              <div className="flex items-baseline justify-between gap-4">
+                <dt className="text-slate-400">Route</dt>
+                <dd className="font-medium text-navy-900">{summary.route}</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4">
+                <dt className="text-slate-400">Date</dt>
+                <dd className="font-medium text-navy-900">{summary.date}</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4">
+                <dt className="text-slate-400">Passengers</dt>
+                <dd className="font-medium text-navy-900">{summary.passengers}</dd>
+              </div>
+              {summary.aircraft ? (
+                <div className="flex items-baseline justify-between gap-4">
+                  <dt className="text-slate-400">Aircraft</dt>
+                  <dd className="font-medium text-navy-900">{summary.aircraft}</dd>
+                </div>
+              ) : null}
+              {summary.price ? (
+                <div className="flex items-baseline justify-between gap-4">
+                  <dt className="text-slate-400">Price</dt>
+                  <dd className="font-medium text-navy-900">{summary.price}</dd>
+                </div>
+              ) : null}
+            </dl>
+          ) : (
+            <p className="text-sm leading-relaxed text-slate-600">
+              You&apos;re accepting quote <span className="font-medium text-navy-900">{quoteNumber}</span> under
+              the terms quoted.
+            </p>
+          )}
+
           <p className="text-sm leading-relaxed text-slate-600">
-            By accepting quote <span className="font-medium text-navy-900">{quoteNumber}</span>, you confirm
-            you&apos;d like to proceed with the charter under the quoted terms.
+            Accepting this proposal creates your charter reservation. You will then continue to payment.
+            No payment is taken by accepting this proposal.
           </p>
-          <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
-            <p className="font-medium">What happens next:</p>
-            <ul className="mt-2 space-y-1 list-disc list-inside">
-              <li>Your booking is created immediately.</li>
-              <li>You won&apos;t be charged just by accepting.</li>
-              <li>You&apos;ll be taken to the payment screen to pay via M-Pesa.</li>
-            </ul>
-          </div>
         </div>
 
         {error ? (
@@ -117,13 +158,13 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
               isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />
             }
           >
-            {isPending ? "Creating booking…" : "Accept & Continue"}
+            {isPending ? "Accepting…" : "Accept & continue"}
           </Button>
         </div>
       </Modal>
 
       {/* Decline modal */}
-      <Modal open={dialog === "decline"} onClose={closeDialog} title="Decline this quote?" maxWidth="md">
+      <Modal open={dialog === "decline"} onClose={closeDialog} title="Decline this proposal?" maxWidth="md">
         <p className="text-sm leading-relaxed text-slate-600">
           Declining <span className="font-medium text-navy-900">{quoteNumber}</span> cannot be undone.
           If you&apos;d like to revisit this in the future, please contact our team.
@@ -157,7 +198,7 @@ export function QuoteDecisionPanel({ quoteId, quoteNumber }: { quoteId: string; 
             className="!bg-red-600 hover:!bg-red-700 !border-red-600 hover:!border-red-700"
             icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
           >
-            {isPending ? "Declining…" : "Decline Quote"}
+            {isPending ? "Declining…" : "Decline proposal"}
           </Button>
         </div>
       </Modal>

@@ -24,6 +24,8 @@ export default async function AdminAirportsPage({ searchParams }: Props) {
   return (
     <div>
       <PageHeader
+        variant="light"
+        showTitle={false}
         title="Airport Database"
         description="Manage airports and airstrips used by the AI concierge for routing recommendations."
       />

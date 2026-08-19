@@ -29,7 +29,7 @@ export async function StorySection() {
 
       <div className="relative min-h-[220px] sm:min-h-[280px] lg:min-h-full">
         <Image
-          src="/images/destinations/about.jpg"
+          src="/images/gallery/done.jpg"
           alt={`${settings.companyName} aircraft over the Kenyan landscape`}
           fill
           className="object-cover"

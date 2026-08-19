@@ -11,6 +11,7 @@ export function FormField({
   error,
   hint,
   required,
+  className = "",
   children,
 }: {
   label: string;
@@ -18,10 +19,11 @@ export function FormField({
   error?: string;
   hint?: string;
   required?: boolean;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <div>
+    <div className={className}>
       <div className="relative">
         {children}
         <label

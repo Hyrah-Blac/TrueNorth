@@ -21,6 +21,15 @@ import type { ApproveQuoteInput } from "../schemas/quote.schema";
  * (see acceptQuoteById) or declines it. This keeps the customer's
  * acceptance as the actual point of sale, matching the charter
  * lifecycle: Request -> Quote -> Customer accepts -> Booking -> Payment.
+ *
+ * Departure time is collected here too, alongside the aircraft
+ * (data.departureTime — optional, since it isn't always known yet).
+ * It's carried onto the Booking at acceptance (see acceptQuote.ts) so
+ * a customer who pays and is taken straight to their ticket already
+ * sees a time, rather than it only being added by ops afterwards.
+ * data.departureDate is optional too, defaulting to the customer's
+ * originally requested date in the dialog — only actually overwrites
+ * quote.departureDate when the admin explicitly changes it.
  */
 export async function approveQuoteById(
   data: ApproveQuoteInput,
@@ -53,6 +62,8 @@ export async function approveQuoteById(
   quote.validUntil = data.validUntil;
   quote.adminNotes = data.adminNotes ?? quote.adminNotes;
   quote.selectedAircraft = aircraft._id;
+  quote.departureDate = data.departureDate ?? quote.departureDate;
+  quote.departureTime = data.departureTime;
   quote.reviewedBy = adminDbId;
   quote.reviewedAt = new Date();
   await quote.save();
@@ -80,6 +91,8 @@ export async function approveQuoteById(
       customerName: quote.contactInfo.fullName,
       quoteNumber: quote.quoteNumber,
       quotedAmount: formatCurrency(data.quotedAmount, data.quotedCurrency),
+      departureDate: formatDate(quote.departureDate),
+      departureTime: quote.departureTime,
       validUntil: data.validUntil ? formatDate(data.validUntil) : undefined,
       quoteUrl: `${siteConfig.url}/dashboard/quotes/${quote._id}`,
       contact,

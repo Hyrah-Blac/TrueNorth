@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
 type DetailHeaderVariant = "dark" | "light";
@@ -53,7 +53,7 @@ export function DetailHeader({
         href={backHref}
         className={`group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium uppercase tracking-wide transition-all duration-200 hover:border-sky-200 hover:bg-sky-50 ${styles.back} ${styles.backHover}`}
       >
-        <ArrowLeft
+        <ChevronLeft
           className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
           aria-hidden="true"
         />

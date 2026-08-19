@@ -14,6 +14,8 @@
  * next.config's headers() can't vary per-request. It's set in
  * src/middleware.ts instead, on every response middleware returns.
  */
+import { getEnv } from "@/lib/config/env";
+
 export const securityHeaders = [
   {
     key: "X-Content-Type-Options",
@@ -81,8 +83,9 @@ export function buildCspHeader(nonce: string): string {
   // instead of the default *.clerk.accounts.dev — so it has to be in
   // the allowlist too, or the browser silently blocks Clerk entirely
   // and every SignedIn/SignedOut/UserButton just never renders.
-  const clerkFrontendApiDomain = process.env.CLERK_FRONTEND_API_DOMAIN
-    ? `https://${process.env.CLERK_FRONTEND_API_DOMAIN}`
+  const { CLERK_FRONTEND_API_DOMAIN } = getEnv();
+  const clerkFrontendApiDomain = CLERK_FRONTEND_API_DOMAIN
+    ? `https://${CLERK_FRONTEND_API_DOMAIN}`
     : "";
 
   return [

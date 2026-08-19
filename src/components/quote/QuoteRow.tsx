@@ -2,8 +2,9 @@ import Link from "next/link";
 import { CalendarBlank, Users, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { CustomerQuoteStatusBadge } from "./CustomerQuoteStatusBadge";
 import { formatDate } from "@/utils/date";
+import { formatCurrency } from "@/utils/currency";
 import type { IQuote } from "@/types/quote";
-import { QUOTE_STATUSES } from "@/database/constants/quote-status";
+import type { AirportNameInfo } from "@/lib/api/airportNames";
 
 /**
  * One row, every breakpoint.
@@ -19,8 +20,20 @@ import { QUOTE_STATUSES } from "@/database/constants/quote-status";
  * A caret on the right (absolutely positioned, so it doesn't consume a
  * grid track) signals the row is clickable at every width.
  */
-export function QuoteRow({ quote }: { quote: IQuote }) {
-  const needsAction = quote.status === QUOTE_STATUSES.APPROVED;
+export function QuoteRow({
+  quote,
+  airportNames,
+}: {
+  quote: IQuote;
+  /** City/name lookup keyed by ICAO/IATA code, batch-resolved by the
+   * caller (one query for every row on the page instead of one per row).
+   * A code missing from the map — or the prop being omitted entirely —
+   * falls back to showing the raw airport code, same as before. */
+  airportNames?: Record<string, AirportNameInfo>;
+}) {
+  const departureCity = airportNames?.[quote.departureAirportCode.toUpperCase()]?.city ?? quote.departureAirportCode;
+  const destinationCity =
+    airportNames?.[quote.destinationAirportCode.toUpperCase()]?.city ?? quote.destinationAirportCode;
 
   return (
     <Link
@@ -30,7 +43,11 @@ export function QuoteRow({ quote }: { quote: IQuote }) {
       <div className="min-w-0">
         <p className="spec-readout text-[11px] text-slate-400">{quote.quoteNumber}</p>
         <p className="mt-0.5 truncate font-editorial text-xl font-light text-navy-900">
-          {quote.departureAirportCode} <span className="text-slate-300">→</span> {quote.destinationAirportCode}
+          {departureCity}{" "}
+          <span className="spec-readout text-xs font-normal text-slate-400">{quote.departureAirportCode}</span>
+          <span className="mx-1.5 text-slate-300">→</span>
+          {destinationCity}{" "}
+          <span className="spec-readout text-xs font-normal text-slate-400">{quote.destinationAirportCode}</span>
         </p>
       </div>
 
@@ -45,24 +62,20 @@ export function QuoteRow({ quote }: { quote: IQuote }) {
           {quote.passengerCount}
         </span>
 
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <CustomerQuoteStatusBadge status={quote.status} />
-          {needsAction ? (
-            <span className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-green-600">
-              <span className="relative flex h-1.5 w-1.5 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
-              </span>
-              Ready to review
-            </span>
-          ) : null}
-        </div>
+        {/* The status badge itself already carries the "action needed"
+            signal (pulsing dot + a label like "Quote Ready" for approved
+            quotes) — a second "Ready to review" tag next to it repeated
+            the same message and, at narrower widths (e.g. this row inside
+            the dashboard's 3-column card grid), forced the two onto
+            separate lines. One clear signal reads calmer and fits at any
+            width without wrapping. */}
+        <CustomerQuoteStatusBadge status={quote.status} />
       </div>
 
       <div className="lg:text-right">
-        {quote.quotedAmount ? (
+        {quote.quotedAmount != null ? (
           <span className="spec-readout text-sm font-semibold text-navy-900">
-            {quote.quotedAmount.toLocaleString()} {quote.quotedCurrency}
+            {formatCurrency(quote.quotedAmount, quote.quotedCurrency ?? quote.currency)}
           </span>
         ) : (
           <span className="text-xs text-slate-400">Pricing pending</span>
