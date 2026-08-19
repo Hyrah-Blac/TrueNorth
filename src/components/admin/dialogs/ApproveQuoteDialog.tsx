@@ -63,7 +63,13 @@ export function ApproveQuoteDialog({
       quoteId,
       aircraftId: preferredAircraftId,
       quotedCurrency: "KES",
-      departureDate: currentDepartureDate ? formatDateForInput(currentDepartureDate) : undefined,
+      // departureDate is z.coerce.date(), so ApproveQuoteInput types it as
+      // Date. But the <input type="date"> below needs a "YYYY-MM-DD"
+      // string to prefill correctly, and zodResolver coerces that string
+      // back to a Date on submit — so this cast is safe.
+      departureDate: currentDepartureDate
+        ? (formatDateForInput(currentDepartureDate) as unknown as Date)
+        : undefined,
       departureTime: currentDepartureTime,
     },
   });
