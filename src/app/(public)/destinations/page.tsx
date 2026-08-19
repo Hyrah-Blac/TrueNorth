@@ -64,7 +64,7 @@ export default async function DestinationsPage() {
                 Tell us your route and we&apos;ll quote it directly.
               </p>
             </div>
-            <Button href="/request-charter" variant="champagne" size="sm">
+            <Button href="/request-charter" variant="blue" size="sm">
               Request a Route
             </Button>
           </div>
