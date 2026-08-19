@@ -58,6 +58,43 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+/**
+ * Minimal schema for values needed in the Edge Middleware runtime
+ * (src/middleware.ts -> buildCspHeader). Deliberately separate from
+ * envSchema above: middleware runs on nearly every request, so if it
+ * validated the full app schema (Mongo, M-Pesa, Paystack, Cloudinary,
+ * Resend, Cron, Gemini, ...), a single missing/malformed unrelated
+ * secret would throw inside middleware and take down every route on
+ * the site with MIDDLEWARE_INVOCATION_FAILED - even though none of
+ * those values are used there. Add a key here ONLY if middleware (or
+ * other edge code) actually reads it.
+ */
+const middlewareEnvSchema = z.object({
+  CLERK_FRONTEND_API_DOMAIN: z.string().min(1).optional(),
+});
+
+export type MiddlewareEnv = z.infer<typeof middlewareEnvSchema>;
+
+let cachedMiddlewareEnv: MiddlewareEnv | null = null;
+
+export function getMiddlewareEnv(): MiddlewareEnv {
+  if (cachedMiddlewareEnv) return cachedMiddlewareEnv;
+
+  const parsed = middlewareEnvSchema.safeParse({
+    CLERK_FRONTEND_API_DOMAIN: process.env.CLERK_FRONTEND_API_DOMAIN,
+  });
+
+  if (!parsed.success) {
+    const issues = parsed.error.issues
+      .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)
+      .join("\n");
+    throw new Error(`Invalid middleware environment configuration:\n${issues}`);
+  }
+
+  cachedMiddlewareEnv = parsed.data;
+  return cachedMiddlewareEnv;
+}
+
 let cachedEnv: Env | null = null;
 
 export function getEnv(): Env {
