@@ -14,7 +14,7 @@
  * next.config's headers() can't vary per-request. It's set in
  * src/middleware.ts instead, on every response middleware returns.
  */
-import { getEnv } from "@/lib/config/env";
+import { getEnv } from "../config/env";
 
 export const securityHeaders = [
   {
