@@ -69,6 +69,5 @@ export function useFocusTrap(
       document.removeEventListener("keydown", handleKeyDown);
       previouslyFocused?.focus();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, containerRef]);
 }

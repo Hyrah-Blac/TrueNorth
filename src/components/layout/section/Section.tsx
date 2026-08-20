@@ -70,6 +70,7 @@ export function SectionGap({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
  * the build — remove it from callers when convenient.
  */
 export function SectionHeading({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept so existing callers passing `eyebrow` don't break; intentionally unused
   eyebrow: _eyebrow,
   title,
   description,

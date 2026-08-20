@@ -116,7 +116,7 @@ export function DetailsContactStep({
             Any additional requests that we may assist you with?
           </label>
           <p className="mt-1.5 text-xs leading-relaxed text-champagne-600">
-            Perhaps you're travelling with pets, need cargo handling, VIP arrangements, or specialist equipment
+            Perhaps you&apos;re travelling with pets, need cargo handling, VIP arrangements, or specialist equipment
             onboard.
           </p>
           <PlainTextarea

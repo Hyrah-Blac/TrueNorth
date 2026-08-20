@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Section, SectionGap } from "@/components/layout/section/Section";
+import { Section } from "@/components/layout/section/Section";
 import { DestinationsHero } from "@/components/destinations/DestinationsHero";
 import { DestinationsExplorer } from "@/components/destinations/DestinationsExplorer";
 import { JsonLd } from "@/components/shared/JsonLd";

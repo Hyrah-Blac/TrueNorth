@@ -30,7 +30,7 @@ export async function buildSystemPrompt(
   const siteSettings = settings ?? (await getSiteSettings());
 
   const [company, featuredKnowledge] = await Promise.all([
-    getCompanyInfoForAI(),
+    getCompanyInfoForAI(siteSettings),
     getFeaturedKnowledgeForAI(MAX_KB_ENTRIES),
   ]);
 
