@@ -3,7 +3,6 @@ import {
   CONVERSATION_STATUS_VALUES,
   CONVERSATION_STATUSES,
   MESSAGE_ROLE_VALUES,
-  AI_MODEL_VALUES,
   AI_MODELS,
   type ConversationStatus,
   type MessageRole,
@@ -120,9 +119,18 @@ const ConversationSchema = new Schema<ConversationDocument>(
       index: true,
       maxlength: 128,
     },
+    // No `enum` restriction here on purpose — the model name is
+    // env-driven (GEMINI_MODEL, see database/constants/ai.ts) and can
+    // change without a code change. A closed Mongoose enum computed
+    // from that env var at module-import time can drift from the live
+    // value (e.g. across a hot reload or a cold start with different
+    // bundled env) and reject otherwise-valid writes. chat.schema.ts's
+    // Zod validation was already made open for the same reason — this
+    // keeps the two consistent.
     aiModel: {
       type: String,
-      enum: AI_MODEL_VALUES,
+      trim: true,
+      maxlength: 100,
       default: AI_MODELS.DEFAULT,
     },
     status: {

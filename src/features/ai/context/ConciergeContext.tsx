@@ -10,7 +10,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { sendConciergeMessage } from "../lib/api";
 import { usePageContext } from "../lib/pageContext";
@@ -29,15 +28,6 @@ import {
 import type { ConciergeError, ConciergeMessage } from "../types";
 
 const MAX_MESSAGE_LENGTH = 2000;
-
-// How long the "signing you in…" message stays on screen before the
-// redirect fires — long enough to actually read a short sentence,
-// short enough that it doesn't feel like a stall.
-const SIGN_IN_REDIRECT_DELAY_MS = 1800;
-
-const SIGN_IN_PROMPT_MESSAGE =
-  "You'll need to sign in to keep chatting with me — it just takes a moment. " +
-  "I'm taking you to the sign-in page now; come straight back here afterwards and we'll pick up right where we left off.";
 
 interface ConciergeContextValue {
   messages: ConciergeMessage[];
@@ -68,18 +58,12 @@ function createLocalId() {
 type MessagesUpdater = ConciergeMessage[] | ((prev: ConciergeMessage[]) => ConciergeMessage[]);
 
 export function ConciergeProvider({ children }: { children: ReactNode }) {
-  // Lazy-initialized directly from localStorage so the first render
-  // already shows the restored conversation — no mount-effect round trip,
-  // so returning visitors never see a flash of the welcome screen before
-  // their history pops in. Safe here because this provider only ever
-  // mounts client-side (dynamically imported with ssr:false).
-  //
-  // NOTE: at this point Clerk hasn't resolved yet, so this reads under
-  // the default anonymous scope. The user-change effect below re-points
-  // storage at the correct namespace and re-hydrates as soon as Clerk
-  // reports who's signed in, so this is only ever a same-tick starting
-  // point, not a source of cross-user leakage.
-  const [messages, setMessages] = useState<ConciergeMessage[]>(() => getStoredMessages());
+  // Start empty — never read localStorage at render time before Clerk has
+  // resolved. Reading early would show whatever is in the anonymous scope,
+  // which could be a previous user's anonymous session or bleed across
+  // accounts. The identity effect below hydrates from the correct
+  // namespace once Clerk reports who is actually here.
+  const [messages, setMessages] = useState<ConciergeMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [toolStatusLabel, setToolStatusLabel] = useState<string | null>(null);
   const [error, setError] = useState<ConciergeError | null>(null);
@@ -95,31 +79,32 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
     pageContextRef.current = pageContext;
   }, [pageContext]);
 
+  // These refs are intentionally NOT seeded from localStorage at render
+  // time — the identity effect below does that once the scope is known.
   const sessionIdRef = useRef<string | null>(null);
-  if (sessionIdRef.current === null) {
-    const stored = getStoredSessionId();
-    sessionIdRef.current = stored ?? generateSessionId();
-    if (!stored) setStoredSessionId(sessionIdRef.current);
-  }
-
-  const conversationIdRef = useRef<string | undefined>(getStoredConversationId() ?? undefined);
+  const conversationIdRef = useRef<string | undefined>(undefined);
   const lastFailedTextRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const signInRedirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Mirrors `isSending` synchronously so a second send fired before React
   // re-renders (e.g. a fast double Enter) is rejected deterministically,
   // rather than racing on a state value that's still stale in closure.
   const isSendingRef = useRef(false);
 
+  // ── Generation counter ──────────────────────────────────────────────────
+  // Incremented on every identity change (login / logout / account switch).
+  // Each sendMessage call captures the current generation; its onDone /
+  // onError callbacks compare against the ref before touching storage or
+  // state. A reply that arrives after a sign-out is silently dropped
+  // rather than writing into the newly-scoped namespace.
+  const generationRef = useRef(0);
+
   // ── Clerk user isolation ────────────────────────────────────────────────
-  // Tracks the previously-known Clerk user id so we can tell apart three
-  // situations: Clerk hasn't resolved yet (`undefined`), the first time we
-  // learn who's signed in (`previous === undefined`), and an actual
-  // sign-in/sign-out/account-switch (`previous !== clerkUserId`). Only the
-  // last one should reset conversation state.
+  // Tracks the previously-known Clerk user id so we can tell apart:
+  //   undefined   — Clerk hasn't resolved yet (skip)
+  //   same value  — no real change (skip)
+  //   different   — first resolution, sign-in, sign-out, account switch
   const { isLoaded, user } = useUser();
   const clerkUserId = isLoaded ? user?.id ?? null : undefined;
-  const router = useRouter();
   const previousClerkUserIdRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
@@ -128,43 +113,50 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
     const previousClerkUserId = previousClerkUserIdRef.current;
     previousClerkUserIdRef.current = clerkUserId;
 
-    if (previousClerkUserId === undefined) {
-      // First resolution after mount. The initial state above was read
-      // under the default anonymous scope before we knew who the user
-      // was — point storage at the real namespace and re-hydrate from
-      // it (this is also what carries an existing authenticated user
-      // over to the new namespaced keys with no crash and no stale data
-      // from another visitor: their own history, if any, was already
-      // under their own namespace).
-      setStorageScope(clerkUserId);
-      conversationIdRef.current = getStoredConversationId() ?? undefined;
-      setMessages(getStoredMessages());
-      const storedSessionId = getStoredSessionId();
-      sessionIdRef.current = storedSessionId ?? generateSessionId();
-      if (!storedSessionId) setStoredSessionId(sessionIdRef.current);
-      return;
-    }
-
     if (previousClerkUserId === clerkUserId) return; // No real change.
 
-    // The signed-in user changed — login, logout, or switching accounts
-    // on the same browser. Isolate the new session completely so the
-    // next person never inherits the previous person's conversation.
+    // Identity changed — covers first resolution (undefined → value),
+    // sign-in, sign-out, and account switch.
+    //
+    // 1. Abort any in-flight request immediately so its callbacks cannot
+    //    write into the new namespace after we switch scope below.
     abortRef.current?.abort();
     isSendingRef.current = false;
     setIsSending(false);
     setToolStatusLabel(null);
 
-    setStorageScope(clerkUserId);
-    conversationIdRef.current = undefined;
+    // 2. Bump the generation so any callbacks that somehow outlive the
+    //    abort (e.g. a synchronous onError fired before abort propagates)
+    //    detect a stale generation and silently drop their writes.
+    generationRef.current += 1;
+
+    // 3. Point storage at the correct namespace.
+    //    Sign-in / account switch: use the Clerk user id — scoped, stable.
+    //    Sign-out: use a fresh random suffix rather than the shared
+    //    unsuffixed keys. This guarantees that if user A signs out and
+    //    user B (or even user A again) chats anonymously, they never
+    //    share or see each other's anonymous history.
+    const scope =
+      clerkUserId !== null
+        ? clerkUserId
+        : `anon_${generateSessionId()}`;
+
+    setStorageScope(scope);
+
+    // 4. Reset all session state.
+    conversationIdRef.current = getStoredConversationId() ?? undefined;
     lastFailedTextRef.current = null;
-    setMessages([]);
     setError(null);
     setTripDraft({});
 
-    const newSessionId = generateSessionId();
-    sessionIdRef.current = newSessionId;
-    setStoredSessionId(newSessionId);
+    const storedSessionId = getStoredSessionId();
+    sessionIdRef.current = storedSessionId ?? generateSessionId();
+    if (!storedSessionId) setStoredSessionId(sessionIdRef.current);
+
+    // 5. Hydrate messages from the now-correct namespace.
+    //    Sign-out always produces [] (fresh anonymous scope has nothing).
+    //    Sign-in / account switch restores that user's own stored history.
+    setMessages(getStoredMessages());
   }, [clerkUserId]);
 
   // Persists to localStorage and updates state from a single source of
@@ -184,52 +176,13 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
       const trimmed = text.trim().slice(0, MAX_MESSAGE_LENGTH);
       if (!trimmed || isSendingRef.current) return;
 
-      // POST /api/ai/chat sits behind Clerk's middleware auth gate (it's
-      // not in the public-route matcher), so an anonymous request never
-      // actually reaches the concierge — the middleware 302s to sign-in
-      // before route.ts runs, which a `fetch()` call can't follow the way
-      // a full page navigation would, and the request just fails.
-      // Catch that here instead: if Clerk has finished loading and there's
-      // no signed-in user, show a friendly heads-up bubble (so the
-      // redirect isn't a surprise — the customer knows *why* they've
-      // landed on sign-in and that their message wasn't lost) and then
-      // send them to sign-in with a return path back to this page.
-      if (isLoaded && !clerkUserId) {
-        const now = new Date().toISOString();
-        const userMessage: ConciergeMessage = {
-          _id: createLocalId(),
-          conversationId: conversationIdRef.current,
-          role: "user",
-          content: trimmed,
-          toolCalls: [],
-          createdAt: now,
-          updatedAt: now,
-          status: "sent",
-        };
-        const signInPromptMessage: ConciergeMessage = {
-          _id: createLocalId(),
-          conversationId: conversationIdRef.current,
-          role: "assistant",
-          content: SIGN_IN_PROMPT_MESSAGE,
-          toolCalls: [],
-          createdAt: now,
-          updatedAt: now,
-          status: "sent",
-        };
-        persistMessages((prev) => [...prev, userMessage, signInPromptMessage]);
-
-        isSendingRef.current = true;
-        setIsSending(true);
-
-        const returnTo =
-          typeof window !== "undefined" ? `${window.location.pathname}${window.location.search}` : "/";
-        const signInTarget = `/sign-in?redirect_url=${encodeURIComponent(returnTo)}`;
-
-        // Give the customer a moment to actually read the message
-        // above before the page navigates out from under them.
-        signInRedirectTimeoutRef.current = setTimeout(() => router.push(signInTarget), SIGN_IN_REDIRECT_DELAY_MS);
-        return;
-      }
+      // Capture the generation at call time. If the user signs out (or
+      // switches accounts) while this request is in flight, the generation
+      // will have been bumped and the abort fired — but even if a callback
+      // runs synchronously before the abort propagates, this check ensures
+      // it writes nothing into the new user's namespace.
+      const myGeneration = generationRef.current;
+      const isStale = () => generationRef.current !== myGeneration;
 
       isSendingRef.current = true;
       setIsSending(true);
@@ -289,8 +242,12 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
           pageContext: pageContextRef.current,
         },
         {
-          onToolStatus: (label) => setToolStatusLabel(label),
+          onToolStatus: (label) => {
+            if (isStale()) return;
+            setToolStatusLabel(label);
+          },
           onChunk: (delta) => {
+            if (isStale()) return;
             // First chunk arriving means the reply has genuinely started
             // — the labeled/dot indicator gives way to the growing bubble.
             setToolStatusLabel(null);
@@ -303,6 +260,7 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
             );
           },
           onDone: (response) => {
+            if (isStale()) return;
             conversationIdRef.current = response.conversationId;
             setStoredConversationId(response.conversationId);
             if (response.sessionId && response.sessionId !== sessionIdRef.current) {
@@ -327,6 +285,7 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
             abortRef.current = null;
           },
           onError: (err) => {
+            if (isStale()) return;
             lastFailedTextRef.current = trimmed;
             setError(err);
             setToolStatusLabel(null);
@@ -348,7 +307,7 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
         controller.signal
       );
     },
-    [persistMessages, isLoaded, clerkUserId, router]
+    [persistMessages]
   );
 
   const retryLastMessage = useCallback(() => {
@@ -389,7 +348,6 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return () => {
       abortRef.current?.abort();
-      if (signInRedirectTimeoutRef.current) clearTimeout(signInRedirectTimeoutRef.current);
     };
   }, []);
 

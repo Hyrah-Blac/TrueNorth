@@ -35,10 +35,32 @@ function getConfig(): { apiKey: string; model: string } {
 }
 
 function buildThinkingConfig(model: string): ThinkingConfig {
-  const isGemini3 = /gemini-3/i.test(model);
-  if (isGemini3) {
-    return { thinkingLevel: ThinkingLevel.MEDIUM };
+  // As of Gemini 3.x, ALL tiers (Pro, Flash, and Flash-Lite — e.g.
+  // gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-3-pro-preview)
+  // use thinkingLevel; thinkingBudget is a legacy, backward-compat-only
+  // parameter for pre-3.0 models (gemini-2.5-*, gemini-2.0-*, etc.) and
+  // is NOT the right knob for any Gemini 3.x model, flash-lite included.
+  // Sending both thinkingLevel and thinkingBudget in the same request is
+  // rejected outright, so the branches below are mutually exclusive.
+  //
+  // Matched on the model string from GEMINI_MODEL env var so no code
+  // change is needed when you swap models — just update env.
+  const isGemini3Plus = /gemini-3/i.test(model);
+
+  if (isGemini3Plus) {
+    // Pro gets MEDIUM (matches prior behavior for that tier). Flash /
+    // Flash-Lite default to LOW rather than the model's own MINIMAL
+    // default — Google's guidance for 3.5 Flash-Lite specifically calls
+    // out that agentic/tool-calling subagent workloads need MEDIUM or
+    // HIGH thinking to avoid premature tool termination; LOW is a safer
+    // floor than MINIMAL for this app's multi-round tool-calling loop
+    // without going all the way to MEDIUM's latency/cost.
+    const isProTier = /-pro\b/i.test(model);
+    return { thinkingLevel: isProTier ? ThinkingLevel.MEDIUM : ThinkingLevel.LOW };
   }
+
+  // Pre-Gemini-3 models (e.g. gemini-2.5-flash) don't support
+  // thinkingLevel at all — thinkingBudget is the only supported knob.
   return { thinkingBudget: 512 };
 }
 
@@ -118,7 +140,14 @@ function toGeminiContents(messages: OpenRouterMessage[]): {
           ? (responseData as Record<string, unknown>)
           : { result: responseData };
 
-      const part: Part = { functionResponse: { name: toolMsg.name, response } };
+      // Gemini 3.x matches a functionResponse to its functionCall by id,
+      // not by position — this is what lets a round with multiple
+      // parallel tool calls resolve correctly. toolMsg.tool_call_id is
+      // the same id Gemini originally returned on the functionCall part
+      // (see the mirrored id on the functionCall reconstruction below).
+      const part: Part = {
+        functionResponse: { id: toolMsg.tool_call_id, name: toolMsg.name, response },
+      };
 
       if (lastWasToolResult && contents.length > 0) {
         contents[contents.length - 1].parts!.push(part);
@@ -146,7 +175,10 @@ function toGeminiContents(messages: OpenRouterMessage[]): {
             // Leave empty — mirrors executor.ts's own tolerant handling.
           }
           parts.push({
-            functionCall: { name: tc.function.name, args },
+            // id must round-trip verbatim — it's how Gemini pairs this
+            // functionCall with its functionResponse (see toolMsg.tool_call_id
+            // above) when a round contains more than one parallel call.
+            functionCall: { id: tc.id, name: tc.function.name, args },
             ...(tc.thoughtSignature ? { thoughtSignature: tc.thoughtSignature } : {}),
           });
         }

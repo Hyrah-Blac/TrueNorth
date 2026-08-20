@@ -10,9 +10,11 @@ import { logger } from "@/lib/logging/logger";
 import { AI_MODELS } from "@/database/constants/ai";
 import type { ChatStreamEvent } from "@/types/ai";
 
-// Stricter than the general PUBLIC_WRITE limit — LLM calls have real
-// per-token cost so we protect them more aggressively.
-const AI_RATE_LIMIT = { windowMs: 60_000, max: 20 } as const;
+// Signed-in users get a more generous allowance; anonymous users are
+// tighter because the key is IP-based (shared IPs on mobile carriers /
+// offices could otherwise block each other).
+const AI_RATE_LIMIT_AUTHED = { windowMs: 60_000, max: 30 } as const;
+const AI_RATE_LIMIT_ANON = { windowMs: 60_000, max: 10 } as const;
 
 /**
  * POST /api/ai/chat
@@ -62,12 +64,35 @@ const AI_RATE_LIMIT = { windowMs: 60_000, max: 20 } as const;
  * `runChat`, so the in-flight provider call is torn down as soon as the
  * client leaves rather than running to completion (or timeout) unread.
  */
+// Node.js runtime is required here (not Edge) — the Mongoose connection
+// in src/database/connection.ts uses the `dns` module and other
+// Node-only APIs, and the @google/genai SDK is imported via a
+// "server-only" module elsewhere in this call chain.
+export const runtime = "nodejs";
+
+// Worst case for a single turn: up to MAX_TOOL_ROUNDS (4) tool-calling
+// rounds plus one no-usable-text retry — see chat.service.ts — each a
+// full model call bounded by GEMINI_TIMEOUT_MS (30s) in client.ts. That's
+// up to ~150s of provider time alone, before tool execution and DB
+// writes. Vercel's platform default for a route with no explicit
+// maxDuration isn't guaranteed to cover that, and a mid-stream kill here
+// is indistinguishable from a hang to the client. Pin it explicitly
+// rather than relying on the default. Requires Fluid Compute (default
+// for new projects) and a plan that supports this duration — see
+// https://vercel.com/docs/functions/configuring-functions/duration.
+export const maxDuration = 180;
+
 export async function POST(req: NextRequest) {
-  // 1. Rate limit
-  const rate = checkRateLimit(getRequestKey(req, "ai:chat"), AI_RATE_LIMIT);
+  // 1. Resolve authenticated user — auth() never throws for anonymous requests.
+  //    Done first so we can pick the right rate-limit bucket before any other work.
+  const { userId: clerkUserId } = await auth();
+
+  // 2. Rate limit — tighter for anonymous (IP-keyed) than for signed-in users.
+  const rateLimit = clerkUserId ? AI_RATE_LIMIT_AUTHED : AI_RATE_LIMIT_ANON;
+  const rate = checkRateLimit(getRequestKey(req, "ai:chat"), rateLimit);
   if (!rate.allowed) return rateLimitResponse(rate);
 
-  // 2. Parse body — return 400 for missing/empty body rather than crashing
+  // 3. Parse body — return 400 for missing/empty body rather than crashing
   let rawBody: unknown;
   try {
     rawBody = await req.json();
@@ -80,16 +105,13 @@ export async function POST(req: NextRequest) {
 
   let input: ReturnType<typeof chatRequestSchema.parse>;
   try {
-    // 3. Validate with Zod
+    // 4. Validate with Zod
     input = chatRequestSchema.parse(rawBody);
   } catch (error) {
     return handleApiError(error, "POST /api/ai/chat");
   }
 
-  // 4. Resolve authenticated user — auth() never throws for anonymous requests
-  const { userId: clerkUserId } = await auth();
-
-  // 5. Derive stable session ID
+  // 5. Derive stable session ID — auth already resolved above
   //    Priority: client-supplied → Clerk user ID → server-generated random
   //    Signed-in users get automatic cross-tab continuity via their Clerk ID.
   const sessionId = input.sessionId ?? clerkUserId ?? randomBytes(16).toString("hex");

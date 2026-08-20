@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { AI_MODEL_VALUES } from "@/database/constants/ai";
-import type { AiModel } from "@/database/constants/ai";
 
-const modelEnum = z.enum(AI_MODEL_VALUES as [AiModel, ...AiModel[]]);
-
+// The model field accepts any non-empty string rather than a closed enum.
+// The actual model is determined by GEMINI_MODEL in env (see client.ts);
+// this optional override lets callers request a specific model without
+// requiring a code change every time the env var changes.
 export const chatRequestSchema = z.object({
   message: z
     .string()
@@ -26,7 +26,10 @@ export const chatRequestSchema = z.object({
     .regex(/^[a-zA-Z0-9_\-]+$/, "Session ID contains invalid characters")
     .optional(),
 
-  model: modelEnum.optional(),
+  // Any non-empty string — validated against GEMINI_MODEL at the provider
+  // level, not here. Keeping this open means changing GEMINI_MODEL in env
+  // never requires touching this schema.
+  model: z.string().trim().min(1).optional(),
 
   // Short, client-derived description of the page the visitor is
   // currently on (e.g. "the Citation XLS aircraft page"). Optional and

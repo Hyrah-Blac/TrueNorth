@@ -1,7 +1,9 @@
 import type { ChatRequest, ChatResponse, ChatStreamEvent } from "@/types/ai";
 import type { ConciergeError } from "../types";
 
-const REQUEST_TIMEOUT_MS = 30_000;
+// 5s longer than the server-side Gemini timeout (30s) so the server's
+// structured error event has time to arrive before the client aborts.
+const REQUEST_TIMEOUT_MS = 35_000;
 
 class ConciergeApiError extends Error {
   kind: ConciergeError["kind"];
