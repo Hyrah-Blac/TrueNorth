@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUser } from "@clerk/nextjs";
-import { Loader2, Save, UserRound, ShieldCheck } from "lucide-react";
+import { Loader2, Save, UserRound, ShieldCheck, Mail, CalendarDays, History } from "lucide-react";
 import { FormField } from "@/components/forms/FormField";
 import { TextInput } from "@/components/forms/TextInput";
 import { Button } from "@/components/shared/buttons/Button";
@@ -23,12 +23,13 @@ interface ProfileFormProps {
   updatedAt?: string;
 }
 
-/** Icon + title + one-line description — the only thing that now marks
- *  where one group of settings ends and the next begins, since there
- *  are no card boxes to do that visually. Title uses the same small
- *  uppercase label style as the quote detail page's section headers
- *  ("TRIP DETAILS", "SPECIAL REQUIREMENTS") for a consistent hierarchy
- *  across the portal. */
+/** Icon + title + one-line description — the same champagne "instrument"
+ *  badge used for each row on the public Contact page (a small circular
+ *  bg-champagne-50/text-champagne-600 chip around the icon, paired with
+ *  an uppercase, letter-spaced label) now marks where one group of
+ *  settings ends and the next begins, since there are no card boxes to
+ *  do that visually. The description sits indented under the label so
+ *  the badge reads as the section's anchor rather than a loose icon. */
 function SectionHeading({
   icon: Icon,
   title,
@@ -39,22 +40,45 @@ function SectionHeading({
   description: string;
 }) {
   return (
-    <div className="mb-6 flex items-start gap-2.5">
-      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-      <div>
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{title}</h2>
-        <p className="mt-1 text-xs text-slate-500">{description}</p>
+    <div className="mb-7">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-champagne-50 text-champagne-600">
+          <Icon className="h-2.5 w-2.5" aria-hidden="true" />
+        </span>
+        <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">{title}</h2>
       </div>
+      <p className="mt-2 pl-[1.875rem] text-xs leading-relaxed text-slate-500">{description}</p>
     </div>
   );
 }
 
-/** Read-only label/value row, used in the Account section. */
-function InfoRow({ label, value }: { label: string; value: string }) {
+/** Read-only label/value row, used in the Account section — the same
+ *  compact "instrument" shape as the Contact page's ContactRow (label +
+ *  icon chip on one side, an editorial-serif value on the other), minus
+ *  the tappable action button since nothing here is actionable. */
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+  caption,
+}: {
+  icon: typeof UserRound;
+  label: string;
+  value: string;
+  caption?: string;
+}) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3.5">
-      <dt className="text-sm text-slate-500">{label}</dt>
-      <dd className="truncate text-sm font-medium text-navy-900">{value}</dd>
+    <div className="flex flex-col gap-1.5 border-b border-navy-900/10 py-5 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+      <div className="flex items-center gap-2">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-champagne-50 text-champagne-600">
+          <Icon className="h-2.5 w-2.5" aria-hidden="true" />
+        </span>
+        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">{label}</span>
+      </div>
+      <div className="pl-[1.875rem] sm:pl-0 sm:text-right">
+        <p className="font-editorial truncate text-sm font-light leading-snug text-navy-900">{value}</p>
+        {caption ? <p className="mt-0.5 text-[0.6875rem] text-slate-500">{caption}</p> : null}
+      </div>
     </div>
   );
 }
@@ -124,11 +148,16 @@ export function ProfileForm({ defaultValues, initials, name, email, memberSince,
           <p className="truncate font-editorial text-2xl font-light tracking-tight text-navy-900 sm:text-3xl">
             {name}
           </p>
-          <p className="mt-1 text-sm text-slate-500">Private charter account</p>
+          <span className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-champagne-600">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-champagne-500" aria-hidden="true" />
+            Private charter account
+          </span>
         </div>
       </div>
 
-      <div className="border-t border-slate-200 pt-7">
+      <div className="horizon-divider" />
+
+      <div>
         <SectionHeading
           icon={UserRound}
           title="Personal information"
@@ -156,20 +185,26 @@ export function ProfileForm({ defaultValues, initials, name, email, memberSince,
         </div>
       </div>
 
-      <div className="border-t border-slate-200 pt-7">
+      <div className="horizon-divider" />
+
+      <div>
         <SectionHeading icon={ShieldCheck} title="Account" description="Managed through your sign-in provider." />
 
-        <dl className="divide-y divide-slate-100">
-          <InfoRow label="Email" value={email} />
-          <InfoRow label="Member since" value={memberSince} />
-          {lastSavedAt ? <InfoRow label="Last updated" value={formatRelativeTime(lastSavedAt)} /> : null}
-        </dl>
+        <div>
+          <InfoRow icon={Mail} label="Email" value={email} />
+          <InfoRow icon={CalendarDays} label="Member since" value={memberSince} />
+          {lastSavedAt ? (
+            <InfoRow icon={History} label="Last updated" value={formatRelativeTime(lastSavedAt)} />
+          ) : null}
+        </div>
       </div>
 
       {error ? <InlineAlert tone="error">{error}</InlineAlert> : null}
       {saved ? <InlineAlert tone="success">Profile updated</InlineAlert> : null}
 
-      <div className="flex justify-end border-t border-slate-200 pt-7">
+      <div className="horizon-divider" />
+
+      <div className="flex justify-end pt-1">
         <Button
           type="submit"
           variant="primary"
