@@ -4,7 +4,6 @@ import { FleetHero } from "@/components/fleet/hero/FleetHero";
 import { FleetFilters } from "@/components/fleet/filters/FleetFilters";
 import { FleetGrid } from "@/components/fleet/grid/FleetGrid";
 import { Section, SectionGap } from "@/components/layout/section/Section";
-import { Button } from "@/components/shared/buttons/Button";
 import { Pagination } from "@/components/shared/Pagination";
 import { JsonLd } from "@/components/shared/JsonLd";
 import { CompareTray } from "@/components/aircraft/compare/CompareTray";
@@ -77,22 +76,17 @@ export default async function FleetPage({ searchParams }: FleetPageProps) {
       <Section tone="white" size="slim" className="!pt-0">
         <div className="flex flex-col overflow-hidden rounded-2xl sm:min-h-[26rem] sm:flex-row">
           <div className="flex w-full flex-col justify-center gap-5 bg-gradient-to-r from-white to-slate-100 p-8 sm:w-[45%] sm:shrink-0 md:p-10 lg:p-12">
-            <h3 className="font-display text-xl font-semibold text-navy-900 sm:text-2xl">
+            <h3 className="font-body text-balance text-[clamp(0.875rem,0.75rem+0.6vw,1.125rem)] font-light uppercase leading-[1.15] tracking-[0.1em] text-navy-950">
               Not Sure Which Aircraft You Need?
             </h3>
-            <p className="text-xs leading-relaxed text-slate-600">
-              Tell us the mission — passengers, distance, destination — and we&apos;ll match you
-              with the right aircraft from the fleet above.
+            <p className="max-w-sm text-xs leading-relaxed text-slate-600">
+              Every mission is different. Share your passengers, distance, and destination with
+              our team, and we&apos;ll recommend the right aircraft from the fleet above.
             </p>
-            <div>
-              <Button href="/request-charter" variant="blue" size="md">
-                Request a Charter
-              </Button>
-            </div>
           </div>
           <div className="relative h-72 w-full sm:h-auto sm:flex-1">
             <Image
-              src="/images/hero/Full.jpg"
+              src="/images/gallery/fleet.jpg"
               alt=""
               fill
               className="object-cover"

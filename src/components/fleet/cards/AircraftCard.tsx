@@ -33,7 +33,7 @@ export function AircraftCard({ aircraft, reversed = false }: AircraftCardProps) 
           {AIRCRAFT_CATEGORY_LABELS[aircraft.category]}
         </span>
 
-        <h3 className="mt-4 font-display text-xl font-semibold leading-[1.15] text-navy-900 sm:text-2xl">
+        <h3 className="mt-4 font-body uppercase text-[11px] font-semibold text-navy-900 sm:text-xs md:text-sm lg:text-sm">
           {aircraft.name}
         </h3>
 

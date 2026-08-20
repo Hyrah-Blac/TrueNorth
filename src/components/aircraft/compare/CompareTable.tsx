@@ -66,7 +66,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
             <p className="mt-3 text-[0.625rem] font-medium uppercase tracking-[0.2em] text-slate-400">
               {AIRCRAFT_CATEGORY_LABELS[item.category]}
             </p>
-            <h3 className="mt-1 font-display text-base font-semibold text-navy-900">{item.name}</h3>
+            <h3 className="mt-1 font-body text-base font-bold uppercase tracking-tight text-navy-900">{item.name}</h3>
             <Button
               href={`/fleet/${item.slug}`}
               variant="outline"

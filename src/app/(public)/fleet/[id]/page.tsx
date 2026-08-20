@@ -71,7 +71,7 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
 
       <div className="border-b border-slate-200 bg-slate-50 pb-14 pt-28 lg:pb-16 lg:pt-32">
         <Container>
-          <h1 className="font-display text-2xl font-semibold text-navy-900 lg:text-3xl">{aircraft.name}</h1>
+          <h1 className="font-body text-2xl font-bold uppercase tracking-tight text-navy-900 lg:text-3xl">{aircraft.name}</h1>
           {aircraft.tagline ? <p className="mt-2 text-xs text-slate-600 sm:text-sm">{aircraft.tagline}</p> : null}
         </Container>
       </div>
