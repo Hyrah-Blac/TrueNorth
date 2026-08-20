@@ -24,10 +24,10 @@ export function DestinationCard({ destination, reversed = false }: DestinationCa
           reversed ? "from-slate-200 to-white" : "from-white to-slate-200"
         }`}
       >
-        <h3 className="font-display text-base font-semibold leading-[1.15] tracking-tight text-navy-900 sm:text-lg md:text-xl">
+        <h3 className="font-body uppercase text-[11px] font-semibold text-navy-900 sm:text-xs md:text-sm lg:text-sm">
           {destination.name}
         </h3>
-        <p className="mt-2 text-xs leading-relaxed text-slate-600 sm:mt-3 sm:text-sm">
+        <p className="mt-4 max-w-xs text-xs leading-relaxed text-slate-500 line-clamp-3">
           {destination.description}
         </p>
       </div>

@@ -62,16 +62,16 @@ export function Hero({ companyName, tagline }: HeroProps) {
               width={280}
               height={82}
               priority
-              className="w-auto object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]"
-              style={{ height: "clamp(2rem, 1.3rem + 3vw, 4.25rem)" }}
+              className="w-auto object-contain"
+              style={{ height: "clamp(1.9rem, 1.3rem + 2.6vw, 3.75rem)" }}
             />
           </div>
 
           <h1
-            className="animate-fade-in-up text-balance font-editorial text-[clamp(2.125rem,1.5rem+2.4vw,4rem)] font-light uppercase leading-[1.2] tracking-[0.01em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)]"
+            className="animate-fade-in-up text-balance font-body text-[clamp(2rem,1.4rem+2.6vw,3.75rem)] font-light uppercase leading-[1.12] tracking-[-0.015em] text-white"
             style={{
               animationDelay: "60ms",
-              marginTop: "clamp(1.25rem, 0.9rem + 1.2vw, 2rem)",
+              marginTop: "clamp(1.25rem, 0.9rem + 1.2vw, 2.25rem)",
             }}
           >
             {words.map((word, i) => (
@@ -86,20 +86,15 @@ export function Hero({ companyName, tagline }: HeroProps) {
           </h1>
 
           <p
-            className="animate-fade-in-up mt-6 font-mono text-[clamp(0.6875rem,0.6rem+0.4vw,0.9375rem)] font-medium uppercase tracking-[0.28em] text-white/70 drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]"
-            style={{ animationDelay: "180ms" }}
+            className="animate-fade-in-up font-mono text-[clamp(0.9375rem,0.85rem+0.5vw,1.25rem)] font-light uppercase tracking-[0.18em] text-white/75"
+            style={{ animationDelay: "180ms", marginTop: "clamp(1.5rem, 1.1rem + 1vw, 2.25rem)" }}
           >
             Adventure, above &amp; beyond
           </p>
 
-          <div
-            className="animate-fade-in-up h-px w-6 bg-white/25"
-            style={{ animationDelay: "300ms", marginTop: "clamp(1.5rem, 1.1rem + 1.5vw, 2.25rem)" }}
-          />
-
           <p
-            className="animate-fade-in-up max-w-[20rem] text-balance text-[clamp(0.75rem,0.7rem+0.25vw,0.875rem)] font-light leading-loose tracking-wide text-white/70 drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]"
-            style={{ animationDelay: "380ms", marginTop: "clamp(1.25rem, 1rem + 1vw, 2rem)" }}
+            className="animate-fade-in-up max-w-[21rem] text-balance text-[clamp(0.6875rem,0.63rem+0.2vw,0.8125rem)] font-light leading-relaxed tracking-wide text-white/85"
+            style={{ animationDelay: "380ms", marginTop: "clamp(1.75rem, 1.3rem + 1.2vw, 2.75rem)" }}
           >
             {tagline}
           </p>

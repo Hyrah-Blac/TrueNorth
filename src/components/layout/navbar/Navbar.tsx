@@ -192,10 +192,10 @@ export function Navbar({ phone }: { phone: string }) {
       <Container className="px-4 sm:px-6 lg:px-10 xl:px-14">
         <nav className={`relative flex h-24 items-center justify-between ${TRANSITION}`} aria-label="Primary">
           {!isMinimalNav && (
-            <div className="flex items-center gap-8 lg:gap-12">
+            <div className="flex items-center gap-4 lg:gap-6">
               <NavMenuTrigger open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} solid={textSolid} />
 
-              <div className="hidden items-center gap-10 lg:flex">
+              <div className="hidden items-center gap-6 lg:flex">
                 <TopLink href="/fleet" active={pathname === "/fleet"} solid={textSolid}>
                   Fleet
                 </TopLink>
@@ -312,14 +312,14 @@ function TopLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`group font-display relative inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-normal tracking-[0.02em] transition-all duration-[250ms] ease-out ${
+      className={`group font-body relative inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-light uppercase tracking-[0.1em] transition-all duration-[250ms] ease-out ${
         solid
           ? active
             ? "text-navy-900"
-            : "text-slate-600 hover:text-sky-600"
+            : "text-slate-600 hover:text-[#0000FF]"
           : active
             ? "text-white"
-            : "text-white/75 hover:text-[#6EC5F2]"
+            : "text-white hover:text-[#0000FF]"
       } ${className}`}
       {...rest}
     >

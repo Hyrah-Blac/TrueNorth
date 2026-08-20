@@ -27,7 +27,7 @@ export function NavMenuTrigger({
     <button
       type="button"
       className={`flex h-10 w-10 items-center justify-center transition-colors duration-300 ${
-        solid ? "text-navy-900 hover:text-blue-600" : "text-white hover:text-[#6EC5F2]"
+        solid ? "text-navy-900 hover:text-[#0000FF]" : "text-white hover:text-[#0000FF]"
       }`}
       style={halo ? { filter: "drop-shadow(0 1px 3px rgba(255,255,255,0.85)) drop-shadow(0 0 8px rgba(255,255,255,0.5))" } : undefined}
       onClick={onToggle}

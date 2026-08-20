@@ -50,7 +50,7 @@ export function FleetHero() {
       <Container className="relative flex justify-center px-6 sm:px-8">
         <div className="relative w-full max-w-xl text-center lg:max-w-4xl">
           <Reveal variant="fade-up">
-            <h1 className="font-editorial text-[clamp(1.85rem,1.35rem+2.2vw,4rem)] font-light uppercase leading-[1.15] tracking-[0.005em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)] sm:leading-[1.1]">
+            <h1 className="font-body text-[clamp(1.85rem,1.35rem+2.2vw,4rem)] font-light uppercase leading-[1.12] tracking-[-0.015em] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)]">
               Seven categories,
               <br />
               matched to the{" "}

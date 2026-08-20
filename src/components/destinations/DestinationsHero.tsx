@@ -50,7 +50,7 @@ export function DestinationsHero() {
 
       <Container className="relative flex justify-center px-6 sm:px-8">
         <div className="max-w-2xl text-center lg:max-w-4xl">
-          <h1 className="font-editorial text-[clamp(2.25rem,1.6rem+2.6vw,4rem)] font-light uppercase leading-[1.1] tracking-[0.005em] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.6)]">
+          <h1 className="font-body text-[clamp(2.25rem,1.6rem+2.6vw,4rem)] font-light uppercase leading-[1.12] tracking-[-0.015em] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.6)]">
             Domestic reach,
             <br />
             regional{" "}

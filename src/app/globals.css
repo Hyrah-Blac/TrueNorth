@@ -12,13 +12,13 @@
        imported there; these variables just point the rest of the
        site's font-family declarations (tailwind.config.ts, and the
        font-family rules below) at the right family name. --font-display
-       and --font-editorial intentionally resolve to the same family
-       (Poppins) — they always did, next/font just generated two
-       distinct scoped names for independent weight-subsetting, which
-       is no longer necessary now that each weight is its own imported
-       CSS file. */
+       (Poppins, used for nav/buttons/subheads) and --font-editorial
+       (Fraunces, used for large hero/statement headlines) are now
+       intentionally different families — a geometric sans for
+       everyday UI type, and a characterful serif reserved for the
+       big editorial moments, instead of one sans doing both jobs. */
     --font-display: "Poppins";
-    --font-editorial: "Poppins";
+    --font-editorial: "Fraunces";
     --font-body: "Raleway";
     --font-data: "IBM Plex Mono";
     /* The dashboard-section Fraunces serif override (Bookings, Payments,

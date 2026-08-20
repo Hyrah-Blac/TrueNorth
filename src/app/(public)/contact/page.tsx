@@ -66,7 +66,7 @@ function ContactRow({ label, children, caption, href, actionLabel, icon: IconCom
         variant="outline"
         size="sm"
         icon={<IconComponent className="h-3 w-3" weight="light" aria-hidden="true" />}
-        className="w-full shrink-0 whitespace-nowrap bg-white/70 !text-xs hover:!translate-y-0 hover:!border-slate-300 hover:!text-navy-900 sm:w-32"
+        className="group relative w-full shrink-0 isolate overflow-hidden whitespace-nowrap bg-white/80 !text-xs shadow-sm backdrop-blur-sm before:pointer-events-none before:absolute before:inset-y-0 before:-left-1/3 before:w-1/3 before:-skew-x-12 before:bg-gradient-to-r before:from-transparent before:via-white/80 before:to-transparent before:content-[''] before:transition-transform before:duration-700 before:ease-out hover:!translate-y-0 hover:!border-slate-300 hover:!bg-white/80 hover:!text-navy-900 hover:shadow-sm hover:before:translate-x-[400%] sm:w-32"
       >
         {actionLabel}
       </Button>
@@ -102,14 +102,15 @@ export default async function ContactPage() {
           section instead of the photo cutting off abruptly. */}
       <div className="absolute inset-0" aria-hidden="true">
         <Image
-          src="/images/destinations/nairobi.jpg"
+          src="/images/gallery/sept.jpg"
           alt=""
           fill
           priority
           className="animate-zoom-slow object-cover [filter:saturate(1.25)_contrast(1.05)]"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-white/65" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/72 to-white/85" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(255,255,255,0.35)_100%)]" />
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/95 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/70 to-transparent" />
       </div>
@@ -118,13 +119,13 @@ export default async function ContactPage() {
       {/* Content sits directly on the full-page photo/scrim behind it —
           no separate card panel, so the page reads as one continuous
           surface rather than a floating sheet on top of the photo. */}
-      <Container className="relative pb-16 pt-28 sm:pb-20 sm:pt-32 lg:py-0">
-        <div className="contact-fade relative grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-x-16">
+      <Container className="relative pb-16 pt-24 sm:pb-20 sm:pt-32 lg:py-0">
+        <div className="contact-fade relative grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-x-16">
           <div className="relative lg:col-span-5">
-            <h1 className="font-display relative max-w-md text-[clamp(1.5rem,1.2rem+1.4vw,2.125rem)] font-extrabold uppercase leading-[1.15] tracking-tight text-navy-900">
-              Speak With Our <span className="text-champagne-600">Charter Team</span>
+            <h1 className="font-body relative max-w-md text-balance text-[clamp(0.875rem,0.75rem+0.6vw,1.125rem)] font-light uppercase leading-[1.15] tracking-[0.1em] text-navy-950">
+              Speak With Our Charter Team
             </h1>
-            <p className="relative mt-4 max-w-sm text-[0.6875rem] leading-relaxed text-slate-600 sm:text-xs">
+            <p className="relative mt-5 max-w-sm text-sm leading-relaxed text-slate-600">
               Our concierge is available around the clock to arrange your
               flight, answer fleet questions, or handle any request directly —
               no forms, no waiting for a callback.
@@ -171,7 +172,7 @@ export default async function ContactPage() {
           </div>
 
           <div
-            className="lg:col-span-6 lg:col-start-7 lg:border-l lg:border-navy-900/10 lg:pl-16"
+            className="lg:col-span-6 lg:col-start-7 lg:border-l lg:border-navy-900/10 lg:pl-14"
             style={{ animationDelay: "0.1s" }}
           >
             <ContactRow

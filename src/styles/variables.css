@@ -42,7 +42,7 @@
   --color-slate-300: 195 198 204; /* #c3c6cc */
   --color-slate-200: 228 229 232; /* #e4e5e8 */
   --color-slate-100: 241 240 237; /* #f1f0ed */
-  --color-slate-50: 250 249 246; /* #faf9f6 — warm off-white, never pure white */
+  --color-slate-50: 250 250 250; /* #fafafa — near-pure white, softened slightly to avoid starkness */
 
   /* Gold — was the same champagne family as sky, for hairline rings,
      dividers, small premium badges. Now the same sapphire blue family,
@@ -64,7 +64,7 @@
   --color-blue-500: 43 91 191; /* #2b5bbf — Sapphire Blue */
   --color-blue-400: 108 148 227; /* #6c94e3 — AA on navy-950 */
 
-  --color-white: 248 248 246; /* #f8f8f6 — off-white, never pure #ffffff */
+  --color-white: 250 250 250; /* #fafafa — near-pure white, softened slightly to avoid starkness */
 
   /* Success / danger — muted forest green and brick red, tuned to sit
      next to the sapphire accent and navy instead of Tailwind's stock
