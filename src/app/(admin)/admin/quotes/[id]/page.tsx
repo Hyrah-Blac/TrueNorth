@@ -17,8 +17,10 @@ import {
 } from "lucide-react";
 import { QuoteStatusBadge } from "@/components/quote/QuoteStatusBadge";
 import { QuoteReviewPanel } from "@/components/admin/dialogs/QuoteReviewPanel";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { getQuoteForAdmin } from "@/features/admin/lib/getQuotesForAdmin";
 import { getAircraftOptions } from "@/features/aircraft/lib/getAircraft";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { formatDate, formatDateTime } from "@/utils/date";
 import { formatCurrency } from "@/utils/currency";
 import { MISSION_TYPE_LABELS } from "@/database/constants/mission-type";
@@ -49,6 +51,13 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
   }
 
   const aircraftOptions = await getAircraftOptions();
+
+  // Resolve full airport names for the premium route display
+  const airportNames = await getAirportNamesByCodes([
+    quote.departureAirportCode,
+    quote.destinationAirportCode,
+  ]);
+
   const canReview =
     !QUOTE_TERMINAL_STATUSES.includes(quote.status) && quote.status !== QUOTE_STATUSES.APPROVED;
 
@@ -77,14 +86,23 @@ export default async function AdminQuoteDetailPage({ params }: AdminQuoteDetailP
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr,1fr]">
       <div className="space-y-6">
         <div className="rounded-xl border border-slate-200 bg-white p-7">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="spec-readout text-sm text-slate-500">{quote.quoteNumber}</p>
-              <h2 className="mt-1 font-editorial text-2xl font-light text-navy-900">
-                {quote.departureAirportCode} → {quote.destinationAirportCode}
-              </h2>
+          <div className="flex items-start justify-between gap-4">
+            {/* ── Premium route hero — replaces the plain "DEP → DEST" h2 ── */}
+            <RouteDisplay
+              eyebrow={quote.quoteNumber}
+              departure={{
+                code: quote.departureAirportCode,
+                name: airportNames[quote.departureAirportCode],
+              }}
+              destination={{
+                code: quote.destinationAirportCode,
+                name: airportNames[quote.destinationAirportCode],
+              }}
+              size="md"
+            />
+            <div className="shrink-0 pt-1">
+              <QuoteStatusBadge status={quote.status} />
             </div>
-            <QuoteStatusBadge status={quote.status} />
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-4 border-t border-slate-100 pt-6 sm:grid-cols-2">

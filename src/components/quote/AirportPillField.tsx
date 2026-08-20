@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Loader2, MapPin, PlaneTakeoff, PlaneLanding } from "lucide-react";
+import { Check, ChevronDown, Loader2, MapPin, PlaneTakeoff, PlaneLanding } from "lucide-react";
 import type { AirportOption } from "@/features/airport/hooks/useAirports";
 
 interface AirportPillFieldProps {
@@ -131,13 +131,17 @@ export function AirportPillField({
           />
           {selected ? <span className="block truncate text-xs text-slate-400">{selected.name}</span> : null}
         </div>
+        <ChevronDown
+          className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        />
       </div>
 
       {open ? (
         <ul
           id={listId}
           role="listbox"
-          className="absolute bottom-[calc(100%+10px)] left-0 right-0 z-20 max-h-72 overflow-y-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-lifted ring-1 ring-black/[0.03] sm:right-auto sm:w-72"
+          className="absolute bottom-[calc(100%+10px)] left-0 right-0 z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-lifted ring-1 ring-black/[0.03] sm:right-auto sm:w-72"
         >
           {isLoading ? (
             <li className="flex items-center justify-center gap-2 px-3.5 py-6 text-center text-xs text-slate-400">

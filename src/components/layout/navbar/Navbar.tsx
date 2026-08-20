@@ -88,6 +88,12 @@ export function Navbar({ phone }: { phone: string }) {
   const isHeroRoute = HERO_ROUTES.includes(pathname);
   const isLightHero = LIGHT_HERO_ROUTES.includes(pathname);
 
+  // The charter request flow gets a stripped-down bar: just the logo,
+  // floating over the page with a transparent background at all times
+  // (no solid-on-scroll, no border/shadow) — the form itself is the
+  // focus here, not site navigation.
+  const isMinimalNav = pathname === "/request-charter";
+
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
@@ -151,14 +157,15 @@ export function Navbar({ phone }: { phone: string }) {
   // scrolled elevation (border/shadow) until the page actually scrolls,
   // which is what makes it read as merged with the page rather than a
   // floating card sitting on top of it.
-  const showSolid = !isHeroRoute || scrolled || menuOpen;
-  const elevated = scrolled || menuOpen;
+  const showSolid = isMinimalNav ? false : !isHeroRoute || scrolled || menuOpen;
+  const elevated = isMinimalNav ? false : scrolled || menuOpen;
 
   // Background transparency (showSolid) and text/logo color are usually
-  // the same toggle, but on a light-background hero like contact they
-  // diverge: the bar itself should still go transparent, while the text
-  // stays dark the whole time since there's no dark photo backing it.
-  const textSolid = showSolid || isLightHero;
+  // the same toggle, but on a light-background hero like contact — and
+  // now on the minimal request-charter bar — they diverge: the bar
+  // itself should still go transparent, while the text/logo stays dark
+  // since there's no dark photo backing it.
+  const textSolid = showSolid || isLightHero || isMinimalNav;
 
   // Only the home hero renders its own oversized logo over "Adventure,
   // above & beyond" — the other hero routes (fleet, destinations, about)
@@ -177,45 +184,51 @@ export function Navbar({ phone }: { phone: string }) {
       } ${showSolid ? "bg-white" : "bg-transparent"} ${
         elevated
           ? "border-b border-slate-200 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.15)]"
-          : "border-b border-transparent"
+          : !isHeroRoute && !isMinimalNav
+            ? "border-b border-slate-200/70"
+            : "border-b border-transparent"
       }`}
     >
       <Container className="px-4 sm:px-6 lg:px-10 xl:px-14">
         <nav className={`relative flex h-24 items-center justify-between ${TRANSITION}`} aria-label="Primary">
-          <div className="flex items-center gap-8 lg:gap-12">
-            <NavMenuTrigger open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} solid={textSolid} />
+          {!isMinimalNav && (
+            <div className="flex items-center gap-8 lg:gap-12">
+              <NavMenuTrigger open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} solid={textSolid} />
 
-            <div className="hidden items-center gap-10 lg:flex">
-              <TopLink href="/fleet" active={pathname === "/fleet"} solid={textSolid}>
-                Fleet
-              </TopLink>
-              <TopLink href="/destinations" active={pathname === "/destinations"} solid={textSolid}>
-                Destinations
-              </TopLink>
+              <div className="hidden items-center gap-10 lg:flex">
+                <TopLink href="/fleet" active={pathname === "/fleet"} solid={textSolid}>
+                  Fleet
+                </TopLink>
+                <TopLink href="/destinations" active={pathname === "/destinations"} solid={textSolid}>
+                  Destinations
+                </TopLink>
+              </div>
             </div>
-          </div>
+          )}
 
           {showLogo && (
             <NavbarLogo logoError={logoError} onLogoError={() => setLogoError(true)} solid={textSolid} />
           )}
 
-          <div className="flex items-center gap-6 lg:gap-10">
-            <div className="hidden lg:flex">
-              <TopLink href="/contact" active={pathname === "/contact"} solid={textSolid}>
-                Contact
-              </TopLink>
-            </div>
+          {!isMinimalNav && (
+            <div className="flex items-center gap-6 lg:gap-10">
+              <div className="hidden lg:flex">
+                <TopLink href="/contact" active={pathname === "/contact"} solid={textSolid}>
+                  Contact
+                </TopLink>
+              </div>
 
-            <Button
-              href="/request-charter"
-              variant="blue"
-              size="md"
-              className="!px-5 !py-2.5 !text-[10px] !tracking-[0.12em] sm:!px-6"
-            >
-              <span className="sm:hidden">Charter</span>
-              <span className="hidden sm:inline">Request Charter</span>
-            </Button>
-          </div>
+              <Button
+                href="/request-charter"
+                variant="blue"
+                size="md"
+                className="!px-5 !py-2.5 !text-[10px] !tracking-[0.12em] sm:!px-6"
+              >
+                <span className="sm:hidden">Charter</span>
+                <span className="hidden sm:inline">Request Charter</span>
+              </Button>
+            </div>
+          )}
         </nav>
       </Container>
 

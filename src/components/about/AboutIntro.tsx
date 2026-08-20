@@ -27,7 +27,7 @@ export async function AboutIntro({ showText = true }: AboutIntroProps = {}) {
           className="animate-zoom-slow object-cover [filter:saturate(1.25)_contrast(1.05)]"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-white/65" />
+        <div className="absolute inset-0 bg-white/40" />
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/95 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/70 to-transparent" />
       </div>

@@ -58,7 +58,7 @@ export function TripSearchBar({ values, onChange, errors, onSubmit, isSubmitting
   const isReady = Boolean(values.departureAirportCode && values.destinationAirportCode && values.departureDate);
 
   return (
-    <div className="flex flex-col rounded-[28px] border border-navy-900/15 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] sm:flex-row sm:items-stretch sm:rounded-full">
+    <div className="flex flex-col rounded-[28px] border border-navy-950/25 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] sm:flex-row sm:items-stretch sm:rounded-full">
       <div className="flex min-w-0 flex-1 items-center px-6 py-4 sm:py-3 [&>*]:min-w-0 [&>*]:flex-1">
         <AirportPillField
           id="departureAirportCode"
@@ -72,8 +72,8 @@ export function TripSearchBar({ values, onChange, errors, onSubmit, isSubmitting
         />
       </div>
 
-      <div className="hidden h-10 w-px shrink-0 self-center bg-navy-900/15 sm:block" />
-      <div className="h-px w-full shrink-0 bg-navy-900/15 sm:hidden" />
+      <div className="hidden h-10 w-px shrink-0 self-center bg-navy-950/20 sm:block" />
+      <div className="h-px w-full shrink-0 bg-navy-950/20 sm:hidden" />
 
       <div className="flex min-w-0 flex-1 items-center px-6 py-4 sm:py-3 [&>*]:min-w-0 [&>*]:flex-1">
         <AirportPillField
@@ -88,8 +88,8 @@ export function TripSearchBar({ values, onChange, errors, onSubmit, isSubmitting
         />
       </div>
 
-      <div className="hidden h-10 w-px shrink-0 self-center bg-navy-900/15 sm:block" />
-      <div className="h-px w-full shrink-0 bg-navy-900/15 sm:hidden" />
+      <div className="hidden h-10 w-px shrink-0 self-center bg-navy-950/20 sm:block" />
+      <div className="h-px w-full shrink-0 bg-navy-950/20 sm:hidden" />
 
       <div className="flex min-w-0 flex-1 items-center px-6 py-4 sm:py-3 [&>*]:min-w-0 [&>*]:flex-1">
         <DateRangeField
@@ -105,8 +105,8 @@ export function TripSearchBar({ values, onChange, errors, onSubmit, isSubmitting
         />
       </div>
 
-      <div className="hidden h-10 w-px shrink-0 self-center bg-navy-900/15 sm:block" />
-      <div className="h-px w-full shrink-0 bg-navy-900/15 sm:hidden" />
+      <div className="hidden h-10 w-px shrink-0 self-center bg-navy-950/20 sm:block" />
+      <div className="h-px w-full shrink-0 bg-navy-950/20 sm:hidden" />
 
       <div className="flex shrink-0 items-center px-6 py-4 sm:py-3">
         <PassengerStepper

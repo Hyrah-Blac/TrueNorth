@@ -6,7 +6,9 @@ import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStat
 import { QuoteStatusBadge } from "@/components/quote/QuoteStatusBadge";
 import { CustomerActionsPanel } from "@/components/admin/dialogs/CustomerActionsPanel";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { getCustomerForAdmin } from "@/features/admin/lib/getCustomersForAdmin";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { formatDate } from "@/utils/date";
 import { NotFoundError, isAppError } from "@/lib/errors/AppError";
 
@@ -29,23 +31,30 @@ export default async function AdminCustomerDetailPage({ params }: AdminCustomerD
 
   const { user, bookings, quotes } = detail;
 
+  // Collect all airport codes across bookings and quotes for a single batch lookup
+  const allCodes = [
+    ...bookings.flatMap((b) => [b.departureAirportCode, b.destinationAirportCode]),
+    ...quotes.flatMap((q) => [q.departureAirportCode, q.destinationAirportCode]),
+  ];
+  const airportNames = await getAirportNamesByCodes(allCodes);
+
   return (
     <div>
-    <DetailHeader
-  backHref="/admin/customers"
-  backLabel="Customers"
-  title={`${user.firstName} ${user.lastName}`}
-  subtitle={`Joined ${formatDate(user.createdAt)}`}
-  status={
-    <span
-      className={`inline-flex rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide ${
-        user.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-      }`}
-    >
-      {user.isActive ? "Active" : "Deactivated"}
-    </span>
-  }
-/>
+      <DetailHeader
+        backHref="/admin/customers"
+        backLabel="Customers"
+        title={`${user.firstName} ${user.lastName}`}
+        subtitle={`Joined ${formatDate(user.createdAt)}`}
+        status={
+          <span
+            className={`inline-flex rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide ${
+              user.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            }`}
+          >
+            {user.isActive ? "Active" : "Deactivated"}
+          </span>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr,1.4fr]">
         <div className="space-y-6">
@@ -82,6 +91,7 @@ export default async function AdminCustomerDetailPage({ params }: AdminCustomerD
         </div>
 
         <div className="space-y-6">
+          {/* Recent bookings */}
           <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Recent bookings</h3>
             <div className="mt-4 space-y-3">
@@ -91,13 +101,24 @@ export default async function AdminCustomerDetailPage({ params }: AdminCustomerD
                 bookings.map((booking) => (
                   <div
                     key={booking._id}
-                    className="flex items-center justify-between border-b border-slate-100 pb-3 text-sm last:border-0 last:pb-0"
+                    className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0"
                   >
                     <div>
-                      <p className="spec-readout font-medium text-navy-900">{booking.bookingNumber}</p>
-                      <p className="text-xs text-slate-500">
-                        {booking.departureAirportCode} → {booking.destinationAirportCode}
+                      {/* Booking reference in spec-readout, then the premium sm route beneath */}
+                      <p className="spec-readout text-xs font-medium text-slate-400 mb-0.5">
+                        {booking.bookingNumber}
                       </p>
+                      <RouteDisplay
+                        departure={{
+                          code: booking.departureAirportCode,
+                          name: airportNames[booking.departureAirportCode],
+                        }}
+                        destination={{
+                          code: booking.destinationAirportCode,
+                          name: airportNames[booking.destinationAirportCode],
+                        }}
+                        size="sm"
+                      />
                     </div>
                     <BookingStatusBadge status={booking.status} />
                   </div>
@@ -106,6 +127,7 @@ export default async function AdminCustomerDetailPage({ params }: AdminCustomerD
             </div>
           </div>
 
+          {/* Recent quotes */}
           <div className="rounded-xl border border-slate-200 bg-white p-7">
             <h3 className="font-display text-base font-semibold text-navy-900">Recent quotes</h3>
             <div className="mt-4 space-y-3">
@@ -115,13 +137,23 @@ export default async function AdminCustomerDetailPage({ params }: AdminCustomerD
                 quotes.map((quote) => (
                   <div
                     key={quote._id}
-                    className="flex items-center justify-between border-b border-slate-100 pb-3 text-sm last:border-0 last:pb-0"
+                    className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0"
                   >
                     <div>
-                      <p className="spec-readout font-medium text-navy-900">{quote.quoteNumber}</p>
-                      <p className="text-xs text-slate-500">
-                        {quote.departureAirportCode} → {quote.destinationAirportCode}
+                      <p className="spec-readout text-xs font-medium text-slate-400 mb-0.5">
+                        {quote.quoteNumber}
                       </p>
+                      <RouteDisplay
+                        departure={{
+                          code: quote.departureAirportCode,
+                          name: airportNames[quote.departureAirportCode],
+                        }}
+                        destination={{
+                          code: quote.destinationAirportCode,
+                          name: airportNames[quote.destinationAirportCode],
+                        }}
+                        size="sm"
+                      />
                     </div>
                     <QuoteStatusBadge status={quote.status} />
                   </div>

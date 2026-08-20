@@ -21,6 +21,7 @@ import { LazyTrendChart as TrendChart } from "@/components/admin/charts/LazyTren
 import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStatusBadge";
 import { BookingPaymentStatusBadge } from "@/components/booking/BookingCard/BookingPaymentStatusBadge";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import {
   getDashboardCounts,
   getRevenueSummary,
@@ -34,6 +35,7 @@ import {
   getRecentActivity,
 } from "@/features/admin/lib/getOperationsDashboard";
 import { getPaymentSummary } from "@/features/admin/lib/getPaymentsForAdmin";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { formatCurrency, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDateTime, formatRelativeTime } from "@/utils/date";
 
@@ -52,6 +54,13 @@ export default async function AdminDashboardPage() {
       getRecentActivity(8),
       getPaymentSummary(),
     ]);
+
+  // Batch-resolve airport names for all upcoming flights in one call
+  const upcomingCodes = upcomingFlights.flatMap((b) => [
+    b.departureAirportCode,
+    b.destinationAirportCode,
+  ]);
+  const airportNames = await getAirportNamesByCodes(upcomingCodes);
 
   return (
     <div className="space-y-8">
@@ -74,73 +83,34 @@ export default async function AdminDashboardPage() {
         <StatCard label="Upcoming flights" value={String(ops.upcomingFlightsCount)} icon={AirplaneTakeoff} />
       </div>
 
-      {/* Operations — what needs attention right now, grouped and linked to the filtered list that handles it. */}
+      {/* Operations */}
       <div>
         <h2 className="font-editorial text-lg font-light text-navy-900">Quotes</h2>
         <div className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <StatCardLink
-            href="/admin/quotes?status=pending"
-            label="Pending review"
-            value={String(counts.pendingQuotes)}
-            icon={FileText}
-          />
-          <StatCardLink
-            href="/admin/quotes?status=approved"
-            label="Awaiting customer decision"
-            value={String(ops.approvedAwaitingDecision)}
-            icon={HourglassMedium}
-          />
-          <StatCardLink
-            href="/admin/quotes?status=approved"
-            label="Expiring within 7 days"
-            value={String(ops.expiringQuotes)}
-            icon={ClockCountdown}
-          />
+          <StatCardLink href="/admin/quotes?status=pending" label="Pending review" value={String(counts.pendingQuotes)} icon={FileText} />
+          <StatCardLink href="/admin/quotes?status=approved" label="Awaiting customer decision" value={String(ops.approvedAwaitingDecision)} icon={HourglassMedium} />
+          <StatCardLink href="/admin/quotes?status=approved" label="Expiring within 7 days" value={String(ops.expiringQuotes)} icon={ClockCountdown} />
         </div>
       </div>
 
       <div>
         <h2 className="font-editorial text-lg font-light text-navy-900">Bookings</h2>
         <div className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <StatCardLink
-            href="/admin/bookings?status=pending"
-            label="Pending"
-            value={String(ops.pendingBookings)}
-            icon={CalendarCheck}
-          />
-          <StatCardLink
-            href="/admin/bookings?status=confirmed"
-            label="Confirmed"
-            value={String(ops.confirmedBookings)}
-            icon={CheckCircle}
-          />
-          <StatCardLink
-            href="/admin/bookings?status=in_progress"
-            label="In progress"
-            value={String(ops.inProgressBookings)}
-            icon={Timer}
-          />
+          <StatCardLink href="/admin/bookings?status=pending" label="Pending" value={String(ops.pendingBookings)} icon={CalendarCheck} />
+          <StatCardLink href="/admin/bookings?status=confirmed" label="Confirmed" value={String(ops.confirmedBookings)} icon={CheckCircle} />
+          <StatCardLink href="/admin/bookings?status=in_progress" label="In progress" value={String(ops.inProgressBookings)} icon={Timer} />
         </div>
       </div>
 
       <div>
         <h2 className="font-editorial text-lg font-light text-navy-900">Payments</h2>
         <div className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <StatCardLink
-            href="/admin/payments?status=processing"
-            label="In progress"
-            value={String(paymentSummary.inProgress)}
-            icon={HourglassMedium}
-          />
-          <StatCardLink
-            href="/admin/payments?status=failed"
-            label="Failed"
-            value={String(paymentSummary.failed)}
-            icon={XCircle}
-          />
+          <StatCardLink href="/admin/payments?status=processing" label="In progress" value={String(paymentSummary.inProgress)} icon={HourglassMedium} />
+          <StatCardLink href="/admin/payments?status=failed" label="Failed" value={String(paymentSummary.failed)} icon={XCircle} />
         </div>
       </div>
 
+      {/* Upcoming flights — now with premium RouteDisplay per row */}
       <div className="rounded-xl border border-slate-200 bg-white p-7">
         <div className="flex items-center justify-between">
           <h2 className="font-editorial text-lg font-light text-navy-900">Upcoming flights</h2>
@@ -173,13 +143,25 @@ export default async function AdminDashboardPage() {
                     className="flex flex-col gap-2 py-4 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div>
-                      <p className="spec-readout text-sm font-medium text-navy-900">
-                        {booking.bookingNumber} · {booking.departureAirportCode} → {booking.destinationAirportCode}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {customer ? `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim() : "—"}
-                        {aircraftName ? ` · ${aircraftName}` : ""}
-                      </p>
+                      {/* Premium sm route with booking ref as eyebrow */}
+                      <RouteDisplay
+                        eyebrow={booking.bookingNumber}
+                        departure={{
+                          code: booking.departureAirportCode,
+                          name: airportNames[booking.departureAirportCode],
+                        }}
+                        destination={{
+                          code: booking.destinationAirportCode,
+                          name: airportNames[booking.destinationAirportCode],
+                        }}
+                        size="sm"
+                      />
+                      {(customer || aircraftName) ? (
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          {customer ? `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim() : "—"}
+                          {aircraftName ? ` · ${aircraftName}` : ""}
+                        </p>
+                      ) : null}
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-slate-500">{formatDateTime(booking.departureDate)}</span>

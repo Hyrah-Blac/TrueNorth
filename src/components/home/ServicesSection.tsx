@@ -16,7 +16,7 @@ export function ServicesSection() {
       {/* Left-aligned, pinned to the very top of the section — the
           empty band above the aircraft. */}
       <div className="flex max-w-3xl flex-col items-start px-0 text-left">
-        <h2 className="font-display text-3xl font-normal leading-[1.15] tracking-tight text-black sm:text-5xl lg:text-6xl">
+        <h2 className="font-body text-balance text-lg font-light uppercase leading-[1.15] tracking-[0.02em] text-black/55 sm:text-xl sm:tracking-[0.04em] lg:text-2xl">
           Every Mission. One Trusted Operator.
         </h2>
 

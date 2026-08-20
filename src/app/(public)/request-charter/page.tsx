@@ -62,7 +62,7 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
 
   return (
     <>
-      <section className="bg-white pt-32 sm:pt-40 lg:pt-44">
+      <section className="relative z-10 bg-white pt-32 sm:pt-40 lg:pt-44">
         <Container>
           <Reveal variant="fade-up">
             <div>

@@ -14,10 +14,10 @@ export function Hero({ companyName, tagline }: HeroProps) {
   const grainId = useId();
 
   return (
-    <section className="relative flex h-screen min-h-[560px] items-center overflow-hidden bg-navy-950 py-24">
+    <section className="hero-section relative flex h-[calc(100vh-140px)] min-h-[480px] items-center overflow-hidden bg-navy-950 py-14 lg:h-[calc(100vh-150px)] lg:py-16">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <Image
-          src="/images/hero/phone1.jpg"
+          src="/images/hero/phone3.jpg"
           alt=""
           fill
           priority
@@ -26,7 +26,7 @@ export function Hero({ companyName, tagline }: HeroProps) {
           sizes="100vw"
         />
         <Image
-          src="/images/hero/hunt6.jpg"
+          src="/images/gallery/done.jpg"
           alt=""
           fill
           priority
@@ -106,20 +106,25 @@ export function Hero({ companyName, tagline }: HeroProps) {
         </div>
       </Container>
 
-      <a
-        href="#content"
-        className="animate-fade-in-up absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 rounded-sm outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-champagne-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-950 sm:bottom-8"
-        style={{ animationDelay: "600ms" }}
-      >
-        <span className="font-mono text-[0.5625rem] uppercase tracking-[0.4em] text-white/50 drop-shadow-[0_1px_6px_rgba(0,0,0,0.4)]">
-          Scroll
-        </span>
-        <span className="relative h-8 w-px overflow-hidden bg-white/20 sm:h-10">
-          <span className="animate-scroll-line absolute inset-x-0 top-0 h-1/2 bg-white/80" />
-        </span>
-      </a>
-
       <style jsx>{`
+        /* Mobile browsers resize their address/toolbar chrome as the
+           page scrolls, which makes 100vh unstable there (the hero can
+           visibly grow/shrink or clip content). 100dvh accounts for
+           that and is used whenever the browser supports it; @supports
+           keeps the original 100vh calc as the fallback everywhere
+           else, so this only takes effect where it's actually safe. */
+        @supports (height: 100dvh) {
+          .hero-section {
+            height: calc(100dvh - 140px);
+          }
+
+          @media (min-width: 1024px) {
+            .hero-section {
+              height: calc(100dvh - 150px);
+            }
+          }
+        }
+
         @keyframes kenburns {
           0% {
             transform: scale(1) translate(0, 0);
@@ -147,22 +152,9 @@ export function Hero({ companyName, tagline }: HeroProps) {
           animation: fadeInUp 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        @keyframes scrollLine {
-          0% {
-            transform: translateY(-100%);
-          }
-          100% {
-            transform: translateY(200%);
-          }
-        }
-        .animate-scroll-line {
-          animation: scrollLine 2.2s ease-in-out infinite;
-        }
-
         @media (prefers-reduced-motion: reduce) {
           .animate-kenburns,
-          .animate-fade-in-up,
-          .animate-scroll-line {
+          .animate-fade-in-up {
             animation: none;
             opacity: 1;
             transform: none;

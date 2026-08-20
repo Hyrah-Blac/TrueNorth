@@ -306,6 +306,8 @@ export function CharterRequestForm({ defaultValues }: CharterRequestFormProps) {
             errors={errors}
             contactRegister={registerContact}
             contactErrors={contactErrors}
+            phoneValue={watchedTrip.contactInfo?.phone ?? ""}
+            onPhoneChange={(value) => setValue("contactInfo.phone", value, { shouldValidate: true })}
           />
 
           {submitError ? (

@@ -6,7 +6,9 @@ import { DetailHeader } from "@/components/admin/layout/DetailHeader";
 import { PaymentStatusBadge } from "@/components/payment/PaymentCard/PaymentStatusBadge";
 import { Receipt } from "@/components/payment/Receipt/Receipt";
 import { RecheckPaymentButton } from "@/components/admin/dialogs/RecheckPaymentButton";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { getPaymentForAdmin } from "@/features/admin/lib/getPaymentsForAdmin";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate, formatDateTime } from "@/utils/date";
@@ -29,9 +31,7 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
     if (isAppError(error) && error instanceof NotFoundError) notFound();
     throw error;
   }
-  // Same admin-configured contact info the customer-facing payment
-  // page already passes to <Receipt /> — this admin view previously
-  // relied on the component's hardcoded site.ts fallback instead.
+
   const settings = await getSiteSettings();
 
   const customer = typeof payment.customer === "object" && payment.customer !== null ? payment.customer : null;
@@ -41,6 +41,12 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
   const canRecheck =
     (payment.status === PAYMENT_STATUSES.PENDING || payment.status === PAYMENT_STATUSES.PROCESSING) &&
     ((!isPaystack && Boolean(payment.mpesa.checkoutRequestId)) || (isPaystack && Boolean(payment.paystack.reference)));
+
+  // Resolve airport names only when a booking is linked
+  const airportNames =
+    booking
+      ? await getAirportNamesByCodes([booking.departureAirportCode, booking.destinationAirportCode])
+      : {};
 
   const rows: { label: string; value: string }[] = isPaystack
     ? [
@@ -126,16 +132,26 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
                   View booking <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </div>
-              <dl className="mt-4 divide-y divide-slate-100 text-sm">
+
+              <div className="mt-4">
+                {/* Premium route display replacing the plain "DEP → DEST" row */}
+                <RouteDisplay
+                  departure={{
+                    code: booking.departureAirportCode,
+                    name: airportNames[booking.departureAirportCode],
+                  }}
+                  destination={{
+                    code: booking.destinationAirportCode,
+                    name: airportNames[booking.destinationAirportCode],
+                  }}
+                  size="md"
+                />
+              </div>
+
+              <dl className="mt-5 divide-y divide-slate-100 text-sm">
                 <div className="flex items-center justify-between py-3">
                   <dt className="text-slate-500">Reference</dt>
                   <dd className="spec-readout font-medium text-navy-900">{booking.bookingNumber}</dd>
-                </div>
-                <div className="flex items-center justify-between py-3">
-                  <dt className="text-slate-500">Route</dt>
-                  <dd className="spec-readout font-medium text-navy-900">
-                    {booking.departureAirportCode} → {booking.destinationAirportCode}
-                  </dd>
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <dt className="text-slate-500">Departure</dt>
@@ -191,4 +207,3 @@ export default async function AdminPaymentDetailPage({ params }: AdminPaymentDet
     </div>
   );
 }
-

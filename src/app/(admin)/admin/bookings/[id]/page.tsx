@@ -7,7 +7,9 @@ import { BookingPaymentStatusBadge } from "@/components/booking/BookingCard/Book
 import { BookingTimeline } from "@/components/booking/BookingTimeline/BookingTimeline";
 import { BookingStatusActions } from "@/components/admin/dialogs/BookingStatusActions";
 import { BookingTripDetailsActions } from "@/components/admin/dialogs/BookingTripDetailsActions";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { getBookingForAdmin } from "@/features/admin/lib/getBookingsForAdmin";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { formatCurrency, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDate, formatDateTime } from "@/utils/date";
 import { MISSION_TYPE_LABELS } from "@/database/constants/mission-type";
@@ -30,17 +32,40 @@ export default async function AdminBookingDetailPage({ params }: AdminBookingDet
     throw error;
   }
 
+  // Resolve full airport names for the premium route display
+  const airportNames = await getAirportNamesByCodes([
+    booking.departureAirportCode,
+    booking.destinationAirportCode,
+  ]);
+
   const customer = typeof booking.customer === "object" && booking.customer !== null ? booking.customer : null;
   const aircraft = typeof booking.aircraft === "object" ? booking.aircraft : undefined;
   const paymentStatus = getBookingPaymentStatus(booking.totalAmount, booking.paidAmount);
 
   return (
     <div>
+      {/*
+        DetailHeader receives a ReactNode for `title`, so we pass the full
+        RouteDisplay component rather than a plain string — giving us the
+        premium name + code treatment directly in the page heading area.
+      */}
       <DetailHeader
         backHref="/admin/bookings"
         backLabel="Bookings"
         eyebrow={booking.bookingNumber}
-        title={`${booking.departureAirportCode} → ${booking.destinationAirportCode}`}
+        title={
+          <RouteDisplay
+            departure={{
+              code: booking.departureAirportCode,
+              name: airportNames[booking.departureAirportCode],
+            }}
+            destination={{
+              code: booking.destinationAirportCode,
+              name: airportNames[booking.destinationAirportCode],
+            }}
+            size="lg"
+          />
+        }
         subtitle={`Created ${formatDateTime(booking.createdAt)} · Last updated ${formatDateTime(booking.updatedAt)}`}
         status={<BookingStatusBadge status={booking.status} />}
       />
