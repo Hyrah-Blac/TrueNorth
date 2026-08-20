@@ -74,10 +74,10 @@ const NAV_ITEMS = [
 ];
 
 const LINK_CLASS =
-  "font-body flex items-center gap-3 rounded-md px-2 py-3 text-xs font-light uppercase tracking-[0.1em] text-white/90 transition-[color,background-color,opacity,transform] duration-500 ease-editorial hover:bg-white/10 hover:text-[#0000FF] sm:px-3 sm:py-3.5";
+  "font-display flex items-center gap-3 rounded-md px-2 py-3 text-xs font-medium text-white/90 transition-[color,background-color,opacity,transform] duration-500 ease-editorial hover:bg-white/10 hover:text-[#BFE0F7] sm:px-3 sm:py-3.5";
 
 const ACCOUNT_LINK_CLASS =
-  "font-body flex items-center gap-3 rounded-md px-2 py-2.5 text-xs font-light uppercase tracking-[0.1em] text-white/85 transition-colors duration-300 hover:bg-white/10 hover:text-[#0000FF] sm:px-3 sm:py-3";
+  "font-display flex items-center gap-3 rounded-md px-2 py-2.5 text-xs font-medium text-white/85 transition-colors duration-300 hover:bg-white/10 hover:text-[#BFE0F7] sm:px-3 sm:py-3";
 
 export function MobileNav({ open, onClose }: MobileNavProps) {
   const { signOut } = useClerk();
@@ -236,14 +236,14 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                 <Link
                   href="/sign-in"
                   onClick={onClose}
-                  className="font-body block rounded-md px-2 py-2.5 text-xs font-light uppercase tracking-[0.1em] text-white/85 transition-colors duration-300 hover:bg-white/10 hover:text-[#0000FF] sm:px-3 sm:py-3"
+                  className="font-display block rounded-md px-2 py-2.5 text-xs font-medium text-white/85 transition-colors duration-300 hover:bg-white/10 hover:text-[#BFE0F7] sm:px-3 sm:py-3"
                 >
                   Sign In
                 </Link>
               </SignedOut>
 
               <SignedIn>
-                <p className="px-2 pb-2 text-xs font-light uppercase tracking-[0.1em] text-white/70 sm:px-3">
+                <p className="px-2 pb-2 text-xs font-medium tracking-wide text-white/70 sm:px-3">
                   {isAdmin ? "Admin Account" : "My Account"}
                 </p>
 
@@ -281,7 +281,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="font-body mt-1 flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-left text-xs font-light uppercase tracking-[0.1em] text-white/60 transition-colors duration-300 hover:bg-red-500/10 hover:text-red-300 sm:px-3 sm:py-3"
+                  className="font-display mt-1 flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-left text-xs font-medium text-white/60 transition-colors duration-300 hover:bg-red-500/10 hover:text-red-300 sm:px-3 sm:py-3"
                 >
                   <SignOut className="h-4 w-4 shrink-0 sm:h-[1.125rem] sm:w-[1.125rem]" aria-hidden="true" />
                   Sign Out

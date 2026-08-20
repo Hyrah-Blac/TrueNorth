@@ -67,29 +67,14 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
           <Reveal variant="fade-up">
             <div>
               {/*
-                This headline deliberately breaks from the site's usual
-                font-editorial (which resolves to Poppins, a geometric
-                sans) in favor of Fraunces — already loaded globally for
-                the dashboard's serif sections, see layout.tsx — to get
-                the classic serif look VistaJet's own headline uses.
-                Scoped to just this h1 via an arbitrary Tailwind font-
-                family value, not a change to font-editorial itself, so
-                every other page's headings (Home, Fleet, Destinations,
-                About, Contact) are untouched. Stays on one line from sm
-                up (matching the reference); below that, nowrap is
-                dropped so it wraps onto two lines instead of overflowing
-                the viewport — even at the clamp's smallest size, the full
-                sentence is wider than the smallest phone screens, and
-                nowrap there caused horizontal overflow rather than a
-                clean wrap. Sized down from the original 4rem ceiling to
-                2.75rem — reads as refined editorial type rather than a
-                shouty banner headline, closer in scale to the body copy
-                beneath it.
+                Headline styled to match the "Not Sure Which Aircraft You
+                Need?" heading on the fleet page exactly — same classes,
+                same size (see fleet/page.tsx): font-body (Raleway),
+                uppercase, font-light, tracking-[0.1em], text-navy-950,
+                at the fleet page's clamp(0.875rem,0.75rem+0.6vw,1.125rem)
+                size rather than a larger banner-style scale.
               */}
-              <h1
-                className="text-[clamp(1.25rem,0.5rem+2.4vw,2.75rem)] font-normal leading-[1.15] tracking-tight text-navy-900 sm:whitespace-nowrap"
-                style={{ fontFamily: '"Fraunces", "Iowan Old Style", "Georgia", serif' }}
-              >
+              <h1 className="font-body text-balance text-[clamp(0.875rem,0.75rem+0.6vw,1.125rem)] font-light uppercase leading-[1.15] tracking-[0.1em] text-navy-950">
                 {prefillAircraft ? (
                   <>
                     Request the <span className="text-champagne-600">{prefillAircraft.name}</span>.
