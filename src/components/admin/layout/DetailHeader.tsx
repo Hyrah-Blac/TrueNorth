@@ -27,7 +27,7 @@ interface DetailHeaderProps {
   backHref: string;
   backLabel: string;
   eyebrow?: string;
-  title: string;
+  title: ReactNode;
   subtitle?: string;
   status?: ReactNode;
   actions?: ReactNode;

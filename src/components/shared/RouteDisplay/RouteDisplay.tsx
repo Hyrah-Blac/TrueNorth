@@ -41,7 +41,7 @@ export interface RoutePoint {
    * may return ({ name, city, ... }) — the component extracts the string
    * automatically. Pass null / undefined to render just the code.
    */
-  name?: string | Record<string, unknown> | null;
+  name?: string | { name?: string; city?: string } | null;
 }
 
 /**
