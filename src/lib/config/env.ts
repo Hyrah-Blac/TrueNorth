@@ -95,6 +95,42 @@ export function getMiddlewareEnv(): MiddlewareEnv {
   return cachedMiddlewareEnv;
 }
 
+/**
+ * Minimal schema for values needed by the AI concierge (src/lib/ai/client.ts).
+ * Deliberately separate from envSchema above for the same reason as
+ * middlewareEnvSchema: the AI chat route has nothing to do with Mongo,
+ * M-Pesa, Paystack, Cloudinary, Resend, or Cron, so it shouldn't be able
+ * to fail because one of THOSE is missing or misconfigured on a given
+ * deployment. Add a key here ONLY if AI code actually reads it.
+ */
+const aiEnvSchema = z.object({
+  GEMINI_API_KEY: z.string().min(1, "GEMINI_API_KEY is required"),
+  GEMINI_MODEL: z.string().min(1, "GEMINI_MODEL is required"),
+});
+
+export type AiEnv = z.infer<typeof aiEnvSchema>;
+
+let cachedAiEnv: AiEnv | null = null;
+
+export function getAiEnv(): AiEnv {
+  if (cachedAiEnv) return cachedAiEnv;
+
+  const parsed = aiEnvSchema.safeParse({
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    GEMINI_MODEL: process.env.GEMINI_MODEL,
+  });
+
+  if (!parsed.success) {
+    const issues = parsed.error.issues
+      .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)
+      .join("\n");
+    throw new Error(`Invalid AI environment configuration:\n${issues}`);
+  }
+
+  cachedAiEnv = parsed.data;
+  return cachedAiEnv;
+}
+
 let cachedEnv: Env | null = null;
 
 export function getEnv(): Env {
