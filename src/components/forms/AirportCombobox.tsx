@@ -58,12 +58,16 @@ export function AirportCombobox({
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return airports;
+    // Defensive against any future bad record slipping through (e.g. a
+    // manually-added airport missing a field): optional chaining here
+    // means one malformed entry can no longer crash the whole picker
+    // the moment the user starts typing, it just won't match the search.
     return airports.filter(
       (airport) =>
-        airport.name.toLowerCase().includes(q) ||
-        airport.city.toLowerCase().includes(q) ||
-        airport.country.toLowerCase().includes(q) ||
-        airport.code.toLowerCase().includes(q),
+        airport.name?.toLowerCase().includes(q) ||
+        airport.city?.toLowerCase().includes(q) ||
+        airport.country?.toLowerCase().includes(q) ||
+        airport.code?.toLowerCase().includes(q),
     );
   }, [airports, query]);
 

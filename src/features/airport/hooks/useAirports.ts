@@ -27,7 +27,15 @@ function toAirportOption(airport: IAirport): AirportOption | null {
   // (WIL, NBO, MRE...); fall back to ICAO for the rare airport that only
   // has one, and skip anything with neither since it can't be selected.
   const code = airport.iata || airport.icao;
-  if (!code) return null;
+  // Some records imported from the public OurAirports dataset are
+  // missing city (e.g. Kisangani Simisini, Hall Hall) even though the
+  // airport itself is active — AirportCombobox's search filter calls
+  // .toLowerCase() on name/city/country/code for every option the
+  // moment the user types, so a null here crashed the whole picker
+  // with an unhandled TypeError as soon as a letter was pressed.
+  // Skip anything missing a field the UI treats as required rather
+  // than surfacing that crash.
+  if (!code || !airport.name || !airport.city || !airport.country) return null;
   return { code, name: airport.name, city: airport.city, country: airport.country };
 }
 
