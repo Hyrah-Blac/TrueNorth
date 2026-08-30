@@ -11,6 +11,16 @@ export interface SubmitQuoteResult {
   quoteNumber?: string;
   error?: string;
   fieldErrors?: Record<string, string>;
+  /**
+   * HARDENING — attachments the server could not verify (wrong
+   * folder/owner, wrong resource type, oversized, or simply not
+   * found) and therefore did not attach to the quote, even though the
+   * quote itself was created successfully. Only the file name is
+   * surfaced — never Cloudinary internals — so the form can tell the
+   * customer "X wasn't attached, please try re-uploading it" instead
+   * of silently succeeding with fewer files than they submitted.
+   */
+  rejectedAttachments?: { fileName: string; code: "ATTACHMENT_INVALID" }[];
 }
 
 export async function submitCharterRequest(input: CreateQuoteInput): Promise<SubmitQuoteResult> {
@@ -34,9 +44,13 @@ export async function submitCharterRequest(input: CreateQuoteInput): Promise<Sub
       return { success: false, error: "Please check the highlighted fields.", fieldErrors };
     }
 
-    const quote = await createQuoteFromInput(parsed.data);
+    const { quote, rejectedAttachments } = await createQuoteFromInput(parsed.data);
 
-    return { success: true, quoteNumber: quote.quoteNumber };
+    return {
+      success: true,
+      quoteNumber: quote.quoteNumber,
+      ...(rejectedAttachments.length > 0 ? { rejectedAttachments } : {}),
+    };
   } catch (error) {
     logger.error("submitCharterRequest failed", { error: String(error) });
     return {

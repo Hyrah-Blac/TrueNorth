@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { SealCheck, SealWarning } from "@phosphor-icons/react/dist/ssr";
 import { getSiteSettings } from "@/lib/config/siteSettings";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { verifyTicket } from "@/features/ticket/lib/verifyTicket";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { checkRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { formatDate } from "@/utils/date";
 
@@ -63,6 +65,12 @@ export default async function VerifyTicketPage({ params }: VerifyTicketPageProps
   // the hardcoded site.ts fallback — only needed on this branch, so
   // it's fetched after the invalid-ticket early return above.
   const settings = await getSiteSettings();
+  // City/name is public, non-sensitive information (same as every other
+  // route display across the site) — resolving it here just replaces
+  // bare codes with the same premium name + code treatment used
+  // everywhere else, it doesn't widen what this deliberately-minimal
+  // page exposes (see verifyTicket.ts for what's excluded and why).
+  const airportNames = await getAirportNamesByCodes([result.departureAirportCode, result.destinationAirportCode]);
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-6 py-16">
@@ -79,10 +87,16 @@ export default async function VerifyTicketPage({ params }: VerifyTicketPageProps
           <Row label="Ticket" value={result.ticketNumber} />
           <Row label="Booking" value={result.bookingNumber} />
           <Row label="Passenger" value={result.passengerName} />
-          <Row
-            label="Route"
-            value={`${result.departureAirportCode} → ${result.destinationAirportCode}`}
-          />
+          <div className="flex items-center justify-between gap-4 py-3">
+            <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">Route</dt>
+            <dd>
+              <RouteDisplay
+                size="sm"
+                departure={{ code: result.departureAirportCode, name: airportNames[result.departureAirportCode.toUpperCase()] }}
+                destination={{ code: result.destinationAirportCode, name: airportNames[result.destinationAirportCode.toUpperCase()] }}
+              />
+            </dd>
+          </div>
           <Row label="Date" value={formatDate(result.departureDate)} />
           <Row label="Passengers" value={String(result.passengerCount)} />
           {result.aircraftName ? (

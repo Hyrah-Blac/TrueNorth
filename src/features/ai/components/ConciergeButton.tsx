@@ -2,11 +2,21 @@
 
 import { Headset } from "lucide-react";
 
-export function ConciergeButton({ open, onOpen }: { open: boolean; onOpen: () => void }) {
+export function ConciergeButton({
+  open,
+  onOpen,
+  onWarmUp,
+}: {
+  open: boolean;
+  onOpen: () => void;
+  onWarmUp?: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onOpen}
+      onPointerEnter={onWarmUp}
+      onFocus={onWarmUp}
       aria-label="Open the Concierge"
       aria-haspopup="dialog"
       aria-expanded={open}
@@ -35,7 +45,7 @@ export function ConciergeButton({ open, onOpen }: { open: boolean; onOpen: () =>
           runs off-screen against the right edge. */}
       <span
         role="tooltip"
-        className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-2 text-[13px] font-medium text-navy-900 shadow-[0_8px_24px_-6px_rgba(15,23,42,0.18)] opacity-0 transition-all duration-200 ease-out translate-x-1 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
+        className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-2 font-display text-[13px] font-medium text-navy-900 shadow-[0_8px_24px_-6px_rgba(15,23,42,0.18)] opacity-0 transition-all duration-200 ease-out translate-x-1 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
       >
         Need help?
       </span>

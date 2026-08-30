@@ -6,6 +6,7 @@ import { successResponse, handleApiError } from "@/lib/api/response";
 import { checkRateLimit, getRequestKey, rateLimitResponse, RATE_LIMITS } from "@/middleware/rate-limit";
 import { buildPaginatedResult } from "@/utils/pagination";
 import { airportQuerySchema, createAirportSchema } from "@/features/airport/schemas/airport.schema";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,6 +14,17 @@ export async function GET(req: NextRequest) {
     if (!rate.allowed) return rateLimitResponse(rate);
 
     const query = airportQuerySchema.parse(Object.fromEntries(req.nextUrl.searchParams));
+
+    // Lookup-by-codes short-circuits the paginated list below — see the
+    // schema comment on `codes`. Same read-only data as every other
+    // airport-name lookup on the site (getAirportNamesByCodes), just
+    // exposed over HTTP for client components.
+    if (query.codes) {
+      const codes = query.codes.split(",").map((code) => code.trim()).filter(Boolean);
+      const names = await getAirportNamesByCodes(codes);
+      return successResponse(names);
+    }
+
     await connectToDatabase();
 
     const filter: Record<string, unknown> = { status: "active" };

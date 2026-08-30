@@ -55,9 +55,16 @@ export async function POST(req: NextRequest) {
     // Charter requests can be submitted signed-out (public form) or
     // signed-in (auto-attaches the customer for dashboard tracking).
     // createQuoteFromInput reads the session itself via getCurrentDbUser.
-    const quote = await createQuoteFromInput(data);
+    const { quote, rejectedAttachments } = await createQuoteFromInput(data);
 
-    return successResponse(quote, 201);
+    // HARDENING — surface any dropped attachments alongside the
+    // successful quote creation (not as an error: the quote itself
+    // was created fine) rather than silently returning fewer
+    // attachments than were submitted with no explanation.
+    return successResponse(
+      rejectedAttachments.length > 0 ? { ...quote.toObject(), rejectedAttachments } : quote,
+      201
+    );
   } catch (error) {
     return handleApiError(error, "POST /api/quotes");
   }

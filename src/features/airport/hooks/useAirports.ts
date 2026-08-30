@@ -17,7 +17,7 @@ export interface AirportOption {
 
 interface AirportsApiResponse {
   success: boolean;
-  data?: { items: IAirport[] };
+  data?: { items: IAirport[]; meta?: { hasNextPage: boolean } };
   error?: string;
 }
 
@@ -36,25 +36,45 @@ function toAirportOption(airport: IAirport): AirportOption | null {
 // admin base-airport dropdown, etc) firing its own request.
 let cachedRequest: Promise<AirportOption[]> | null = null;
 
+const PAGE_SIZE = 100; // matches the API's MAX_PAGE_SIZE cap
+
+async function fetchAirportsPage(page: number): Promise<AirportsApiResponse> {
+  const res = await fetch(`/api/airports?limit=${PAGE_SIZE}&status=active&page=${page}`);
+  const json: AirportsApiResponse = await res.json();
+  if (!res.ok || !json.success || !json.data) {
+    throw new Error(json.error ?? "Could not load airports");
+  }
+  return json;
+}
+
 function loadAirports(): Promise<AirportOption[]> {
   if (!cachedRequest) {
-    cachedRequest = fetch("/api/airports?limit=100&status=active")
-      .then(async (res) => {
-        const json: AirportsApiResponse = await res.json();
-        if (!res.ok || !json.success || !json.data) {
-          throw new Error(json.error ?? "Could not load airports");
-        }
-        return json.data.items
-          .map(toAirportOption)
-          .filter((airport): airport is AirportOption => airport !== null)
-          .sort((a, b) => a.name.localeCompare(b.name));
-      })
-      .catch((error) => {
-        // Don't poison the cache with a failed request — the next mount
-        // (or a retry) should be able to try again instead of being stuck.
-        cachedRequest = null;
-        throw error;
-      });
+    cachedRequest = (async () => {
+      // The API caps `limit` at 100 (MAX_PAGE_SIZE), but the Airport
+      // collection has grown past that — walk every page rather than
+      // assuming page 1 is the whole list, or later pages of active
+      // airports silently disappear from every picker on the site.
+      const allItems: IAirport[] = [];
+      let page = 1;
+      let hasNextPage = true;
+
+      while (hasNextPage) {
+        const json = await fetchAirportsPage(page);
+        allItems.push(...json.data!.items);
+        hasNextPage = json.data!.meta?.hasNextPage ?? false;
+        page += 1;
+      }
+
+      return allItems
+        .map(toAirportOption)
+        .filter((airport): airport is AirportOption => airport !== null)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    })().catch((error) => {
+      // Don't poison the cache with a failed request — the next mount
+      // (or a retry) should be able to try again instead of being stuck.
+      cachedRequest = null;
+      throw error;
+    });
   }
   return cachedRequest;
 }

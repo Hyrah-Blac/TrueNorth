@@ -1,7 +1,7 @@
 import "server-only";
 import { v2 as cloudinary } from "cloudinary";
 import { logger } from "@/lib/logging/logger";
-import { AVATAR_MAX_BYTES } from "@/lib/config/media";
+import { AVATAR_MAX_BYTES, QUOTE_ATTACHMENT_MAX_BYTES } from "@/lib/config/media";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -89,9 +89,108 @@ export function createAircraftImageUploadSignature(folder: string): UploadSignat
 }
 
 /** Public: attachments on a charter quote request. Images or PDFs only.
- *  Uploaded as `authenticated` — never publicly deliverable by URL. */
+ *  Uploaded as `authenticated` — never publicly deliverable by URL.
+ *  `folder` MUST be a per-user folder (see FIX 3 — never a shared,
+ *  unscoped one, which is what this used to be) so the signed upload
+ *  itself can never write into another user's namespace;
+ *  verifyQuoteAttachmentOwnership below is what then confirms an
+ *  attachment referenced at quote-submission time actually lives
+ *  there. Use quoteAttachmentFolderFor() to compute `folder`. */
 export function createQuoteAttachmentUploadSignature(folder: string): UploadSignature {
   return createUploadSignature(folder, ["jpg", "jpeg", "png", "pdf"], "authenticated");
+}
+
+/**
+ * The one place that computes a user's quote-attachment folder path,
+ * shared between the upload-signature route (which signs uploads into
+ * it) and createQuote.ts (which verifies attachments actually came
+ * from it) — see FIX 3. Keeping this in one function means the two
+ * can never drift apart and silently break ownership verification.
+ */
+export function quoteAttachmentFolderFor(clerkId: string): string {
+  return `true-north/quote-attachments/${clerkId}`;
+}
+
+/**
+ * Server-side ownership/integrity check for a quote attachment the
+ * client claims to have already uploaded (FIX 3 / FIX 4). Never trust
+ * a client-supplied publicId, resourceType, or file size — this looks
+ * the asset up directly via Cloudinary's Admin API (server-side
+ * credentials only; not forgeable by a client) and confirms:
+ *
+ *   1. The resource actually exists.
+ *   2. It lives inside the expected per-user folder — i.e. it was
+ *      uploaded using a signature that could only ever have been
+ *      issued to this same user (see createQuoteAttachmentUploadSignature
+ *      + quoteAttachmentFolderFor). This is what makes Test 14 ("user
+ *      submits another user's public ID") fail: another user's
+ *      attachment lives in a different folder and is rejected here.
+ *   3. Its resource_type matches what the client claims (image vs raw).
+ *   4. Its real byte size (Cloudinary's own record, not anything the
+ *      browser reported) is within the platform's limit.
+ *
+ * Returns the verified resource on success, or null on any failure —
+ * callers should treat null as "drop this attachment / reject the
+ * submission", never as "assume it's fine".
+ */
+export async function verifyQuoteAttachmentOwnership(
+  publicId: string,
+  resourceType: "image" | "raw",
+  expectedFolder: string,
+  maxBytes: number = QUOTE_ATTACHMENT_MAX_BYTES
+): Promise<{ bytes: number; format?: string } | null> {
+  try {
+    const resource = await cloudinary.api.resource(publicId, {
+      resource_type: resourceType,
+      type: "authenticated",
+    });
+
+    if (!resource) return null;
+
+    // Cloudinary resources report their containing folder either via
+    // `asset_folder` (newer accounts) or by the public_id itself being
+    // folder-prefixed (`folder/sub/name`) — check both so this doesn't
+    // silently stop working depending on account configuration.
+    const reportedFolder: string | undefined = resource.asset_folder;
+    const publicIdFolderPrefix = String(resource.public_id ?? publicId).includes("/")
+      ? String(resource.public_id ?? publicId).slice(0, String(resource.public_id ?? publicId).lastIndexOf("/"))
+      : "";
+
+    const belongsToExpectedFolder =
+      reportedFolder === expectedFolder ||
+      publicIdFolderPrefix === expectedFolder ||
+      publicIdFolderPrefix.startsWith(`${expectedFolder}/`);
+
+    if (!belongsToExpectedFolder) {
+      logger.warn("Rejected quote attachment outside the requesting user's folder", {
+        publicId,
+        expectedFolder,
+        reportedFolder: reportedFolder ?? publicIdFolderPrefix,
+      });
+      return null;
+    }
+
+    if (resource.resource_type !== resourceType) {
+      logger.warn("Rejected quote attachment with mismatched resource type", {
+        publicId,
+        claimed: resourceType,
+        actual: resource.resource_type,
+      });
+      return null;
+    }
+
+    if (typeof resource.bytes !== "number" || resource.bytes > maxBytes) {
+      logger.warn("Rejected oversized quote attachment", { publicId, bytes: resource.bytes, maxBytes });
+      return null;
+    }
+
+    return { bytes: resource.bytes, format: resource.format };
+  } catch (error) {
+    // Includes Cloudinary's own "not found" error for a bogus/tampered
+    // publicId — treated the same as any other verification failure.
+    logger.warn("Failed to verify quote attachment", { publicId, error: String(error) });
+    return null;
+  }
 }
 
 /** Any signed-in user: their own profile avatar. Images only. Publicly

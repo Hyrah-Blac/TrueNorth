@@ -44,6 +44,7 @@ interface ConciergeContextValue {
   maxMessageLength: number;
   tripDraft: TripDraft;
   setTripDraftAirport: (role: "departure" | "destination", code: string, name: string) => void;
+  clearTripDraftAirport: (role: "departure" | "destination") => void;
   setTripDraftAircraft: (slug: string) => void;
 }
 
@@ -329,6 +330,20 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const clearTripDraftAirport = useCallback((role: "departure" | "destination") => {
+    setTripDraft((prev) => {
+      const next = { ...prev };
+      if (role === "departure") {
+        delete next.departureAirportCode;
+        delete next.departureAirportName;
+      } else {
+        delete next.destinationAirportCode;
+        delete next.destinationAirportName;
+      }
+      return next;
+    });
+  }, []);
+
   const setTripDraftAircraft = useCallback((slug: string) => {
     setTripDraft((prev) => ({ ...prev, aircraftSlug: slug }));
   }, []);
@@ -365,6 +380,7 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
       maxMessageLength: MAX_MESSAGE_LENGTH,
       tripDraft,
       setTripDraftAirport,
+      clearTripDraftAirport,
       setTripDraftAircraft,
     }),
     [
@@ -378,6 +394,7 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
       startNewConversation,
       tripDraft,
       setTripDraftAirport,
+      clearTripDraftAirport,
       setTripDraftAircraft,
     ]
   );

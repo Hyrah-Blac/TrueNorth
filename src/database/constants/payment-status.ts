@@ -46,3 +46,41 @@ export type PaymentProvider = (typeof PAYMENT_PROVIDERS)[keyof typeof PAYMENT_PR
 
 export const PAYMENT_PROVIDER_VALUES = Object.values(PAYMENT_PROVIDERS) as PaymentProvider[];
 
+/**
+ * Tracks the BOOKING SIDE-EFFECT state (crediting paidAmount,
+ * auto-confirming, issuing the ticket, sending the receipt) as a
+ * concept fully separate from the payment's own financial `status`.
+ * See Payment.ts's bookingCreditStatus field and
+ * creditBookingForPayment.ts for why this split exists.
+ */
+export const BOOKING_CREDIT_STATUSES = {
+  PENDING: "pending",
+  PROCESSING: "processing",
+  COMPLETED: "completed",
+  FAILED: "failed",
+} as const;
+
+export type BookingCreditStatus = (typeof BOOKING_CREDIT_STATUSES)[keyof typeof BOOKING_CREDIT_STATUSES];
+
+export const BOOKING_CREDIT_STATUS_VALUES = Object.values(BOOKING_CREDIT_STATUSES) as BookingCreditStatus[];
+
+/**
+ * HARDENING — tracks the receipt-email attempt as its own, fully
+ * independent piece of state, separate from bookingCreditStatus
+ * above. A notification failure must never look like — or cause a
+ * retry of — a booking-credit failure; see Payment.ts's
+ * receiptNotificationStatus field and creditBookingForPayment.ts.
+ */
+export const RECEIPT_NOTIFICATION_STATUSES = {
+  NOT_SENT: "not_sent",
+  SENT: "sent",
+  FAILED: "failed",
+} as const;
+
+export type ReceiptNotificationStatus =
+  (typeof RECEIPT_NOTIFICATION_STATUSES)[keyof typeof RECEIPT_NOTIFICATION_STATUSES];
+
+export const RECEIPT_NOTIFICATION_STATUS_VALUES = Object.values(
+  RECEIPT_NOTIFICATION_STATUSES
+) as ReceiptNotificationStatus[];
+

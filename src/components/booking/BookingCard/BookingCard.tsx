@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AirplaneTakeoff, CalendarBlank, Users, CaretRight, Ticket as TicketIcon } from "@phosphor-icons/react/dist/ssr";
 import { CustomerBookingStatusBadge } from "./CustomerBookingStatusBadge";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { formatCurrency, calculatePaymentProgress, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import type { IBooking } from "@/types/booking";
@@ -18,8 +19,8 @@ export function BookingCard({
   airportNames?: Record<string, AirportNameInfo>;
 }) {
   const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
-  const departureName = airportNames[booking.departureAirportCode.toUpperCase()]?.city ?? booking.departureAirportCode;
-  const destinationName = airportNames[booking.destinationAirportCode.toUpperCase()]?.city ?? booking.destinationAirportCode;
+  const departureInfo = airportNames[booking.departureAirportCode.toUpperCase()];
+  const destinationInfo = airportNames[booking.destinationAirportCode.toUpperCase()];
   const progress = calculatePaymentProgress(booking.totalAmount, booking.paidAmount);
   const paymentStatus = getBookingPaymentStatus(booking.totalAmount, booking.paidAmount);
   const isTerminal = booking.status === BOOKING_STATUSES.COMPLETED || booking.status === BOOKING_STATUSES.CANCELLED;
@@ -57,13 +58,12 @@ export function BookingCard({
               <p className="spec-readout text-[11px] font-medium uppercase tracking-wider text-slate-400">
                 {booking.bookingNumber}
               </p>
-              <p className="mt-0.5 font-display text-base font-medium text-navy-900">
-                {departureName}{" "}
-                <span className="text-xs font-normal text-slate-400">({booking.departureAirportCode})</span>{" "}
-                <span className="text-slate-400">→</span>{" "}
-                {destinationName}{" "}
-                <span className="text-xs font-normal text-slate-400">({booking.destinationAirportCode})</span>
-              </p>
+              <RouteDisplay
+                className="mt-0.5"
+                size="sm"
+                departure={{ code: booking.departureAirportCode, name: departureInfo }}
+                destination={{ code: booking.destinationAirportCode, name: destinationInfo }}
+              />
               {aircraftName ? (
                 <p className="mt-0.5 text-xs text-slate-500">{aircraftName}</p>
               ) : null}

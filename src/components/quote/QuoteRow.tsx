@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarBlank, Users, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { CustomerQuoteStatusBadge } from "./CustomerQuoteStatusBadge";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { formatDate } from "@/utils/date";
 import { formatCurrency } from "@/utils/currency";
 import type { IQuote } from "@/types/quote";
@@ -31,9 +32,8 @@ export function QuoteRow({
    * falls back to showing the raw airport code, same as before. */
   airportNames?: Record<string, AirportNameInfo>;
 }) {
-  const departureCity = airportNames?.[quote.departureAirportCode.toUpperCase()]?.city ?? quote.departureAirportCode;
-  const destinationCity =
-    airportNames?.[quote.destinationAirportCode.toUpperCase()]?.city ?? quote.destinationAirportCode;
+  const departureInfo = airportNames?.[quote.departureAirportCode.toUpperCase()];
+  const destinationInfo = airportNames?.[quote.destinationAirportCode.toUpperCase()];
 
   return (
     <Link
@@ -42,13 +42,12 @@ export function QuoteRow({
     >
       <div className="min-w-0">
         <p className="spec-readout text-[11px] text-slate-400">{quote.quoteNumber}</p>
-        <p className="mt-0.5 truncate font-editorial text-xl font-light text-navy-900">
-          {departureCity}{" "}
-          <span className="spec-readout text-xs font-normal text-slate-400">{quote.departureAirportCode}</span>
-          <span className="mx-1.5 text-slate-300">→</span>
-          {destinationCity}{" "}
-          <span className="spec-readout text-xs font-normal text-slate-400">{quote.destinationAirportCode}</span>
-        </p>
+        <RouteDisplay
+          className="mt-0.5"
+          size="md"
+          departure={{ code: quote.departureAirportCode, name: departureInfo }}
+          destination={{ code: quote.destinationAirportCode, name: destinationInfo }}
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 lg:contents">

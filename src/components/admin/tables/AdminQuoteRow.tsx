@@ -1,13 +1,23 @@
 import Link from "next/link";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { QuoteStatusBadge } from "@/components/quote/QuoteStatusBadge";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { formatDate } from "@/utils/date";
 import type { IQuote } from "@/types/quote";
+import type { AirportNameInfo } from "@/lib/api/airportNames";
 
 // Divided list row, same shape as the customer-side QuoteRow
 // (dashboard/quotes/page.tsx) — no card border, a soft hover wash, and an
 // absolutely-positioned caret so it doesn't consume layout space.
-export function AdminQuoteRow({ quote }: { quote: IQuote }) {
+export function AdminQuoteRow({
+  quote,
+  airportNames = {},
+}: {
+  quote: IQuote;
+  airportNames?: Record<string, AirportNameInfo>;
+}) {
+  const departureInfo = airportNames[quote.departureAirportCode.toUpperCase()];
+  const destinationInfo = airportNames[quote.destinationAirportCode.toUpperCase()];
   const customer =
     typeof quote.customer === "object" && quote.customer !== null
       ? (quote.customer as unknown as { firstName?: string; lastName?: string })
@@ -32,9 +42,11 @@ export function AdminQuoteRow({ quote }: { quote: IQuote }) {
           {customerLabel}
         </p>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
-          <span className="spec-readout">
-            {quote.departureAirportCode} → {quote.destinationAirportCode}
-          </span>
+          <RouteDisplay
+            size="sm"
+            departure={{ code: quote.departureAirportCode, name: departureInfo }}
+            destination={{ code: quote.destinationAirportCode, name: destinationInfo }}
+          />
           <span className="text-slate-300" aria-hidden="true">·</span>
           <span>{formatDate(quote.departureDate)}</span>
         </div>

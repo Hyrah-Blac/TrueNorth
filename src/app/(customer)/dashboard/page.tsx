@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { StatCard } from "@/components/dashboard/cards/StatCard";
 import { BookingCard } from "@/components/booking/BookingCard/BookingCard";
 import { QuoteRow } from "@/components/quote/QuoteRow";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { Button } from "@/components/shared/buttons/Button";
 import { getMyBookings } from "@/features/booking/lib/getBookings";
@@ -76,10 +77,14 @@ export default async function DashboardOverviewPage() {
                   <span className="font-medium text-navy-900">
                     Quote {q.quoteNumber} is ready
                   </span>
-                  <span className="text-slate-500">
-                    {q.departureAirportCode} → {q.destinationAirportCode}
-                    {q.quotedAmount ? ` · ${formatCurrency(q.quotedAmount, q.quotedCurrency ?? "KES")}` : ""}
-                  </span>
+                  <RouteDisplay
+                    size="sm"
+                    departure={{ code: q.departureAirportCode, name: airportNames[q.departureAirportCode.toUpperCase()] }}
+                    destination={{ code: q.destinationAirportCode, name: airportNames[q.destinationAirportCode.toUpperCase()] }}
+                  />
+                  {q.quotedAmount ? (
+                    <span className="text-slate-500">· {formatCurrency(q.quotedAmount, q.quotedCurrency ?? "KES")}</span>
+                  ) : null}
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5 text-sky-600">
                   <span className="text-xs font-medium">Review &amp; Accept</span>

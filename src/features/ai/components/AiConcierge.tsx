@@ -1,13 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConciergeButton } from "./ConciergeButton";
 
-const ConciergePanelLazy = dynamic(
-  () => import("./ConciergePanelWithProvider").then((mod) => mod.ConciergePanelWithProvider),
-  { ssr: false }
-);
+const loadConciergePanel = () => import("./ConciergePanelWithProvider").then((mod) => mod.ConciergePanelWithProvider);
+
+const ConciergePanelLazy = dynamic(loadConciergePanel, { ssr: false });
 
 interface AiConciergeProps {
   welcomeMessage: string;
@@ -19,6 +18,45 @@ export function AiConcierge({ welcomeMessage, starterPrompts }: AiConciergeProps
   // Once true, the heavy bundle stays mounted (just visually hidden)
   // so an in-flight reply or draft message survives closing the panel.
   const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
+
+  // Touch devices tap the FAB with no hover beforehand, so hover-based
+  // warm-up alone would miss them — this covers that case by prefetching
+  // once the browser is idle (i.e. after anything more urgent on the
+  // page has had a chance to run), rather than competing with initial
+  // page load for bandwidth/main-thread time.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // typeof-checked rather than a plain truthiness check on
+    // window.requestIdleCallback: TS's DOM lib declares this method as
+    // always present, so `window.requestIdleCallback && ...` reads to
+    // the type checker as an always-true condition and gets flagged by
+    // no-unnecessary-condition-style lint rules. At runtime it's very
+    // much not always present — Safari has never shipped it — so the
+    // guard is genuinely needed; typeof-checking a runtime value avoids
+    // the false-positive lint while still detecting support correctly.
+    const supportsIdleCallback = typeof window.requestIdleCallback === "function";
+
+    const idleId = supportsIdleCallback
+      ? window.requestIdleCallback(() => void loadConciergePanel())
+      : window.setTimeout(() => void loadConciergePanel(), 2000);
+
+    return () => {
+      if (supportsIdleCallback) {
+        window.cancelIdleCallback(idleId);
+      } else {
+        window.clearTimeout(idleId);
+      }
+    };
+  }, []);
+
+  // Fires on hover/focus of the launch button too — a desktop visitor
+  // almost always hovers before clicking, so this warms the module
+  // cache a little earlier still. Harmless to call more than once —
+  // dynamic()'s loader is memoized internally.
+  function handleWarmUp() {
+    void loadConciergePanel();
+  }
 
   function handleOpen() {
     if (hasOpenedOnce) {
@@ -41,7 +79,7 @@ export function AiConcierge({ welcomeMessage, starterPrompts }: AiConciergeProps
 
   return (
     <>
-      <ConciergeButton open={open} onOpen={handleOpen} />
+      <ConciergeButton open={open} onOpen={handleOpen} onWarmUp={handleWarmUp} />
       {hasOpenedOnce ? (
         <ConciergePanelLazy
           open={open}

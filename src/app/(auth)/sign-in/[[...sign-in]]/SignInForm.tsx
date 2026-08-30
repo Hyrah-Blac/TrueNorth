@@ -131,7 +131,7 @@ export function SignInForm({ companyName }: { companyName: string }) {
   const clerk = useClerk();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isSignedIn, isLoaded: userLoaded } = useCurrentUser();
+  const { isSignedIn, isLoaded: userLoaded, isAdmin } = useCurrentUser();
 
   const redirectedRef = useRef(false);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -164,12 +164,17 @@ export function SignInForm({ companyName }: { companyName: string }) {
   useEffect(() => () => { if (cooldownRef.current) clearInterval(cooldownRef.current); }, []);
 
   // ── redirect once Clerk confirms the session ─────────────────────────────
+  // Admins always land straight on the admin dashboard — regardless of any
+  // `redirect_url` that sent them to sign-in in the first place. Everyone
+  // else keeps the normal "back to where you came from, else home" flow.
   useEffect(() => {
     if (!userLoaded || !isSignedIn) return;
     if (redirectedRef.current) return;
     redirectedRef.current = true;
-    router.replace(getSafeRedirectTarget(searchParams.get("redirect_url")));
-  }, [userLoaded, isSignedIn, router, searchParams]);
+    router.replace(
+      isAdmin ? "/admin/dashboard" : getSafeRedirectTarget(searchParams.get("redirect_url"))
+    );
+  }, [userLoaded, isSignedIn, isAdmin, router, searchParams]);
 
   // ── autofocus the OTP input the moment the verify screen mounts ─────────
   useEffect(() => {

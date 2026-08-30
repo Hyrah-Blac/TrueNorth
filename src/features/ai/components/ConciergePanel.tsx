@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useConcierge } from "../context/ConciergeContext";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { ConciergeHeader } from "./ConciergeHeader";
+import { TripDraftSummary } from "./TripDraftSummary";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
@@ -77,6 +78,12 @@ export function ConciergePanel({ open, onClose, welcomeMessage, starterPrompts }
           onRequestNewConversation={() => setConfirmingNewConversation(true)}
           hasConversation={hasConversation}
         />
+
+        {/* Persistent — not tied to the confirm/message/welcome branches
+            below — so a departure or destination pick stays visible and
+            in context no matter what's happening in the body beneath it.
+            Renders nothing of its own accord until a leg is actually set. */}
+        <TripDraftSummary />
 
         <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
           {confirmingNewConversation ? (

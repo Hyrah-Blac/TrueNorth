@@ -1,4 +1,4 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, EmailRoute, type EmailContact } from "./components/EmailLayout";
 
 export interface TicketConfirmationProps {
   customerName: string;
@@ -6,6 +6,8 @@ export interface TicketConfirmationProps {
   bookingNumber: string;
   departureAirportCode: string;
   destinationAirportCode: string;
+  departureAirportName?: string;
+  destinationAirportName?: string;
   departureDate: string;
   passengerCount: number;
   aircraftName?: string;
@@ -21,6 +23,8 @@ export default function TicketConfirmation({
   bookingNumber,
   departureAirportCode,
   destinationAirportCode,
+  departureAirportName,
+  destinationAirportName,
   departureDate,
   passengerCount,
   aircraftName,
@@ -43,7 +47,17 @@ export default function TicketConfirmation({
 
       <EmailDetailRow label="Ticket" value={ticketNumber} />
       <EmailDetailRow label="Booking" value={bookingNumber} />
-      <EmailDetailRow label="Route" value={`${departureAirportCode} → ${destinationAirportCode}`} />
+      <EmailDetailRow
+        label="Route"
+        value={
+          <EmailRoute
+            departureCode={departureAirportCode}
+            destinationCode={destinationAirportCode}
+            departureName={departureAirportName}
+            destinationName={destinationAirportName}
+          />
+        }
+      />
       <EmailDetailRow label="Date" value={departureDate} />
       <EmailDetailRow label="Passengers" value={String(passengerCount)} />
       {aircraftName ? <EmailDetailRow label="Aircraft" value={aircraftName} /> : null}

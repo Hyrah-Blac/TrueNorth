@@ -41,6 +41,19 @@ const DEFAULT_AI_SETTINGS: ResolvedAiSettings = {
   maxConversationLength: 60,
 };
 
+export interface ResolvedMaintenanceMode {
+  enabled: boolean;
+  message?: string;
+}
+
+// Matches the site's default (live) state before any admin touches this
+// section — an admin who never opens Settings → Maintenance Mode sees
+// exactly today's behavior: the site stays up.
+const DEFAULT_MAINTENANCE_MODE: ResolvedMaintenanceMode = {
+  enabled: false,
+  message: undefined,
+};
+
 export interface ResolvedSiteSettings {
   // Contact
   phone: string;
@@ -63,6 +76,8 @@ export interface ResolvedSiteSettings {
   socialLinks: SocialLinkSetting[];
   // AI Concierge
   ai: ResolvedAiSettings;
+  // Maintenance mode
+  maintenanceMode: ResolvedMaintenanceMode;
 }
 
 /**
@@ -107,6 +122,7 @@ export async function getSiteSettings(): Promise<ResolvedSiteSettings> {
       operatingHours: siteConfig.operatingHours,
       socialLinks: [],
       ai: DEFAULT_AI_SETTINGS,
+      maintenanceMode: DEFAULT_MAINTENANCE_MODE,
     };
   }
 
@@ -135,6 +151,10 @@ export async function getSiteSettings(): Promise<ResolvedSiteSettings> {
           ? settings.ai.starterPrompts
           : DEFAULT_AI_SETTINGS.starterPrompts,
       maxConversationLength: settings.ai?.maxConversationLength || DEFAULT_AI_SETTINGS.maxConversationLength,
+    },
+    maintenanceMode: {
+      enabled: settings.maintenanceMode?.enabled ?? DEFAULT_MAINTENANCE_MODE.enabled,
+      message: settings.maintenanceMode?.message || DEFAULT_MAINTENANCE_MODE.message,
     },
   };
 }

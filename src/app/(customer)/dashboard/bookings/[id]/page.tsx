@@ -22,6 +22,7 @@ import { BookingTimeline } from "@/components/booking/BookingTimeline/BookingTim
 import { BookingActionsPanel } from "@/components/booking/BookingSummary/BookingActionsPanel";
 import { PaymentCheckout } from "@/components/payment/PaymentCheckout/PaymentCheckout";
 import { CustomerPaymentStatusBadge } from "@/components/payment/PaymentCard/CustomerPaymentStatusBadge";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { Button } from "@/components/shared/buttons/Button";
 import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
@@ -86,8 +87,8 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
   const isTerminal = BOOKING_TERMINAL_STATUSES.includes(booking.status);
 
   const airportNames = await getAirportNamesByCodes([booking.departureAirportCode, booking.destinationAirportCode]);
-  const departureName = airportNames[booking.departureAirportCode.toUpperCase()]?.city ?? booking.departureAirportCode;
-  const destinationName = airportNames[booking.destinationAirportCode.toUpperCase()]?.city ?? booking.destinationAirportCode;
+  const departureInfo = airportNames[booking.departureAirportCode.toUpperCase()];
+  const destinationInfo = airportNames[booking.destinationAirportCode.toUpperCase()];
   const isConfirmed = booking.status === BOOKING_STATUSES.CONFIRMED;
   const needsPayment = !isTerminal && booking.balanceAmount > 0;
   // Cheap existence check only — the ticket page itself re-verifies
@@ -113,13 +114,12 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
             <p className="spec-readout text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
               {booking.bookingNumber}
             </p>
-            <h1 className="mt-1.5 font-editorial text-2xl font-light tracking-tight text-navy-900 sm:text-[1.75rem]">
-              {departureName}{" "}
-              <span className="text-[0.8em] font-sans text-slate-400">({booking.departureAirportCode})</span>{" "}
-              <span className="text-champagne-500">→</span>{" "}
-              {destinationName}{" "}
-              <span className="text-[0.8em] font-sans text-slate-400">({booking.destinationAirportCode})</span>
-            </h1>
+            <RouteDisplay
+              className="mt-1.5"
+              size="md"
+              departure={{ code: booking.departureAirportCode, name: departureInfo }}
+              destination={{ code: booking.destinationAirportCode, name: destinationInfo }}
+            />
             <p className="mt-1 text-xs text-slate-500">
               Booked {formatDate(booking.createdAt)}
             </p>

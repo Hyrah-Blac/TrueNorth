@@ -1,5 +1,6 @@
 import type { ChatRequest, ChatResponse, ChatStreamEvent } from "@/types/ai";
 import type { ConciergeError } from "../types";
+import { isBrowser } from "./storage";
 
 // 5s longer than the server-side Gemini timeout (30s) so the server's
 // structured error event has time to arrive before the client aborts.
@@ -158,10 +159,6 @@ export function toConciergeError(error: unknown): ConciergeError {
   }
 
   return { kind: "unknown", message: "Something went wrong. Please try again." };
-}
-
-function isBrowser() {
-  return typeof window !== "undefined";
 }
 
 async function safeParseJson(response: Response): Promise<unknown> {

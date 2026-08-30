@@ -13,6 +13,7 @@ import { Textarea } from "@/components/forms/Textarea";
 import { Button } from "@/components/shared/buttons/Button";
 import { approveQuoteSchema, type ApproveQuoteInput } from "@/features/quote/schemas/quote.schema";
 import { adminApproveQuote } from "@/features/admin/actions/quote.actions";
+import { CHARTER_TYPE_LABELS, CHARTER_TYPE_VALUES, CHARTER_TYPES } from "@/database/constants/charter-type";
 import {
   DEPARTURE_TIME_PREFERENCE_LABELS,
   DEPARTURE_TIME_PREFERENCE_RANGES,
@@ -71,6 +72,10 @@ export function ApproveQuoteDialog({
         ? (formatDateForInput(currentDepartureDate) as unknown as Date)
         : undefined,
       departureTime: currentDepartureTime,
+      // Always defaults to exclusive — sharing the aircraft with
+      // another customer is an explicit admin choice made per quote,
+      // never inferred (see charter-type.ts).
+      charterType: CHARTER_TYPES.EXCLUSIVE,
     },
   });
 
@@ -151,6 +156,21 @@ export function ApproveQuoteDialog({
 
         <FormField label="Internal notes" htmlFor="adminNotes" hint="Not visible to the customer">
           <Textarea id="adminNotes" rows={3} {...register("adminNotes")} />
+        </FormField>
+
+        <FormField
+          label="Charter type"
+          htmlFor="charterType"
+          hint="Shared allows this flight to be pooled with other compatible bookings on the same aircraft, up to capacity. Exclusive reserves the whole aircraft for this customer."
+          error={errors.charterType?.message}
+        >
+          <Select id="charterType" defaultValue={CHARTER_TYPES.EXCLUSIVE} {...register("charterType")}>
+            {CHARTER_TYPE_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {CHARTER_TYPE_LABELS[value]}
+              </option>
+            ))}
+          </Select>
         </FormField>
 
         {submitError ? <p className="rounded-md bg-red-50 px-4 py-3.5 text-sm text-red-700">{submitError}</p> : null}

@@ -52,6 +52,10 @@ export async function updateSiteSettings(input: SiteSettingsInput): Promise<Acti
           starterPrompts: data.ai?.starterPrompts ?? [],
           maxConversationLength: data.ai?.maxConversationLength || undefined,
         },
+        maintenanceMode: {
+          enabled: data.maintenanceMode?.enabled ?? false,
+          message: data.maintenanceMode?.message || undefined,
+        },
         updatedBy,
       },
       { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
@@ -59,6 +63,10 @@ export async function updateSiteSettings(input: SiteSettingsInput): Promise<Acti
 
     // Every public page reading these settings needs to see the change.
     revalidatePath("/", "layout");
+    // The maintenance toggle is also read by middleware via this route on
+    // every request (see its own file for why) — revalidate it directly
+    // so flipping the toggle off doesn't wait out its short response cache.
+    revalidatePath("/api/system/maintenance-status");
 
     // Reuse getSiteSettings()'s own default-resolution logic for the
     // response rather than re-deriving it here — one extra read on this

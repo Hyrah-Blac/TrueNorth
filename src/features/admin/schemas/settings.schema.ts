@@ -42,6 +42,11 @@ const aiSettingsSchema = z.object({
   maxConversationLength: z.coerce.number().int().min(5).max(500).optional(),
 });
 
+const maintenanceModeSchema = z.object({
+  enabled: z.boolean().default(false),
+  message: z.string().trim().max(300).optional().or(z.literal("")),
+});
+
 export const siteSettingsSchema = z.object({
   // Contact
   phone: phoneField,
@@ -64,8 +69,11 @@ export const siteSettingsSchema = z.object({
   socialLinks: z.array(socialLinkSchema).max(10).default([]),
   // AI Concierge
   ai: aiSettingsSchema.default({ enabled: true, starterPrompts: [] }),
+  // Maintenance mode
+  maintenanceMode: maintenanceModeSchema.default({ enabled: false }),
 });
 
 export type SiteSettingsInput = z.infer<typeof siteSettingsSchema>;
 export type SocialLinkInput = z.infer<typeof socialLinkSchema>;
 export type AiSettingsInput = z.infer<typeof aiSettingsSchema>;
+export type MaintenanceModeInput = z.infer<typeof maintenanceModeSchema>;

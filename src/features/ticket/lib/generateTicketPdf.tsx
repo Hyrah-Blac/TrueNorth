@@ -1,5 +1,5 @@
 import "server-only";
-import { Document, Page, View, Text, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, Svg, Path, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import { siteConfig } from "@/lib/config/site";
 import { formatDate } from "@/utils/date";
 import { TICKET_STATUSES, TICKET_STATUS_LABELS, type TicketStatus } from "@/database/constants/ticket-status";
@@ -20,8 +20,8 @@ export interface TicketPdfData {
   fboName?: string;
   fboAddress?: string;
   /**
-   * Real city for the departure/destination ICAO code, from the
-   * Airport collection (see getTicketAirportCities). Omitted — never
+   * Real name for the departure/destination airport code, from the
+   * Airport collection (see getTicketAirportNames). Omitted — never
    * invented — when that airport isn't in the database.
    */
   departureAirportName?: string;
@@ -59,9 +59,10 @@ const COLORS = {
   textSecondary: "#667085", // supporting text
   labelMuted: "#8492A6", // small uppercase field labels
   hairline: "#D9DEE5", // all dividers/borders
-  gold: "#C6A15B", // champagne gold — route/verification/micro-label accents
-  goldLine: "#E4D3AE", // lighter gold tint, for the route line itself
+  gold: "#C6A15B", // champagne gold — verification/micro-label accents
   goldOnNavy: "#D6B978", // soft gold highlight — legible on the navy header
+  routeCodeBlue: "#173A66", // Journey airport code colour, mirrors TicketCard's ROUTE_CODE_BLUE
+  routeCityBlue: "#5C7FA6", // Journey city caption colour, mirrors TicketCard's ROUTE_CITY_BLUE
   paidGreen: "#176B4D",
   paidBg: "#ECF7F1",
   invalidRed: "#b91c1c",
@@ -176,53 +177,36 @@ const styles = StyleSheet.create({
     letterSpacing: 3.5,
     marginTop: 30,
   },
+  // flex: 1 on both sides (rather than a fixed width) guarantees they
+  // stay exactly equal width regardless of code/city length, so the
+  // plane glyph in between is always precisely centered — same
+  // reasoning as the grid-cols-[1fr_auto_1fr] layout in TicketCard.tsx.
   routeRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "center",
+    alignItems: "center",
     marginTop: 16,
   },
   routeSide: {
+    flex: 1,
     alignItems: "center",
-    width: 160,
+  },
+  routePlane: {
+    width: 16,
+    height: 16,
+    marginHorizontal: 10,
   },
   routeCode: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 36,
-    color: COLORS.ink,
-    letterSpacing: -0.5,
+    fontSize: 20,
+    color: COLORS.routeCodeBlue,
+    letterSpacing: -0.3,
   },
   routeCity: {
-    fontSize: 9,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  routeCaption: {
     fontSize: 7,
-    color: COLORS.labelMuted,
-    letterSpacing: 1.5,
-    marginTop: 5,
-  },
-  routeLineWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: 90,
-    marginTop: 19,
-  },
-  routeLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.goldLine,
-  },
-  // A small rotated square rather than a text glyph — the base-14 PDF
-  // fonts only cover WinAnsi/Latin-1, so symbol characters (✦, ✓, ⚠)
-  // can silently fail to render. A drawn shape has no such risk.
-  routeMark: {
-    width: 6,
-    height: 6,
-    marginHorizontal: 6,
-    backgroundColor: COLORS.gold,
-    transform: "rotate(45deg)",
+    fontFamily: "Helvetica-Bold",
+    color: COLORS.routeCityBlue,
+    letterSpacing: 1,
+    marginTop: 4,
   },
   travelDate: {
     textAlign: "center",
@@ -383,8 +367,8 @@ const styles = StyleSheet.create({
  * app/api/tickets/[ticketId]/pdf/route.ts for the authorization and
  * data-loading side of this. Deliberately only shows information that
  * genuinely exists in the data model — departure time, FBO/terminal,
- * and airport city names render only when the underlying data exists
- * (see BookingTripDetailsActions and getTicketAirportCities), and stay
+ * and airport names render only when the underlying data exists
+ * (see BookingTripDetailsActions and getTicketAirportNames), and stay
  * omitted otherwise rather than showing an invented or placeholder
  * value (see Phase 2 requirement #3).
  *
@@ -462,24 +446,29 @@ export async function generateTicketPdf(data: TicketPdfData): Promise<Buffer> {
             </View>
           ) : null}
 
-          {/* Journey — the visual centerpiece */}
+          {/* Journey — mirrors TicketCard.tsx exactly: bold sans code
+              in COLORS.routeCodeBlue, city caption in
+              COLORS.routeCityBlue, and the same plane glyph (identical
+              path + 90° rotation) centered between them, nose pointing
+              from departure toward destination. */}
           <Text style={styles.journeyLabel}>JOURNEY</Text>
           <View style={styles.routeRow}>
             <View style={styles.routeSide}>
               <Text style={styles.routeCode}>{data.departureAirportCode}</Text>
               {data.departureAirportName ? <Text style={styles.routeCity}>{data.departureAirportName}</Text> : null}
-              <Text style={styles.routeCaption}>DEPARTURE</Text>
             </View>
-            <View style={styles.routeLineWrap}>
-              <View style={styles.routeLine} />
-              <View style={styles.routeMark} />
-            </View>
+            <Svg viewBox="0 0 24 24" style={styles.routePlane}>
+              <Path
+                fill={COLORS.routeCityBlue}
+                transform="rotate(90, 12, 12)"
+                d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2.5 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+              />
+            </Svg>
             <View style={styles.routeSide}>
               <Text style={styles.routeCode}>{data.destinationAirportCode}</Text>
               {data.destinationAirportName ? (
                 <Text style={styles.routeCity}>{data.destinationAirportName}</Text>
               ) : null}
-              <Text style={styles.routeCaption}>DESTINATION</Text>
             </View>
           </View>
           <Text style={styles.travelDate}>

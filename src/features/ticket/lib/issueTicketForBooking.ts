@@ -6,6 +6,7 @@ import Ticket, { type TicketDocument } from "@/database/models/Ticket";
 import { TICKET_STATUSES } from "@/database/constants/ticket-status";
 import { NotFoundError, AppError } from "@/lib/errors/AppError";
 import { logger } from "@/lib/logging/logger";
+import { encryptToken } from "@/lib/security/tokenCipher";
 
 /** Verification tokens are 32 random bytes (256 bits) — see the rationale below. */
 const VERIFICATION_TOKEN_BYTES = 32;
@@ -123,7 +124,11 @@ async function createTicket(booking: BookingDocument): Promise<IssueTicketResult
       booking: booking._id,
       customer: booking.customer,
       status: TICKET_STATUSES.ISSUED,
-      verificationToken: token,
+      // Encrypted at rest (FIX 7) — see tokenCipher.ts. The hash above
+      // is always computed from the raw token, so the public
+      // /ticket/verify/[token] lookup (verifyTicket.ts) is completely
+      // unaffected by this — it never reads this field.
+      verificationToken: encryptToken(token),
       verificationTokenHash: tokenHash,
       issuedAt: new Date(),
     });

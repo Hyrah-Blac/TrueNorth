@@ -34,24 +34,32 @@ export function QuoteDecisionPanel({
   const [dialog, setDialog] = useState<DialogState>(null);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set only for the aircraft-availability family of failures (see
+  // customerQuote.actions.ts) — these can't be fixed by clicking
+  // "Accept & continue" again, so the retry button is replaced with a
+  // "Contact us" action instead of leaving the customer on a dead end.
+  const [unresolvable, setUnresolvable] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
 
   function closeDialog() {
     if (isPending) return;
     setDialog(null);
     setError(null);
+    setUnresolvable(false);
     setDeclineReason("");
   }
 
   async function handleAccept() {
     setIsPending(true);
     setError(null);
+    setUnresolvable(false);
 
     const result = await customerAcceptQuote({ quoteId });
 
     if (!result.success) {
       setIsPending(false);
       setError(result.error);
+      setUnresolvable(Boolean(result.code?.startsWith("AIRCRAFT_")));
       return;
     }
 
@@ -148,18 +156,24 @@ export function QuoteDecisionPanel({
 
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="ghost" onClick={closeDialog} disabled={isPending}>
-            Cancel
+            {unresolvable ? "Close" : "Cancel"}
           </Button>
-          <Button
-            variant="primary"
-            onClick={handleAccept}
-            disabled={isPending}
-            icon={
-              isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />
-            }
-          >
-            {isPending ? "Accepting…" : "Accept & continue"}
-          </Button>
+          {unresolvable ? (
+            <Button variant="primary" href="/contact">
+              Contact us
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              onClick={handleAccept}
+              disabled={isPending}
+              icon={
+                isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />
+              }
+            >
+              {isPending ? "Accepting…" : "Accept & continue"}
+            </Button>
+          )}
         </div>
       </Modal>
 

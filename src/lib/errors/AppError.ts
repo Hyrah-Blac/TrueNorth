@@ -1,12 +1,19 @@
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
+  // Optional machine-readable error code (e.g. "AIRCRAFT_CAPACITY_EXCEEDED",
+  // "AIRCRAFT_UNAVAILABLE") so a frontend caller can branch on the
+  // failure reason without parsing the human-readable message. Purely
+  // additive — existing AppError call sites that don't pass one are
+  // unaffected, and `code` is simply omitted from the response.
+  public readonly code?: string;
 
-  constructor(message: string, statusCode = 500, isOperational = true) {
+  constructor(message: string, statusCode = 500, isOperational = true, code?: string) {
     super(message);
     this.name = "AppError";
     this.statusCode = statusCode;
     this.isOperational = isOperational;
+    this.code = code;
     Error.captureStackTrace(this, this.constructor);
   }
 }

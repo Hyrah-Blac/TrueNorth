@@ -11,11 +11,17 @@ import { Button } from "@/components/shared/buttons/Button";
 import { CompareTable } from "@/components/aircraft/compare/CompareTable";
 import { useCompareList } from "@/hooks/useCompareList";
 import type { IAircraft } from "@/types/aircraft";
+import type { AirportNameInfo } from "@/lib/api/airportNames";
 
 interface ApiResponse {
   success: boolean;
   data?: IAircraft;
   error?: string;
+}
+
+interface AirportsLookupResponse {
+  success: boolean;
+  data?: Record<string, AirportNameInfo>;
 }
 
 function CompareContent() {
@@ -24,6 +30,7 @@ function CompareContent() {
   const slugs = (searchParams.get("slugs") ?? "").split(",").filter(Boolean);
 
   const [aircraft, setAircraft] = useState<IAircraft[]>([]);
+  const [airportNames, setAirportNames] = useState<Record<string, AirportNameInfo>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,9 +49,28 @@ function CompareContent() {
           }
         })
       );
-      if (!cancelled) {
-        setAircraft(results.filter((item): item is IAircraft => item !== null));
-        setLoading(false);
+      if (cancelled) return;
+
+      const loaded = results.filter((item): item is IAircraft => item !== null);
+      setAircraft(loaded);
+      setLoading(false);
+
+      // One batched lookup for every base airport across the compared
+      // aircraft — same "City (CODE)" resolution used everywhere else
+      // on the site, just fetched client-side since this page already
+      // fetches its aircraft data client-side.
+      const codes = Array.from(new Set(loaded.map((a) => a.baseAirportCode).filter(Boolean)));
+      if (codes.length > 0) {
+        try {
+          const res = await fetch(`/api/airports?codes=${encodeURIComponent(codes.join(","))}`);
+          const json: AirportsLookupResponse = await res.json();
+          if (!cancelled && json.success && json.data) {
+            setAirportNames(json.data);
+          }
+        } catch {
+          // Non-fatal — CompareTable/DetailRow falls back to the raw
+          // code, same convention as every other airport display.
+        }
       }
     }
 
@@ -52,6 +78,7 @@ function CompareContent() {
       load();
     } else {
       setAircraft([]);
+      setAirportNames({});
       setLoading(false);
     }
 
@@ -107,7 +134,7 @@ function CompareContent() {
               }
             />
           ) : (
-            <CompareTable aircraft={aircraft} onRemove={handleRemove} />
+            <CompareTable aircraft={aircraft} airportNames={airportNames} onRemove={handleRemove} />
           )}
         </div>
       </Container>

@@ -42,8 +42,10 @@ function extractShownIds(message: ConciergeMessage): { aircraftIds: string[]; ai
 
 export function MessageList({ messages, isSending, toolStatusLabel, error, onRetry }: MessageListProps) {
   const lastMessage = messages[messages.length - 1];
+  const isStreamingReply = isSending && lastMessage?.status === "streaming" && Boolean(lastMessage.content);
   const scrollRef = useAutoScroll(
-    `${messages.length}-${lastMessage?.content.length ?? 0}-${isSending}-${toolStatusLabel ?? ""}-${error?.message ?? ""}`
+    `${messages.length}-${lastMessage?.content.length ?? 0}-${isSending}-${toolStatusLabel ?? ""}-${error?.message ?? ""}`,
+    isStreamingReply
   );
 
   // The typing indicator owns the moment before any reply text exists —

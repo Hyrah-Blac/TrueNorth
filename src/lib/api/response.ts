@@ -7,8 +7,8 @@ export function successResponse<T>(data: T, status = 200) {
   return NextResponse.json({ success: true, data }, { status });
 }
 
-export function errorResponse(message: string, status = 400, details?: unknown) {
-  return NextResponse.json({ success: false, error: message, details }, { status });
+export function errorResponse(message: string, status = 400, details?: unknown, code?: string) {
+  return NextResponse.json({ success: false, error: message, details, ...(code ? { code } : {}) }, { status });
 }
 
 /**
@@ -18,16 +18,22 @@ export function errorResponse(message: string, status = 400, details?: unknown) 
  * to report an error mid-stream, where an HTTP status code can no
  * longer be changed once bytes have started flowing.
  */
-export function resolveErrorMessage(error: unknown, context: string): { message: string; status: number } {
+export function resolveErrorMessage(
+  error: unknown,
+  context: string
+): { message: string; status: number; code?: string } {
   if (error instanceof ZodError) {
     return { message: "Validation failed", status: 422 };
   }
 
   if (isAppError(error)) {
-    return { message: error.message, status: error.statusCode };
+    return { message: error.message, status: error.statusCode, code: error.code };
   }
 
-  logger.error(`Unhandled error in ${context}`, { error: String(error) });
+  logger.error(`Unhandled error in ${context}`, {
+    error: String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+  });
   return { message: "An unexpected error occurred", status: 500 };
 }
 
@@ -47,6 +53,6 @@ export function handleApiError(error: unknown, context: string) {
     );
   }
 
-  const { message, status } = resolveErrorMessage(error, context);
-  return errorResponse(message, status);
+  const { message, status, code } = resolveErrorMessage(error, context);
+  return errorResponse(message, status, undefined, code);
 }

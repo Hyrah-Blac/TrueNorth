@@ -1,4 +1,4 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, EmailRoute, type EmailContact } from "./components/EmailLayout";
 
 export interface AdminNewQuoteProps {
   quoteNumber: string;
@@ -7,6 +7,8 @@ export interface AdminNewQuoteProps {
   missionType: string;
   departureAirportCode: string;
   destinationAirportCode: string;
+  departureAirportName?: string;
+  destinationAirportName?: string;
   departureDate: string;
   adminUrl: string;
   contact?: EmailContact;
@@ -19,6 +21,8 @@ export default function AdminNewQuote({
   missionType,
   departureAirportCode,
   destinationAirportCode,
+  departureAirportName,
+  destinationAirportName,
   departureDate,
   adminUrl,
   contact,
@@ -28,7 +32,17 @@ export default function AdminNewQuote({
       <EmailDetailRow label="Quote reference" value={quoteNumber} />
       <EmailDetailRow label="Requested by" value={`${contactName} (${contactEmail})`} />
       <EmailDetailRow label="Mission type" value={missionType} />
-      <EmailDetailRow label="Route" value={`${departureAirportCode} → ${destinationAirportCode}`} />
+      <EmailDetailRow
+        label="Route"
+        value={
+          <EmailRoute
+            departureCode={departureAirportCode}
+            destinationCode={destinationAirportCode}
+            departureName={departureAirportName}
+            destinationName={destinationAirportName}
+          />
+        }
+      />
       <EmailDetailRow label="Departure" value={departureDate} />
 
       <EmailButton href={adminUrl}>Review Request</EmailButton>

@@ -10,7 +10,6 @@ import {
   SealCheck,
   Compass,
   MapPinLine,
-  Airplane,
 } from "@phosphor-icons/react";
 import { siteConfig } from "@/lib/config/site";
 import { formatDate } from "@/utils/date";
@@ -43,8 +42,8 @@ export interface TicketCardProps {
   fboName?: string;
   fboAddress?: string;
   /**
-   * Real city for the departure/destination ICAO code, from the
-   * Airport collection (see getTicketAirportCities). Omitted — never
+   * Real name for the departure/destination airport code, from the
+   * Airport collection (see getTicketAirportNames). Omitted — never
    * invented — when that airport isn't in the database.
    */
   departureAirportName?: string;
@@ -86,6 +85,8 @@ const HAIRLINE = "#D9DEE5"; // all dividers/borders on the ivory field
 const IVORY = "#FAF9F6"; // the one document background
 const NAVY_PRIMARY = "#071A2B"; // header band
 const NAVY_SECONDARY = "#102A43"; // restrained secondary ink (small icons, hover)
+const ROUTE_CODE_BLUE = "#173A66"; // airport code colour, Journey section only
+const ROUTE_CITY_BLUE = "#5C7FA6"; // city caption colour, Journey section only
 const GOLD = "#C6A15B"; // champagne gold — on ivory
 const GOLD_SOFT = "#D6B978"; // soft gold highlight — on navy
 const PAID_TEXT = "#176B4D";
@@ -241,47 +242,80 @@ export function TicketCard({
           </p>
         </div>
 
-        {/* Journey — the visual centerpiece */}
-        <div className="px-6 py-10 sm:px-10 sm:py-14">
-          <p style={{ color: GOLD }} className="text-center text-[9px] font-semibold uppercase tracking-[0.4em]">
+        {/* Journey — a compact code + city badge pair (Phase 8 —
+            aligned to the reference boarding-pass style: bold sans
+            code in a proper navy-blue, the city name as a small blue
+            caption directly beneath). The "Departure"/"Destination"
+            wording is kept for screen readers only — sighted users
+            get the same information from left-to-right order and the
+            plane glyph, the way a real boarding pass works.
+
+            grid-cols-[1fr_auto_1fr] rather than flex+gap: it forces
+            the departure and destination columns to be exactly equal
+            width regardless of how long each code/city is, so the
+            plane glyph is always precisely centered and equidistant
+            from both sides — "perfectly spaced" isn't just eyeballed
+            here, the layout guarantees it structurally. */}
+        <div className="relative overflow-hidden px-6 py-8 sm:px-10 sm:py-10">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-[0.05]"
+            style={{
+              backgroundImage: `radial-gradient(${NAVY_SECONDARY} 1px, transparent 1px)`,
+              backgroundSize: "16px 16px",
+            }}
+          />
+          <p style={{ color: GOLD }} className="relative text-center text-[9px] font-semibold uppercase tracking-[0.4em]">
             Journey
           </p>
-          <div className="mt-6 flex items-start justify-center gap-5 sm:gap-10">
+          <div className="relative mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4 sm:gap-8">
             <div className="text-center">
-              <p style={{ color: INK }} className="font-editorial text-5xl font-semibold leading-none tracking-tight sm:text-6xl">
+              <p style={{ color: ROUTE_CODE_BLUE }} className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
                 {departureAirportCode}
               </p>
               {departureAirportName ? (
-                <p style={{ color: TEXT_SECONDARY }} className="mt-2 text-xs font-medium sm:text-sm">
+                <p
+                  style={{ color: ROUTE_CITY_BLUE }}
+                  className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] sm:text-[10px]"
+                >
                   {departureAirportName}
                 </p>
               ) : null}
-              <p style={{ color: LABEL_MUTED }} className="mt-1.5 text-[10px] uppercase tracking-[0.2em]">
-                Departure
-              </p>
+              <span className="sr-only">Departure</span>
             </div>
 
-            <div className="flex w-14 shrink-0 items-center gap-2 pt-4 sm:w-32 sm:pt-5">
-              <span style={{ backgroundImage: `linear-gradient(to right, transparent, ${GOLD}80)` }} className="h-px flex-1" />
-              <Airplane style={{ color: GOLD }} className="h-3.5 w-3.5 shrink-0 rotate-90" weight="light" aria-hidden="true" />
-              <span style={{ backgroundImage: `linear-gradient(to left, transparent, ${GOLD}80)` }} className="h-px flex-1" />
-            </div>
+            {/* Plane glyph, nose pointing right (departure -> destination).
+                Same path/rotation as generateTicketPdf.tsx so the web
+                card and the PDF show the identical mark. */}
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="h-4 w-4 shrink-0 sm:h-5 sm:w-5"
+              style={{ color: ROUTE_CITY_BLUE }}
+            >
+              <path
+                fill="currentColor"
+                transform="rotate(90 12 12)"
+                d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2.5 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+              />
+            </svg>
 
             <div className="text-center">
-              <p style={{ color: INK }} className="font-editorial text-5xl font-semibold leading-none tracking-tight sm:text-6xl">
+              <p style={{ color: ROUTE_CODE_BLUE }} className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
                 {destinationAirportCode}
               </p>
               {destinationAirportName ? (
-                <p style={{ color: TEXT_SECONDARY }} className="mt-2 text-xs font-medium sm:text-sm">
+                <p
+                  style={{ color: ROUTE_CITY_BLUE }}
+                  className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] sm:text-[10px]"
+                >
                   {destinationAirportName}
                 </p>
               ) : null}
-              <p style={{ color: LABEL_MUTED }} className="mt-1.5 text-[10px] uppercase tracking-[0.2em]">
-                Destination
-              </p>
+              <span className="sr-only">Destination</span>
             </div>
           </div>
-          <p style={{ color: INK }} className="mt-9 text-center text-xs font-semibold uppercase tracking-[0.16em] sm:text-sm">
+          <p style={{ color: INK }} className="relative mt-7 text-center text-xs font-semibold uppercase tracking-[0.16em] sm:text-sm">
             {formatDate(departureDate)}
             {departureTime ? (
               <span style={{ color: TEXT_SECONDARY }} className="font-normal normal-case tracking-normal">

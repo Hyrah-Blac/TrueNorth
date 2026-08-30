@@ -35,6 +35,14 @@ export interface SiteSettingsDocument extends Document {
     starterPrompts: string[];
     maxConversationLength?: number;
   };
+  // Site-wide maintenance mode — same admin-toggle shape as `ai` above.
+  // Read by middleware (via /api/system/maintenance-status) on every
+  // request to decide whether to show visitors the maintenance page
+  // instead of the site.
+  maintenanceMode: {
+    enabled: boolean;
+    message?: string;
+  };
   updatedBy?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -84,6 +92,17 @@ const SiteSettingsSchema = new Schema<SiteSettingsDocument>(
         { _id: false }
       ),
       default: () => ({ enabled: true, starterPrompts: [] }),
+    },
+    // Maintenance mode
+    maintenanceMode: {
+      type: new Schema(
+        {
+          enabled: { type: Boolean, default: false },
+          message: { type: String, trim: true, maxlength: 300 },
+        },
+        { _id: false }
+      ),
+      default: () => ({ enabled: false }),
     },
     updatedBy: { type: Schema.Types.ObjectId, ref: "User" },
   },

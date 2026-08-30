@@ -131,7 +131,7 @@ export function EmailButton({ href, children }: { href: string; children: ReactN
   );
 }
 
-export function EmailDetailRow({ label, value }: { label: string; value: string }) {
+export function EmailDetailRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <Section style={{ borderBottom: `1px solid ${colors.border}`, padding: "10px 0" }}>
       <table width="100%" cellPadding={0} cellSpacing={0}>
@@ -143,6 +143,57 @@ export function EmailDetailRow({ label, value }: { label: string; value: string 
         </tbody>
       </table>
     </Section>
+  );
+}
+
+/**
+ * Email-safe rendering of the same "Name [CODE] → Name [CODE]" treatment
+ * used everywhere else on the site (see RouteDisplay.tsx) — a serif
+ * name with a boxed, monospaced code pill next to it. Built with plain
+ * inline styles (no flexbox) since this has to survive Outlook's Word
+ * rendering engine, not just modern browsers.
+ *
+ * Falls back to the bare code when a name isn't available, exactly
+ * like RouteDisplay and every other airport display on the site — an
+ * airport missing from the database is not an error state.
+ */
+export function EmailRoute({
+  departureCode,
+  destinationCode,
+  departureName,
+  destinationName,
+}: {
+  departureCode: string;
+  destinationCode: string;
+  departureName?: string;
+  destinationName?: string;
+}) {
+  const codePill = (code: string) => (
+    <span
+      style={{
+        display: "inline-block",
+        border: `1px solid ${colors.border}`,
+        borderRadius: 3,
+        padding: "1px 4px",
+        fontSize: 10,
+        fontWeight: 500,
+        color: colors.slateLight,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+      }}
+    >
+      {code}
+    </span>
+  );
+
+  return (
+    <span style={{ fontSize: 13, color: colors.navy, fontWeight: 600 }}>
+      {departureName ? `${departureName} ` : ""}
+      {codePill(departureCode)}
+      <span style={{ color: colors.slateLight, margin: "0 6px" }}>→</span>
+      {destinationName ? `${destinationName} ` : ""}
+      {codePill(destinationCode)}
+    </span>
   );
 }
 

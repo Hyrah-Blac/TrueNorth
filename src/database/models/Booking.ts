@@ -5,6 +5,7 @@ import {
   type BookingStatus,
 } from "../constants/booking-status";
 import { MISSION_TYPE_VALUES, type MissionType } from "../constants/mission-type";
+import { CHARTER_TYPE_VALUES, CHARTER_TYPES, type CharterType } from "../constants/charter-type";
 import { softDeletePlugin, type SoftDeleteFields, type SoftDeleteMethods } from "../plugins/softDelete";
 import { getNextSequence } from "./Counter";
 
@@ -31,6 +32,14 @@ export interface BookingDocument
   returnDate?: Date;
   isRoundTrip: boolean;
   missionType: MissionType;
+
+  // Whether this booking's aircraft assignment may be pooled with other
+  // customers' bookings on the same flight (see
+  // features/booking/lib/aircraftAvailability.ts). Defaults to
+  // "exclusive" so pre-existing bookings, and any booking created
+  // without an explicit choice, keep the platform's original
+  // whole-aircraft-per-booking behaviour.
+  charterType: CharterType;
 
   // Day-of-travel logistics — filled in by ops once known, typically
   // closer to departure than the rest of the booking. All optional:
@@ -95,6 +104,12 @@ const BookingSchema = new Schema<BookingDocument>(
     returnDate: { type: Date },
     isRoundTrip: { type: Boolean, default: false },
     missionType: { type: String, enum: MISSION_TYPE_VALUES, required: true },
+    charterType: {
+      type: String,
+      enum: CHARTER_TYPE_VALUES,
+      default: CHARTER_TYPES.EXCLUSIVE,
+      index: true,
+    },
 
     // Free-text HH:mm-style local time (e.g. "09:30") rather than folded
     // into departureDate — keeps the existing date-only handling used

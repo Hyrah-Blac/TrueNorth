@@ -68,7 +68,7 @@ export async function executeTool(
 
   const isErrorResult = typeof result === "object" && result !== null && "error" in result;
   if (!isErrorResult) {
-    await recordToolUsage(name);
+    void recordToolUsage(name);
   }
 
   return result;

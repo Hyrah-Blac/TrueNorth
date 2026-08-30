@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { FilterTabs } from "@/components/admin/layout/FilterTabs";
 import { ListToolbar } from "@/components/admin/layout/ListToolbar";
 import { getQuotesForAdmin } from "@/features/admin/lib/getQuotesForAdmin";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { QUOTE_STATUS_VALUES, QUOTE_STATUS_LABELS, type QuoteStatus } from "@/database/constants/quote-status";
 
 export const metadata: Metadata = { title: "Manage Quotes" };
@@ -21,6 +22,9 @@ export default async function AdminQuotesPage({ searchParams }: AdminQuotesPageP
     : undefined;
 
   const quotes = await getQuotesForAdmin(status);
+  const airportNames = await getAirportNamesByCodes(
+    quotes.flatMap((q) => [q.departureAirportCode, q.destinationAirportCode])
+  );
 
   return (
     <div>
@@ -57,7 +61,7 @@ export default async function AdminQuotesPage({ searchParams }: AdminQuotesPageP
       ) : (
         <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100">
           {quotes.map((quote) => (
-            <AdminQuoteRow key={quote._id} quote={quote} />
+            <AdminQuoteRow key={quote._id} quote={quote} airportNames={airportNames} />
           ))}
         </div>
       )}

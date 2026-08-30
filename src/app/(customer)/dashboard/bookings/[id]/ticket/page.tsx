@@ -8,7 +8,7 @@ import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
 import { getMyTicketForBooking } from "@/features/ticket/lib/getTicketForBooking";
 import { getTicketVerificationUrl } from "@/features/ticket/lib/ticketVerificationUrl";
 import { generateQrCodeDataUrl } from "@/features/ticket/lib/generateQrCode";
-import { getTicketAirportCities } from "@/features/ticket/lib/getTicketAirportNames";
+import { getTicketAirportNames } from "@/features/ticket/lib/getTicketAirportNames";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 import { requireAuth } from "@/middleware/auth";
 import { checkUserRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
@@ -89,7 +89,7 @@ export default async function BookingTicketPage({ params }: TicketPageProps) {
   // for (see Ticket.ts and issueTicketForBooking.ts).
   const verificationUrl = getTicketVerificationUrl(ticket.verificationToken);
   const qrDataUrl = await generateQrCodeDataUrl(verificationUrl);
-  const airportCities = await getTicketAirportCities([
+  const airportNames = await getTicketAirportNames([
     booking.departureAirportCode,
     booking.destinationAirportCode,
   ]);
@@ -129,8 +129,8 @@ export default async function BookingTicketPage({ params }: TicketPageProps) {
         departureTime={booking.departureTime}
         fboName={booking.fboName}
         fboAddress={booking.fboAddress}
-        departureAirportName={airportCities[booking.departureAirportCode]}
-        destinationAirportName={airportCities[booking.destinationAirportCode]}
+        departureAirportName={airportNames[booking.departureAirportCode.toUpperCase()]}
+        destinationAirportName={airportNames[booking.destinationAirportCode.toUpperCase()]}
         companyName={settings.companyName}
         contactPhone={settings.phone}
         contactEmail={settings.email}

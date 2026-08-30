@@ -10,9 +10,16 @@ import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
 import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import BookingConfirmation from "@/emails/BookingConfirmation";
 import BookingCancelled from "@/emails/BookingCancelled";
 import BookingCompleted from "@/emails/BookingCompleted";
+import {
+  canAircraftAcceptBooking,
+  releaseAircraftCapacityForBooking,
+  type AircraftAvailabilityResult,
+} from "./aircraftAvailability";
+import { CHARTER_TYPES } from "@/database/constants/charter-type";
 
 const ALLOWED_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
   pending: ["confirmed", "cancelled"],
@@ -115,6 +122,10 @@ export async function transitionBookingStatus(
   if (nextStatus === BOOKING_STATUSES.CONFIRMED) {
     await notifyBookingConfirmed(updated);
   } else if (nextStatus === BOOKING_STATUSES.CANCELLED) {
+    // A cancelled booking must stop holding/consuming aircraft
+    // capacity (Test 7 in the aircraft-assignment change report).
+    // Best-effort and non-throwing — see releaseAircraftCapacityForBooking.
+    await releaseAircraftCapacityForBooking(updated);
     await notifyBookingCancelled(updated, options.note ?? updated.cancellationReason ?? "Not specified");
   } else if (nextStatus === BOOKING_STATUSES.COMPLETED) {
     await notifyBookingCompleted(updated);
@@ -132,6 +143,7 @@ async function notifyBookingConfirmed(booking: BookingDocument): Promise<void> {
   if (!customer) return;
 
   const settings = await getSiteSettings();
+  const airportNames = await getAirportNamesByCodes([booking.departureAirportCode, booking.destinationAirportCode]);
 
   await sendEmail({
     to: customer.email,
@@ -142,6 +154,8 @@ async function notifyBookingConfirmed(booking: BookingDocument): Promise<void> {
       aircraftName: aircraft?.name ?? "Aircraft",
       departureAirportCode: booking.departureAirportCode,
       destinationAirportCode: booking.destinationAirportCode,
+      departureAirportName: airportNames[booking.departureAirportCode.toUpperCase()]?.city,
+      destinationAirportName: airportNames[booking.destinationAirportCode.toUpperCase()]?.city,
       departureDate: formatDate(booking.departureDate),
       passengerCount: booking.passengerCount,
       totalAmount: formatCurrency(booking.totalAmount, booking.currency),
@@ -178,6 +192,7 @@ async function notifyBookingCompleted(booking: BookingDocument): Promise<void> {
   if (!customer) return;
 
   const settings = await getSiteSettings();
+  const airportNames = await getAirportNamesByCodes([booking.departureAirportCode, booking.destinationAirportCode]);
 
   await sendEmail({
     to: customer.email,
@@ -188,6 +203,8 @@ async function notifyBookingCompleted(booking: BookingDocument): Promise<void> {
       aircraftName: aircraft?.name ?? "Aircraft",
       departureAirportCode: booking.departureAirportCode,
       destinationAirportCode: booking.destinationAirportCode,
+      departureAirportName: airportNames[booking.departureAirportCode.toUpperCase()]?.city,
+      destinationAirportName: airportNames[booking.destinationAirportCode.toUpperCase()]?.city,
       dashboardUrl: `${siteConfig.url}/dashboard/bookings/${booking._id}`,
       contact: toEmailContact(settings),
     }),
@@ -207,29 +224,53 @@ export async function cancelBooking(
 }
 
 /**
- * Checks whether an aircraft is free for the requested window. Two
- * bookings overlap when one's departure falls before the other's
- * return (or departure, for one-way trips) and vice versa — the
- * standard interval-overlap check. Only pending/confirmed/in_progress
- * bookings count as conflicts; cancelled/completed ones don't block.
+ * Checks whether an aircraft can accept a new booking for the given
+ * route/dates/passenger count.
+ *
+ * IMPORTANT: this used to be a blanket "does any booking overlap this
+ * date range" check, which incorrectly treated the whole aircraft as
+ * unavailable for the entire day (or the entire outbound-to-return
+ * window) any time it had another booking at all — which would have
+ * made legitimate shared/pooled charters and same-day sequential
+ * flights impossible. It now delegates to the shared compatibility
+ * engine in aircraftAvailability.ts, which understands route
+ * compatibility, departure-time proximity, passenger capacity, and
+ * exclusive-vs-shared charter type. See that file for the full
+ * rules, and FIX 1 in the change report for the rationale.
+ *
+ * This is a READ-ONLY pre-check, suitable for early UX validation
+ * (e.g. before showing a form error). It is NOT sufficient on its own
+ * to protect against a race between two concurrent booking attempts —
+ * the actual commit must go through claimAircraftCapacity inside the
+ * same transaction that creates the Booking. See acceptQuote.ts and
+ * app/api/bookings/route.ts for the full flow.
  */
 export async function checkAircraftAvailability(
   aircraftId: string,
   departureDate: Date,
-  returnDate?: Date
-): Promise<{ available: boolean; conflicts: BookingDocument[] }> {
-  const windowEnd = returnDate ?? departureDate;
-
-  const conflicts = await Booking.find({
-    aircraft: aircraftId,
-    status: { $in: ["pending", "confirmed", "in_progress"] },
-    $expr: {
-      $and: [
-        { $lte: ["$departureDate", windowEnd] },
-        { $gte: [{ $ifNull: ["$returnDate", "$departureDate"] }, departureDate] },
-      ],
-    },
+  returnDate?: Date,
+  options: {
+    origin?: string;
+    destination?: string;
+    departureTime?: string;
+    returnTime?: string;
+    passengerCount?: number;
+    charterType?: BookingDocument["charterType"];
+    bookingIdToExclude?: string;
+  } = {}
+): Promise<{ available: boolean; result: AircraftAvailabilityResult }> {
+  const result = await canAircraftAcceptBooking({
+    aircraftId,
+    origin: options.origin ?? "",
+    destination: options.destination ?? "",
+    departureDate,
+    departureTime: options.departureTime,
+    returnDate,
+    returnTime: options.returnTime,
+    passengerCount: options.passengerCount ?? 1,
+    charterType: options.charterType ?? CHARTER_TYPES.EXCLUSIVE,
+    bookingIdToExclude: options.bookingIdToExclude,
   });
 
-  return { available: conflicts.length === 0, conflicts };
+  return { available: result.allowed, result };
 }

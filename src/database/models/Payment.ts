@@ -6,9 +6,15 @@ import {
   PAYMENT_METHODS,
   PAYMENT_PROVIDER_VALUES,
   PAYMENT_PROVIDERS,
+  BOOKING_CREDIT_STATUS_VALUES,
+  BOOKING_CREDIT_STATUSES,
+  RECEIPT_NOTIFICATION_STATUS_VALUES,
+  RECEIPT_NOTIFICATION_STATUSES,
   type PaymentStatus,
   type PaymentMethod,
   type PaymentProvider,
+  type BookingCreditStatus,
+  type ReceiptNotificationStatus,
 } from "../constants/payment-status";
 import { softDeletePlugin, type SoftDeleteFields, type SoftDeleteMethods } from "../plugins/softDelete";
 import { getNextSequence } from "./Counter";
@@ -75,6 +81,46 @@ export interface PaymentDocument
   failureReason?: string;
   refundedAmount?: number;
   refundReason?: string;
+
+  /**
+   * FINANCIAL STATE (status, above) vs BOOKING SIDE-EFFECT STATE
+   * (these fields) — deliberately separate. `status` reaching
+   * COMPLETED is a durable fact about the money and must never be
+   * revisited. Whether the booking has actually been credited,
+   * confirmed, and ticketed is a *separate*, retryable process — see
+   * creditBookingForPayment.ts and jobs/reconcile-payment-credits.ts.
+   * Without this split, a creditBookingAndNotify failure after the
+   * payment was marked COMPLETED had no persisted record of needing a
+   * retry: every later webhook/status-check saw status === COMPLETED
+   * and took the "already applied, nothing to do" fast path forever.
+   */
+  bookingCreditStatus: BookingCreditStatus;
+  bookingCreditAttempts: number;
+  bookingCreditLastError?: string;
+  bookingCreditLastAttemptAt?: Date;
+  /**
+   * Set the moment (and only the moment) this payment's amount has
+   * actually been applied via $inc to Booking.paidAmount. This is the
+   * one genuinely non-idempotent step in the booking-credit process
+   * (ticket issuance and notifications are already safe to repeat) —
+   * checking this field before crediting again is what lets
+   * creditBookingAndNotify be retried freely without ever
+   * double-crediting a booking's paid amount.
+   */
+  bookingCreditedAt?: Date;
+
+  /**
+   * HARDENING — the receipt-email attempt outcome, deliberately
+   * tracked as its own state, independent of bookingCreditStatus
+   * above. A payment can be fully, correctly `bookingCreditStatus:
+   * completed` while `receiptNotificationStatus` is `failed` — that
+   * combination must never cause the reconciliation job to redo the
+   * (already-successful, already-idempotency-guarded) credit
+   * operation. See creditBookingForPayment.ts.
+   */
+  receiptNotificationStatus: ReceiptNotificationStatus;
+  receiptNotificationLastError?: string;
+  receiptNotificationSentAt?: Date;
 
   createdAt: Date;
   updatedAt: Date;
@@ -153,6 +199,25 @@ const PaymentSchema = new Schema<PaymentDocument>(
     failureReason: { type: String, trim: true, maxlength: 500 },
     refundedAmount: { type: Number, min: 0 },
     refundReason: { type: String, trim: true, maxlength: 500 },
+
+    bookingCreditStatus: {
+      type: String,
+      enum: BOOKING_CREDIT_STATUS_VALUES,
+      default: BOOKING_CREDIT_STATUSES.PENDING,
+      index: true,
+    },
+    bookingCreditAttempts: { type: Number, default: 0, min: 0 },
+    bookingCreditLastError: { type: String, trim: true, maxlength: 1000 },
+    bookingCreditLastAttemptAt: { type: Date },
+    bookingCreditedAt: { type: Date },
+
+    receiptNotificationStatus: {
+      type: String,
+      enum: RECEIPT_NOTIFICATION_STATUS_VALUES,
+      default: RECEIPT_NOTIFICATION_STATUSES.NOT_SENT,
+    },
+    receiptNotificationLastError: { type: String, trim: true, maxlength: 1000 },
+    receiptNotificationSentAt: { type: Date },
   },
   { timestamps: true }
 );
@@ -162,6 +227,10 @@ PaymentSchema.plugin(softDeletePlugin);
 PaymentSchema.index({ status: 1, isDeleted: 1, createdAt: -1 });
 PaymentSchema.index({ customer: 1, isDeleted: 1 });
 PaymentSchema.index({ provider: 1, booking: 1 });
+// Drives the reconciliation job (jobs/reconcile-payment-credits.ts):
+// quickly find COMPLETED payments whose booking side-effects didn't
+// finish yet, without a collection scan.
+PaymentSchema.index({ status: 1, bookingCreditStatus: 1 });
 // unique+sparse: our own reference sent to Paystack must never be reused
 // across two Payment records — this is the DB-level backstop behind the
 // idempotency guard in applyPaystackResult/initiatePaystackPayment.

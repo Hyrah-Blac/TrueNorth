@@ -67,6 +67,13 @@ export type RouteDisplaySize = "sm" | "md" | "lg";
 export interface RouteDisplayProps {
   departure: RoutePoint;
   destination: RoutePoint;
+  /**
+   * Set for round-trip quotes/bookings to append a third "→ departure"
+   * leg in the same premium treatment, e.g.
+   * "Nairobi [NBO] → Malindi [MYD] → Nairobi [NBO]", instead of a
+   * differently-styled string built by the caller.
+   */
+  isRoundTrip?: boolean;
   /** Visual scale. Defaults to "md". */
   size?: RouteDisplaySize;
   /** Optional eyebrow label above the route (e.g. "Charter Proposal", "Booking #BK-00042"). */
@@ -134,6 +141,7 @@ function AirportLabel({
 export function RouteDisplay({
   departure,
   destination,
+  isRoundTrip = false,
   size = "md",
   eyebrow,
   className = "",
@@ -152,6 +160,14 @@ export function RouteDisplay({
           {t.arrowChar}
         </span>
         <AirportLabel point={destination} size={size} />
+        {isRoundTrip ? (
+          <>
+            <span className={t.arrow} aria-label="and back to">
+              {t.arrowChar}
+            </span>
+            <AirportLabel point={departure} size={size} />
+          </>
+        ) : null}
       </div>
     </div>
   );

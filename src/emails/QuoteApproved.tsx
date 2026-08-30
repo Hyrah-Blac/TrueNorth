@@ -1,8 +1,12 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, EmailRoute, type EmailContact } from "./components/EmailLayout";
 
 export interface QuoteApprovedProps {
   customerName: string;
   quoteNumber: string;
+  departureAirportCode: string;
+  destinationAirportCode: string;
+  departureAirportName?: string;
+  destinationAirportName?: string;
   quotedAmount: string;
   departureDate: string;
   departureTime?: string;
@@ -14,6 +18,10 @@ export interface QuoteApprovedProps {
 export default function QuoteApproved({
   customerName,
   quoteNumber,
+  departureAirportCode,
+  destinationAirportCode,
+  departureAirportName,
+  destinationAirportName,
   quotedAmount,
   departureDate,
   departureTime,
@@ -34,6 +42,17 @@ export default function QuoteApproved({
       </EmailText>
 
       <EmailDetailRow label="Quote reference" value={quoteNumber} />
+      <EmailDetailRow
+        label="Route"
+        value={
+          <EmailRoute
+            departureCode={departureAirportCode}
+            destinationCode={destinationAirportCode}
+            departureName={departureAirportName}
+            destinationName={destinationAirportName}
+          />
+        }
+      />
       <EmailDetailRow label="Departure" value={departureTime ? `${departureDate}, ${departureTime}` : departureDate} />
       <EmailDetailRow label="Quoted amount" value={quotedAmount} />
       {validUntil ? <EmailDetailRow label="Valid until" value={validUntil} /> : null}

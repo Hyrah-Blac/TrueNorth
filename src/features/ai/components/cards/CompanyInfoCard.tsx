@@ -27,9 +27,8 @@ export function CompanyInfoCard({ company }: { company: CompanyInfo }) {
   ].filter((action): action is { Icon: typeof Phone; label: string; href: string } => Boolean(action));
 
   return (
-    // Raw shadow string replaced with the shadow-crisp token, same as
-    // AirportResultCard / AircraftResultCard.
-    <div className="w-full max-w-sm rounded-2xl border border-slate-200/80 bg-white p-5 shadow-crisp">
+    // Flat, flush card — no elevation shadow.
+    <div className="w-full max-w-sm rounded-2xl border border-slate-200/80 bg-white p-5">
       <h4 className="font-editorial text-[18px] font-normal tracking-[-0.012em] text-navy-900">{company.shortName}</h4>
 
       <dl className="mt-3 space-y-2.5">
@@ -54,13 +53,16 @@ export function CompanyInfoCard({ company }: { company: CompanyInfo }) {
             href={href}
             target={href.startsWith("http") ? "_blank" : undefined}
             rel={href.startsWith("http") ? "noreferrer noopener" : undefined}
-            className="group flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 py-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-50/40 hover:shadow-crisp"
+            className="group flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 py-2.5 transition-colors duration-300 hover:border-blue-200 hover:bg-blue-50/40"
           >
-            <Icon
-              className="h-4 w-4 text-navy-900 transition-colors duration-300 group-hover:text-blue-600"
-              aria-hidden="true"
-            />
-            <span className="text-[9px] font-medium uppercase tracking-widest2 text-slate-500 group-hover:text-blue-600">
+            {/* Same blue rounded-lg badge used for the airport marker
+                elsewhere in the concierge, rather than a bare icon
+                floating on the tile — ties this card into the rest of
+                the system instead of reading as a generic action grid. */}
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition-colors duration-300 group-hover:bg-blue-600 group-hover:text-white">
+              <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+            </div>
+            <span className="font-display text-[9px] font-medium uppercase tracking-widest2 text-slate-500 group-hover:text-blue-600">
               {label}
             </span>
           </a>

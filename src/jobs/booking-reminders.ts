@@ -8,6 +8,7 @@ import { sendEmail } from "@/lib/api/resend";
 import { formatDate } from "@/utils/date";
 import { siteConfig } from "@/lib/config/site";
 import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import BookingReminder from "@/emails/BookingReminder";
 import { logger } from "@/lib/logging/logger";
 
@@ -35,6 +36,11 @@ export async function sendBookingReminders(): Promise<{ sent: number; failed: nu
   let failed = 0;
 
   const contact = toEmailContact(await getSiteSettings());
+  // One batch lookup for every booking in the window, rather than a
+  // query per booking inside the loop below.
+  const airportNames = await getAirportNamesByCodes(
+    bookings.flatMap((b) => [b.departureAirportCode, b.destinationAirportCode])
+  );
 
   for (const booking of bookings) {
     try {
@@ -57,6 +63,8 @@ export async function sendBookingReminders(): Promise<{ sent: number; failed: nu
           aircraftName: aircraft?.name ?? "Aircraft",
           departureAirportCode: booking.departureAirportCode,
           destinationAirportCode: booking.destinationAirportCode,
+          departureAirportName: airportNames[booking.departureAirportCode.toUpperCase()]?.city,
+          destinationAirportName: airportNames[booking.destinationAirportCode.toUpperCase()]?.city,
           departureDate: formatDate(booking.departureDate),
           dashboardUrl: `${siteConfig.url}/dashboard/bookings/${booking._id}`,
           contact,

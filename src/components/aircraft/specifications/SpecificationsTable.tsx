@@ -3,6 +3,9 @@ import type { IAircraft } from "@/types/aircraft";
 
 interface SpecificationsTableProps {
   aircraft: IAircraft;
+  /** Resolved "City (CODE)" label for the base airport — falls back to
+   * the raw code when the airport isn't in the database. */
+  baseAirportLabel?: string;
 }
 
 interface SpecRow {
@@ -16,7 +19,7 @@ interface SpecGroup {
   rows: SpecRow[];
 }
 
-export function SpecificationsTable({ aircraft }: SpecificationsTableProps) {
+export function SpecificationsTable({ aircraft, baseAirportLabel }: SpecificationsTableProps) {
   const groups: SpecGroup[] = [
     {
       title: "Capacity & Performance",
@@ -25,7 +28,7 @@ export function SpecificationsTable({ aircraft }: SpecificationsTableProps) {
         { label: "Luggage capacity", value: `${aircraft.luggageCapacityKg} kg`, icon: Luggage },
         { label: "Range", value: `${aircraft.rangeNm.toLocaleString()} nm`, icon: MapPinned },
         { label: "Cruising speed", value: `${aircraft.cruisingSpeedKts.toLocaleString()} kts`, icon: Gauge },
-        { label: "Base airport", value: aircraft.baseAirportCode, icon: MapPin },
+        { label: "Base airport", value: baseAirportLabel ?? aircraft.baseAirportCode, icon: MapPin },
       ],
     },
   ];

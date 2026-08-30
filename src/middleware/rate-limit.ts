@@ -5,7 +5,63 @@ interface RateLimitEntry {
   resetAt: number;
 }
 
-const store = new Map<string, RateLimitEntry>();
+/**
+ * Storage abstraction behind the rate limiter (FIX 6). The limiter
+ * logic in checkRateLimit only talks to this interface — it has no
+ * idea the current implementation happens to be an in-memory Map.
+ * Swapping to a distributed store later (e.g. Upstash Redis, for a
+ * real cross-instance guarantee on Vercel's serverless runtime) means
+ * writing one new class that implements this interface and changing
+ * the single `store` assignment below — no call site anywhere else in
+ * the app needs to change. This is intentionally NOT a bigger refactor
+ * than that: no new dependency is introduced here, and the in-memory
+ * behavior/limits are unchanged.
+ */
+export interface RateLimitStore {
+  get(key: string): RateLimitEntry | undefined;
+  set(key: string, entry: RateLimitEntry): void;
+  get size(): number;
+  entries(): IterableIterator<[string, RateLimitEntry]>;
+  delete(key: string): void;
+}
+
+class InMemoryRateLimitStore implements RateLimitStore {
+  private readonly map = new Map<string, RateLimitEntry>();
+
+  get(key: string): RateLimitEntry | undefined {
+    return this.map.get(key);
+  }
+
+  set(key: string, entry: RateLimitEntry): void {
+    this.map.set(key, entry);
+  }
+
+  get size(): number {
+    return this.map.size;
+  }
+
+  entries(): IterableIterator<[string, RateLimitEntry]> {
+    return this.map.entries();
+  }
+
+  delete(key: string): void {
+    this.map.delete(key);
+  }
+}
+
+const store: RateLimitStore = new InMemoryRateLimitStore();
+
+// Once the store grows past this size, the next check() opportunistically
+// sweeps out expired entries before continuing. Keeps the store bounded on
+// a long-lived warm instance without doing O(n) work on every request.
+const SWEEP_THRESHOLD = 5_000;
+
+function sweepExpired(now: number): void {
+  if (store.size < SWEEP_THRESHOLD) return;
+  for (const [key, entry] of store.entries()) {
+    if (entry.resetAt <= now) store.delete(key);
+  }
+}
 
 export interface RateLimitConfig {
   windowMs: number;
@@ -30,6 +86,7 @@ export interface RateLimitResult {
  */
 export function checkRateLimit(key: string, config: RateLimitConfig): RateLimitResult {
   const now = Date.now();
+  sweepExpired(now);
   const entry = store.get(key);
 
   if (!entry || entry.resetAt <= now) {
@@ -79,6 +136,15 @@ export const RATE_LIMITS = {
   DETAIL_PAGE_LOOKUP: { windowMs: 60_000, max: 20 },
 } as const;
 
+/**
+ * Rate-limit key scoped to the requester's IP alone. Use this (rather
+ * than embedding a user/account id into the discriminator, as some
+ * older call sites did) when the goal is a true per-IP limit —
+ * e.g. alongside a separate checkUserRateLimit call, so a single
+ * account can't dodge its own limit across many IPs/devices AND a
+ * single IP can't dodge its limit across many accounts. See
+ * app/api/upload/documents/route.ts for the combined usage (FIX 5).
+ */
 export function getRequestKey(req: Request, discriminator: string): string {
   const forwardedFor = req.headers.get("x-forwarded-for");
   const ip = forwardedFor?.split(",")[0]?.trim() ?? "unknown";

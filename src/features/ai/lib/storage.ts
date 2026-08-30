@@ -30,7 +30,7 @@ function scopedKey(base: string): string {
   return currentScope ? `${base}_${currentScope}` : base;
 }
 
-function isBrowser() {
+export function isBrowser() {
   return typeof window !== "undefined";
 }
 

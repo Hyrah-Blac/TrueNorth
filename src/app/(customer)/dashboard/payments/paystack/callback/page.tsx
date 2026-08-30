@@ -10,6 +10,8 @@ import { checkUserRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { formatCurrency } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
+import { getAirportNamesByCodes, type AirportNameInfo } from "@/lib/api/airportNames";
 
 export const metadata: Metadata = { title: "Payment Status" };
 
@@ -96,10 +98,12 @@ export default async function PaystackCallbackPage({ searchParams }: PaystackCal
 
             <div>
               <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">Your charter</p>
-              <p className="font-editorial mt-1.5 text-lg font-medium text-navy-900">
-                {charter.departureAirportCode} <span className="text-champagne-500">→</span>{" "}
-                {charter.destinationAirportCode}
-              </p>
+              <RouteDisplay
+                className="mt-1.5"
+                size="sm"
+                departure={{ code: charter.departureAirportCode, name: charter.departureAirportName }}
+                destination={{ code: charter.destinationAirportCode, name: charter.destinationAirportName }}
+              />
               <p className="mt-1 text-xs text-slate-500">
                 {formatDate(charter.departureDate)}
                 {charter.aircraftName ? ` · ${charter.aircraftName}` : ""}
@@ -253,6 +257,8 @@ interface ConfirmedCharterSummary {
   currency: string;
   departureAirportCode: string;
   destinationAirportCode: string;
+  departureAirportName?: AirportNameInfo;
+  destinationAirportName?: AirportNameInfo;
   departureDate: string;
   aircraftName?: string;
   hasTicket: boolean;
@@ -274,6 +280,7 @@ async function getConfirmedCharterSummary(paymentId: string): Promise<ConfirmedC
 
     const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
     const hasTicket = await ticketExistsForBooking(booking._id);
+    const airportNames = await getAirportNamesByCodes([booking.departureAirportCode, booking.destinationAirportCode]);
 
     return {
       bookingId: booking._id,
@@ -282,6 +289,8 @@ async function getConfirmedCharterSummary(paymentId: string): Promise<ConfirmedC
       currency: payment.currency,
       departureAirportCode: booking.departureAirportCode,
       destinationAirportCode: booking.destinationAirportCode,
+      departureAirportName: airportNames[booking.departureAirportCode.toUpperCase()],
+      destinationAirportName: airportNames[booking.destinationAirportCode.toUpperCase()],
       departureDate: booking.departureDate,
       aircraftName,
       hasTicket,

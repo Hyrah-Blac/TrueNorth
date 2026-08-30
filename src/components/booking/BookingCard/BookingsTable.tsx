@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { CustomerBookingStatusBadge } from "./CustomerBookingStatusBadge";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { formatCurrency, calculatePaymentProgress } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import type { IBooking } from "@/types/booking";
@@ -31,8 +32,8 @@ export function BookingsTable({ bookings, airportNames = {} }: { bookings: IBook
           {bookings.map((booking) => {
             const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
             const progress = calculatePaymentProgress(booking.totalAmount, booking.paidAmount);
-            const departureName = airportNames[booking.departureAirportCode.toUpperCase()]?.city ?? booking.departureAirportCode;
-            const destinationName = airportNames[booking.destinationAirportCode.toUpperCase()]?.city ?? booking.destinationAirportCode;
+            const departureInfo = airportNames[booking.departureAirportCode.toUpperCase()];
+            const destinationInfo = airportNames[booking.destinationAirportCode.toUpperCase()];
 
             return (
               <tr key={booking._id} className="group transition-colors hover:bg-sky-500/[0.04]">
@@ -45,12 +46,12 @@ export function BookingsTable({ bookings, airportNames = {} }: { bookings: IBook
                   </Link>
                   {aircraftName ? <p className="mt-0.5 text-xs text-slate-500">{aircraftName}</p> : null}
                 </td>
-                <td className="px-6 py-4 text-sm text-slate-600">
-                  {departureName}{" "}
-                  <span className="text-xs text-slate-400">({booking.departureAirportCode})</span>{" "}
-                  →{" "}
-                  {destinationName}{" "}
-                  <span className="text-xs text-slate-400">({booking.destinationAirportCode})</span>
+                <td className="px-6 py-4">
+                  <RouteDisplay
+                    size="sm"
+                    departure={{ code: booking.departureAirportCode, name: departureInfo }}
+                    destination={{ code: booking.destinationAirportCode, name: destinationInfo }}
+                  />
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-600">{formatDate(booking.departureDate)}</td>
                 <td className="px-6 py-4">

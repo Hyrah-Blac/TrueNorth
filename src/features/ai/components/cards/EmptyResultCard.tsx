@@ -23,14 +23,22 @@ export function EmptyResultCard({ subject }: EmptyResultCardProps) {
   const { heading, body } = COPY[subject];
 
   return (
-    <div className="w-full max-w-sm rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-5">
+    // Solid border, not dashed — dashed reads as a placeholder/template
+    // state rather than an intentional, designed one. Otherwise flat and
+    // flush like every other card in the concierge.
+    <div className="w-full max-w-sm rounded-xl border border-slate-200/80 bg-slate-50/60 p-5">
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-slate-400 ring-1 ring-slate-200">
+        {/* rounded-xl, not rounded-full — same "elegant rectangle" badge
+            treatment used for the airport marker and aircraft persona
+            avatar, so a dead end still feels like it belongs to the
+            same premium system rather than falling back to a generic
+            circular icon chip. */}
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-slate-400 ring-1 ring-slate-200">
           <SearchX className="h-4 w-4" aria-hidden="true" />
         </div>
         <div className="min-w-0">
-          <h4 className="font-display text-sm font-semibold text-navy-900">{heading}</h4>
-          <p className="mt-1 text-xs leading-relaxed text-slate-600">{body}</p>
+          <h4 className="font-editorial text-[15px] font-normal leading-snug tracking-[-0.006em] text-navy-900">{heading}</h4>
+          <p className="mt-1 font-body text-xs leading-relaxed text-slate-600">{body}</p>
         </div>
       </div>
 

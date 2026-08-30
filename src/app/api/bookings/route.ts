@@ -10,7 +10,7 @@ import { ROLES } from "@/database/constants/roles";
 import { successResponse, handleApiError } from "@/lib/api/response";
 import { buildPaginatedResult } from "@/utils/pagination";
 import { bookingQuerySchema, createBookingSchema } from "@/features/booking/schemas/booking.schema";
-import { checkAircraftAvailability } from "@/features/booking/lib/transitions";
+import { canAircraftAcceptBooking, claimAircraftCapacity } from "@/features/booking/lib/aircraftAvailability";
 import { AppError } from "@/lib/errors/AppError";
 
 export async function GET(req: NextRequest) {
@@ -51,11 +51,17 @@ export async function GET(req: NextRequest) {
  * through a quote). Most bookings are instead created automatically
  * when a customer accepts their quote — see acceptQuoteById.
  *
- * The availability check here is an internal double-booking safeguard
- * (is this aircraft already tied to another active booking in our own
- * records) — not a claim of real-world provider availability. That
- * confirmation happens manually, before the aircraft is ever selected
- * on a quote.
+ * Availability is checked and the aircraft's capacity claimed the
+ * same way as the quote-acceptance flow — see aircraftAvailability.ts
+ * for the full compatibility rules (shared/exclusive charters, route
+ * and time compatibility, passenger capacity). Both the pre-check and
+ * the atomic commit run inside a single Mongo transaction alongside
+ * the Booking insert, so a capacity failure rolls back the whole
+ * operation instead of leaving a booking with no aircraft actually
+ * committed to it. This is an internal double-booking safeguard
+ * against our own records, not a claim of real-world provider
+ * availability — that confirmation still happens manually, before the
+ * aircraft is ever selected on a quote.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -65,31 +71,89 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
 
-    const { available } = await checkAircraftAvailability(
-      data.aircraftId,
-      data.departureDate,
-      data.returnDate
-    );
+    const availability = await canAircraftAcceptBooking({
+      aircraftId: data.aircraftId,
+      origin: data.departureAirportCode,
+      destination: data.destinationAirportCode,
+      departureDate: data.departureDate,
+      departureTime: data.departureTime,
+      returnDate: data.returnDate,
+      passengerCount: data.passengerCount,
+      charterType: data.charterType,
+    });
 
-    if (!available) {
-      throw new AppError("This aircraft is not available for the selected dates", 409);
+    if (!availability.allowed) {
+      throw new AppError(
+        availability.reason ?? "This aircraft is not available for the selected dates",
+        409,
+        true,
+        availability.code
+      );
     }
 
-    const booking = await Booking.create({
-      customer: data.customerId,
-      aircraft: data.aircraftId,
-      quote: data.quoteId,
-      passengerCount: data.passengerCount,
-      departureAirportCode: data.departureAirportCode,
-      destinationAirportCode: data.destinationAirportCode,
-      departureDate: data.departureDate,
-      returnDate: data.returnDate,
-      isRoundTrip: data.isRoundTrip,
-      missionType: data.missionType,
-      totalAmount: data.totalAmount,
-      currency: data.currency,
-      specialRequests: data.specialRequests,
-    });
+    const dbSession = await Booking.startSession();
+    let booking!: Awaited<ReturnType<typeof Booking.create>>[number];
+
+    try {
+      await dbSession.withTransaction(async () => {
+        const [createdBooking] = await Booking.create(
+          [
+            {
+              customer: data.customerId,
+              aircraft: data.aircraftId,
+              quote: data.quoteId,
+              passengerCount: data.passengerCount,
+              departureAirportCode: data.departureAirportCode,
+              destinationAirportCode: data.destinationAirportCode,
+              departureDate: data.departureDate,
+              departureTime: data.departureTime,
+              returnDate: data.returnDate,
+              isRoundTrip: data.isRoundTrip,
+              missionType: data.missionType,
+              charterType: data.charterType,
+              totalAmount: data.totalAmount,
+              currency: data.currency,
+              specialRequests: data.specialRequests,
+            },
+          ],
+          { session: dbSession }
+        );
+
+        const claim = await claimAircraftCapacity(
+          {
+            aircraftId: data.aircraftId,
+            bookingId: createdBooking._id,
+            // Same fix as acceptQuote.ts — without this, the
+            // just-inserted booking above is visible to the conflict
+            // scan (same transaction/session) and gets reported as a
+            // pre-existing conflict against itself, causing every
+            // exclusive-charter booking through this endpoint to fail.
+            bookingIdToExclude: createdBooking._id,
+            origin: data.departureAirportCode,
+            destination: data.destinationAirportCode,
+            departureDate: data.departureDate,
+            departureTime: data.departureTime,
+            returnDate: data.returnDate,
+            passengerCount: data.passengerCount,
+            charterType: data.charterType,
+          },
+          dbSession
+        );
+
+        if (!claim.claimed) {
+          throw new AppError(
+            claim.reason ?? "This aircraft is not available for the selected dates",
+            409,
+            true,
+            claim.code ?? "AIRCRAFT_UNAVAILABLE"
+          );
+        }
+
+        booking = createdBooking;
+      });
+    } finally {
+      await dbSession.endSession();
+    }
 
     return successResponse(booking, 201);
   } catch (error) {

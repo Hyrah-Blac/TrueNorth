@@ -4,16 +4,23 @@ import { ImageOff, Check, Minus } from "lucide-react";
 import { AIRCRAFT_CATEGORY_LABELS } from "@/database/constants/aircraft";
 import { MISSION_TYPE_LABELS } from "@/database/constants/mission-type";
 import type { IAircraft } from "@/types/aircraft";
+import type { AirportNameInfo } from "@/lib/api/airportNames";
 import { Button } from "@/components/shared/buttons/Button";
 
 interface CompareTableProps {
   aircraft: IAircraft[];
+  /** Resolved base-airport names, keyed by uppercased code — see
+   * fleet/compare/page.tsx, which fetches this via /api/airports?codes=
+   * since this page (and this table) render client-side. Falls back to
+   * the raw code when a lookup hasn't resolved (or is still loading),
+   * same convention as every other airport display on the site. */
+  airportNames?: Record<string, AirportNameInfo>;
   onRemove: (slug: string) => void;
 }
 
 interface SpecRowDef {
   label: string;
-  render: (aircraft: IAircraft) => string;
+  render: (aircraft: IAircraft, airportNames: Record<string, AirportNameInfo>) => string;
 }
 
 const SPEC_ROWS: SpecRowDef[] = [
@@ -23,13 +30,19 @@ const SPEC_ROWS: SpecRowDef[] = [
   { label: "Luggage capacity", render: (a) => `${a.luggageCapacityKg} kg` },
   { label: "Range", render: (a) => `${a.rangeNm.toLocaleString()} nm` },
   { label: "Cruising speed", render: (a) => `${a.cruisingSpeedKts.toLocaleString()} kts` },
-  { label: "Base airport", render: (a) => a.baseAirportCode },
+  {
+    label: "Base airport",
+    render: (a, airportNames) => {
+      const info = airportNames[a.baseAirportCode.toUpperCase()];
+      return info ? `${info.name} (${a.baseAirportCode})` : a.baseAirportCode;
+    },
+  },
   { label: "Cabin height", render: (a) => (a.cabinHeightM ? `${a.cabinHeightM} m` : "—") },
   { label: "Cabin width", render: (a) => (a.cabinWidthM ? `${a.cabinWidthM} m` : "—") },
   { label: "Cabin length", render: (a) => (a.cabinLengthM ? `${a.cabinLengthM} m` : "—") },
 ];
 
-export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
+export function CompareTable({ aircraft, airportNames = {}, onRemove }: CompareTableProps) {
   const allAmenities = Array.from(new Set(aircraft.flatMap((a) => a.amenities))).sort();
   const allMissions = Array.from(new Set(aircraft.flatMap((a) => a.recommendedMissions)));
   const columnWidth = `minmax(220px, 1fr)`;
@@ -95,7 +108,7 @@ export function CompareTable({ aircraft, onRemove }: CompareTableProps) {
                   rowIndex % 2 === 1 ? "bg-slate-50" : "bg-white"
                 }`}
               >
-                {row.render(item)}
+                {row.render(item, airportNames)}
               </div>
             ))}
           </Fragment>

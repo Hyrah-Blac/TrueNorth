@@ -4,6 +4,55 @@ import { getRoleFromSessionClaims } from "@/lib/auth/session";
 import { ROLES } from "@/database/constants/roles";
 import { buildCspHeader } from "@/lib/security/headers";
 
+// Routes that bypass maintenance mode entirely — no auth check needed,
+// just infrastructure that must always work:
+//  - /maintenance itself (avoids infinite rewrite loop)
+//  - /api/system/maintenance-status (the check that drives this logic)
+//  - /sign-in, /sign-up, /sso-callback (admins need to be able to log in
+//    during maintenance to flip the toggle back off)
+//  - /api/health — uptime monitors see the real DB status
+//  - /api/webhooks — payment / Clerk retries must not be silently dropped
+//
+// NOTE: /admin is intentionally NOT listed here. Admins are allowed
+// through during maintenance, but that check happens after we verify
+// their session claims below — not by blindly exempting the URL pattern
+// (which would let any unauthenticated visitor bypass maintenance just
+// by visiting /admin).
+const isMaintenanceExemptRoute = createRouteMatcher([
+  "/maintenance",
+  "/api/system/maintenance-status",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/sso-callback(.*)",
+  "/api/health",
+  "/api/webhooks(.*)",
+]);
+
+async function isMaintenanceModeOn(
+  req: Parameters<typeof isMaintenanceExemptRoute>[0]
+): Promise<{ enabled: boolean; message: string | null }> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+    const res = await fetch(
+      new URL("/api/system/maintenance-status", req.url),
+      {
+        signal: controller.signal,
+        headers: { "x-middleware-internal": "1" },
+      }
+    );
+    clearTimeout(timeout);
+    if (!res.ok) return { enabled: false, message: null };
+    const data = (await res.json()) as {
+      enabled: boolean;
+      message: string | null;
+    };
+    return data;
+  } catch {
+    return { enabled: false, message: null };
+  }
+}
+
 const isPublicRoute = createRouteMatcher([
   "/",
   "/about",
@@ -12,36 +61,23 @@ const isPublicRoute = createRouteMatcher([
   "/fleet(.*)",
   "/request-charter",
   "/robots.txt",
-   "/api/health",
+  "/api/health",
   "/sitemap.xml",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  // Required: this is where Clerk's OAuth redirect lands mid-handshake,
-  // *before* a session cookie exists yet. Without this, middleware sees
-  // userId === null on this route and bounces the request back to
-  // /sign-in via redirectToSignIn() before <AuthenticateWithRedirectCallback />
-  // ever gets a chance to mount and finish establishing the session.
   "/sso-callback(.*)",
   "/api/webhooks(.*)",
   "/api/aircraft(.*)",
   "/api/airports(.*)",
   "/api/ai/chat",
+  "/api/system/maintenance-status",
 ]);
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 
 export default clerkMiddleware(async (authFn, req) => {
-  // One nonce per request, used for the Content-Security-Policy header
-  // and forwarded as `x-nonce` so Server Components can stamp it on
-  // inline <script> elements they render.
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const cspHeader = buildCspHeader(nonce);
-
-  // A stable, opaque ID for this request. Forwarded as both a request
-  // header (so server actions / route handlers can include it in log
-  // lines) and a response header (so client-side error reporters and
-  // support tooling can correlate a user-facing failure back to a
-  // specific server log entry without exposing internal detail).
   const requestId = crypto.randomUUID();
 
   const requestHeaders = new Headers(req.headers);
@@ -52,11 +88,32 @@ export default clerkMiddleware(async (authFn, req) => {
 
   const respond = (response: NextResponse) => {
     response.headers.set("Content-Security-Policy", cspHeader);
-    // Expose the request ID on the response so the browser (and any
-    // error-tracking SDK) can record it alongside client-side errors.
     response.headers.set("X-Request-ID", requestId);
     return response;
   };
+
+  // Maintenance gate — runs for every route that isn't in the exempt list
+  if (!isMaintenanceExemptRoute(req)) {
+    const { enabled } = await isMaintenanceModeOn(req);
+
+    if (enabled) {
+      // Peek at session claims without triggering a full auth() call —
+      // auth() is lazy in Clerk middleware and won't block if we only
+      // read the already-decoded JWT. Admins pass straight through;
+      // everyone else (including unauthenticated visitors) sees /maintenance.
+      const { sessionClaims } = await authFn();
+      const role = getRoleFromSessionClaims(sessionClaims);
+
+      if (role !== ROLES.ADMIN) {
+        const maintenanceUrl = new URL("/maintenance", req.url);
+        const rewritten = NextResponse.rewrite(maintenanceUrl, { status: 503 });
+        rewritten.headers.set("Retry-After", "3600");
+        return respond(rewritten);
+      }
+
+      // Admin — fall through to normal routing below
+    }
+  }
 
   if (isPublicRoute(req)) {
     return respond(next());

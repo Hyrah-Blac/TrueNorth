@@ -52,7 +52,7 @@ export function WelcomeScreen({ onSelect, welcomeMessage, starterPrompts }: Welc
               // min-h-11 (44px) keeps the tap target comfortable on
               // touchscreens even though the text itself is small — the
               // padding alone wouldn't reliably hit that on every device.
-              className="flex min-h-11 items-center rounded-2xl border border-slate-200/80 bg-white px-4 py-2.5 text-left shadow-crisp transition-colors duration-200 hover:border-slate-300 hover:bg-slate-50"
+              className="flex min-h-11 items-center rounded-2xl border border-slate-200/80 bg-white px-4 py-2.5 text-left transition-colors duration-200 hover:border-slate-300 hover:bg-slate-50"
             >
               <span className="font-body text-[12px] font-normal leading-relaxed tracking-[0.01em] text-slate-600 sm:text-[12.5px]">
                 {question.prompt}

@@ -11,6 +11,10 @@ import type { IAircraft } from "@/types/aircraft";
 
 interface AircraftAdminDetailProps {
   aircraft: IAircraft;
+  /** Resolved "City (CODE)" label for the base airport, computed by the
+   * page (one query for the whole page) — falls back to the raw code
+   * when the airport isn't in the database. */
+  baseAirportLabel?: string;
 }
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -51,7 +55,7 @@ function RatingDots({ value, max = 5 }: { value: number; max?: number }) {
   );
 }
 
-export function AircraftAdminDetail({ aircraft }: AircraftAdminDetailProps) {
+export function AircraftAdminDetail({ aircraft, baseAirportLabel }: AircraftAdminDetailProps) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
 
@@ -80,7 +84,7 @@ export function AircraftAdminDetail({ aircraft }: AircraftAdminDetailProps) {
           <DetailRow label="Luggage Capacity" value={`${aircraft.luggageCapacityKg} kg`} />
           <DetailRow label="Range" value={`${aircraft.rangeNm.toLocaleString()} nm`} />
           <DetailRow label="Cruise Speed" value={`${aircraft.cruisingSpeedKts} kts`} />
-          <DetailRow label="Base Airport" value={aircraft.baseAirportCode} />
+          <DetailRow label="Base Airport" value={baseAirportLabel ?? aircraft.baseAirportCode} />
           {aircraft.cabinHeightM ? <DetailRow label="Cabin Height" value={`${aircraft.cabinHeightM} m`} /> : null}
           {aircraft.cabinWidthM ? <DetailRow label="Cabin Width" value={`${aircraft.cabinWidthM} m`} /> : null}
           {aircraft.cabinLengthM ? <DetailRow label="Cabin Length" value={`${aircraft.cabinLengthM} m`} /> : null}

@@ -1,4 +1,4 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, EmailRoute, type EmailContact } from "./components/EmailLayout";
 
 export interface BookingReminderProps {
   customerName: string;
@@ -6,6 +6,8 @@ export interface BookingReminderProps {
   aircraftName: string;
   departureAirportCode: string;
   destinationAirportCode: string;
+  departureAirportName?: string;
+  destinationAirportName?: string;
   departureDate: string;
   dashboardUrl: string;
   contact?: EmailContact;
@@ -22,6 +24,8 @@ export default function BookingReminder({
   aircraftName,
   departureAirportCode,
   destinationAirportCode,
+  departureAirportName,
+  destinationAirportName,
   departureDate,
   dashboardUrl,
   contact,
@@ -37,7 +41,17 @@ export default function BookingReminder({
 
       <EmailDetailRow label="Booking reference" value={bookingNumber} />
       <EmailDetailRow label="Aircraft" value={aircraftName} />
-      <EmailDetailRow label="Route" value={`${departureAirportCode} → ${destinationAirportCode}`} />
+      <EmailDetailRow
+        label="Route"
+        value={
+          <EmailRoute
+            departureCode={departureAirportCode}
+            destinationCode={destinationAirportCode}
+            departureName={departureAirportName}
+            destinationName={destinationAirportName}
+          />
+        }
+      />
       <EmailDetailRow
         label="Departure"
         value={departureTime ? `${departureDate} · ${departureTime} local` : departureDate}

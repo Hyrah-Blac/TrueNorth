@@ -15,6 +15,7 @@ import { CompareTray } from "@/components/aircraft/compare/CompareTray";
 import { RelatedAircraft } from "@/components/fleet/carousel/RelatedAircraft";
 import { JsonLd } from "@/components/shared/JsonLd";
 import { getAircraftByIdOrSlug, getRelatedAircraft } from "@/features/aircraft/lib/getAircraft";
+import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { AIRCRAFT_CATEGORY_LABELS } from "@/database/constants/aircraft";
 import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
 import { getSiteSettings } from "@/lib/config/siteSettings";
@@ -58,6 +59,11 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
   if (!aircraft) notFound();
 
   const related = await getRelatedAircraft(aircraft.category, aircraft._id);
+  const baseAirportNames = await getAirportNamesByCodes([aircraft.baseAirportCode]);
+  const baseAirportInfo = baseAirportNames[aircraft.baseAirportCode.toUpperCase()];
+  const baseAirportLabel = baseAirportInfo
+    ? `${baseAirportInfo.name} (${aircraft.baseAirportCode})`
+    : aircraft.baseAirportCode;
 
   return (
     <>
@@ -117,7 +123,7 @@ export default async function AircraftDetailPage({ params }: AircraftDetailPageP
                 <PerformanceBars rangeNm={aircraft.rangeNm} cruisingSpeedKts={aircraft.cruisingSpeedKts} />
               </div>
               <div className="mt-6">
-                <SpecificationsTable aircraft={aircraft} />
+                <SpecificationsTable aircraft={aircraft} baseAirportLabel={baseAirportLabel} />
               </div>
             </div>
           </div>

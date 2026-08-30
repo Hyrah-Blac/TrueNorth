@@ -9,8 +9,9 @@ import { TICKET_EMAIL_STATUSES } from "@/database/constants/ticket-email-status"
 import { generateQrCodeDataUrl } from "./generateQrCode";
 import { generateTicketPdf } from "./generateTicketPdf";
 import { getTicketVerificationUrl } from "./ticketVerificationUrl";
-import { getTicketAirportCities } from "./getTicketAirportNames";
+import { getTicketAirportNames } from "./getTicketAirportNames";
 import { withRetry } from "@/lib/api/retry";
+import { decryptToken } from "@/lib/security/tokenCipher";
 import TicketConfirmation from "@/emails/TicketConfirmation";
 import { siteConfig } from "@/lib/config/site";
 import { getSiteSettings, toEmailContact } from "@/lib/config/siteSettings";
@@ -121,13 +122,15 @@ async function deliverTicketConfirmationEmail(ticket: TicketDocument): Promise<v
   if (!ticketWithToken) {
     throw new Error("Ticket disappeared before email could be sent");
   }
+  // Decrypt right after fetch (FIX 7) — see tokenCipher.ts / getTicketForBooking.ts.
+  ticketWithToken.verificationToken = decryptToken(ticketWithToken.verificationToken);
 
   const aircraft = typeof booking.aircraft === "object" ? (booking.aircraft as unknown as AircraftDocument) : undefined;
   const passengerName = customer.firstName;
 
   const verificationUrl = getTicketVerificationUrl(ticketWithToken.verificationToken);
   const qrCodeDataUrl = await generateQrCodeDataUrl(verificationUrl);
-  const airportCities = await getTicketAirportCities([
+  const airportNames = await getTicketAirportNames([
     booking.departureAirportCode,
     booking.destinationAirportCode,
   ]);
@@ -156,8 +159,8 @@ async function deliverTicketConfirmationEmail(ticket: TicketDocument): Promise<v
     departureTime: booking.departureTime,
     fboName: booking.fboName,
     fboAddress: booking.fboAddress,
-    departureAirportName: airportCities[booking.departureAirportCode],
-    destinationAirportName: airportCities[booking.destinationAirportCode],
+    departureAirportName: airportNames[booking.departureAirportCode.toUpperCase()],
+    destinationAirportName: airportNames[booking.destinationAirportCode.toUpperCase()],
     companyName: settings.companyName,
     contactPhone: settings.phone,
     contactEmail: settings.email,
@@ -172,6 +175,8 @@ async function deliverTicketConfirmationEmail(ticket: TicketDocument): Promise<v
       bookingNumber: booking.bookingNumber,
       departureAirportCode: booking.departureAirportCode,
       destinationAirportCode: booking.destinationAirportCode,
+      departureAirportName: airportNames[booking.departureAirportCode.toUpperCase()],
+      destinationAirportName: airportNames[booking.destinationAirportCode.toUpperCase()],
       departureDate: formatDate(booking.departureDate),
       passengerCount: booking.passengerCount,
       aircraftName: aircraft?.name,

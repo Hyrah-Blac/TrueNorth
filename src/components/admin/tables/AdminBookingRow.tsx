@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { BookingStatusBadge } from "@/components/booking/BookingCard/BookingStatusBadge";
 import { BookingPaymentStatusBadge } from "@/components/booking/BookingCard/BookingPaymentStatusBadge";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { formatCurrency, getBookingPaymentStatus } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 import type { IBooking } from "@/types/booking";
@@ -15,8 +16,8 @@ export function AdminBookingRow({ booking, airportNames = {} }: { booking: IBook
   const customer = typeof booking.customer === "object" && booking.customer !== null ? booking.customer : null;
   const aircraftName = typeof booking.aircraft === "object" ? booking.aircraft.name : undefined;
   const paymentStatus = getBookingPaymentStatus(booking.totalAmount, booking.paidAmount);
-  const departureName = airportNames[booking.departureAirportCode.toUpperCase()]?.city ?? booking.departureAirportCode;
-  const destinationName = airportNames[booking.destinationAirportCode.toUpperCase()]?.city ?? booking.destinationAirportCode;
+  const departureInfo = airportNames[booking.departureAirportCode.toUpperCase()];
+  const destinationInfo = airportNames[booking.destinationAirportCode.toUpperCase()];
 
   return (
     <Link
@@ -29,9 +30,11 @@ export function AdminBookingRow({ booking, airportNames = {} }: { booking: IBook
           {customer ? `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim() : "—"}
         </p>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
-          <span className="spec-readout">
-            {departureName} ({booking.departureAirportCode}) → {destinationName} ({booking.destinationAirportCode})
-          </span>
+          <RouteDisplay
+            size="sm"
+            departure={{ code: booking.departureAirportCode, name: departureInfo }}
+            destination={{ code: booking.destinationAirportCode, name: destinationInfo }}
+          />
           <span className="text-slate-300" aria-hidden="true">·</span>
           <span>{formatDate(booking.departureDate)}</span>
           {aircraftName ? (

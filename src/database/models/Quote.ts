@@ -1,6 +1,7 @@
 import { Schema, model, models, type Model, type Document, type Types } from "mongoose";
 import { QUOTE_STATUS_VALUES, QUOTE_STATUSES, type QuoteStatus } from "../constants/quote-status";
 import { MISSION_TYPE_VALUES, type MissionType } from "../constants/mission-type";
+import { CHARTER_TYPE_VALUES, CHARTER_TYPES, type CharterType } from "../constants/charter-type";
 import { softDeletePlugin, type SoftDeleteFields, type SoftDeleteMethods } from "../plugins/softDelete";
 import { getNextSequence } from "./Counter";
 
@@ -82,6 +83,12 @@ export interface QuoteDocument
   // instead of it only being added by ops after the fact. Optional:
   // the admin may not always know it yet when pricing the request.
   departureTime?: string;
+  // Chosen by the admin at the same approval step as the aircraft
+  // (see ApproveQuoteDialog.tsx / approveQuote.ts) — carried onto the
+  // Booking at acceptance. Defaults to "exclusive" when unset so
+  // existing quotes/bookings created before this field existed keep
+  // behaving the way they always did.
+  charterType?: CharterType;
   convertedBooking?: Types.ObjectId;
 
   createdAt: Date;
@@ -178,6 +185,7 @@ const QuoteSchema = new Schema<QuoteDocument>(
     reviewedAt: { type: Date },
     selectedAircraft: { type: Schema.Types.ObjectId, ref: "Aircraft" },
     departureTime: { type: String, trim: true, maxlength: 20 },
+    charterType: { type: String, enum: CHARTER_TYPE_VALUES, default: CHARTER_TYPES.EXCLUSIVE },
     convertedBooking: { type: Schema.Types.ObjectId, ref: "Booking" },
   },
   { timestamps: true }

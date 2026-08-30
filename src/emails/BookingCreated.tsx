@@ -1,4 +1,4 @@
-import { EmailLayout, EmailText, EmailButton, EmailDetailRow, type EmailContact } from "./components/EmailLayout";
+import { EmailLayout, EmailText, EmailButton, EmailDetailRow, EmailRoute, type EmailContact } from "./components/EmailLayout";
 
 export interface BookingCreatedProps {
   customerName: string;
@@ -6,6 +6,8 @@ export interface BookingCreatedProps {
   aircraftName: string;
   departureAirportCode: string;
   destinationAirportCode: string;
+  departureAirportName?: string;
+  destinationAirportName?: string;
   departureDate: string;
   totalAmount: string;
   dashboardUrl: string;
@@ -18,6 +20,8 @@ export default function BookingCreated({
   aircraftName,
   departureAirportCode,
   destinationAirportCode,
+  departureAirportName,
+  destinationAirportName,
   departureDate,
   totalAmount,
   dashboardUrl,
@@ -37,7 +41,17 @@ export default function BookingCreated({
 
       <EmailDetailRow label="Booking reference" value={bookingNumber} />
       <EmailDetailRow label="Aircraft" value={aircraftName} />
-      <EmailDetailRow label="Route" value={`${departureAirportCode} → ${destinationAirportCode}`} />
+      <EmailDetailRow
+        label="Route"
+        value={
+          <EmailRoute
+            departureCode={departureAirportCode}
+            destinationCode={destinationAirportCode}
+            departureName={departureAirportName}
+            destinationName={destinationAirportName}
+          />
+        }
+      />
       <EmailDetailRow label="Departure" value={departureDate} />
       <EmailDetailRow label="Total" value={totalAmount} />
 

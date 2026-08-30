@@ -8,6 +8,7 @@ import "@/database/models/Aircraft"; // ensure Aircraft schema is registered bef
 import { getCurrentUserOrThrow } from "@/middleware/auth";
 import type { UserDocument } from "@/database/models/User";
 import { NotFoundError, ForbiddenError } from "@/lib/errors/AppError";
+import { decryptToken } from "@/lib/security/tokenCipher";
 
 /**
  * BookingDocument with `aircraft` narrowed to reflect that every
@@ -105,6 +106,14 @@ export async function getMyTicketForBooking(
     ? await Ticket.findOne({ booking: booking._id }).select("+verificationToken")
     : await Ticket.findOne({ booking: booking._id });
 
+  // Decrypt right after the fetch (FIX 7) so every downstream consumer
+  // of `ticket.verificationToken` — QR code generation, the PDF route,
+  // the ticket page — keeps working against the raw token exactly as
+  // before, with no call-site changes needed anywhere else.
+  if (ticket?.verificationToken) {
+    ticket.verificationToken = decryptToken(ticket.verificationToken);
+  }
+
   return {
     booking: booking as unknown as BookingWithPopulatedAircraft,
     customer: { firstName: user.firstName, lastName: user.lastName },
@@ -124,6 +133,7 @@ export async function getMyTicketById(ticketId: string): Promise<OwnedTicketWith
 
   const ticket = await Ticket.findById(ticketId).select("+verificationToken");
   if (!ticket) throw new NotFoundError("Ticket not found");
+  ticket.verificationToken = decryptToken(ticket.verificationToken);
 
   const booking = await Booking.findById(ticket.booking).populate("aircraft");
   if (!booking) throw new NotFoundError("Booking not found");

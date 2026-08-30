@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Warning, Paperclip, CheckCircle, Info, Airplane } from "@phosphor-icons/react/dist/ssr";
 import { CustomerQuoteStatusBadge } from "@/components/quote/CustomerQuoteStatusBadge";
 import { QuoteDecisionPanel } from "@/components/quote/QuoteDecisionPanel";
+import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { InlineAlert } from "@/components/shared/alert/InlineAlert";
 import { Button } from "@/components/shared/buttons/Button";
 import { WrongAccountNotice } from "@/components/shared/WrongAccountNotice";
@@ -82,13 +83,14 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
   // quote — falls back to the raw code for any airport not in the
   // database rather than guessing at a name.
   const airportNames = await getAirportNamesByCodes([quote.departureAirportCode, quote.destinationAirportCode]);
-  const departureName = airportNames[quote.departureAirportCode.toUpperCase()]?.city ?? quote.departureAirportCode;
-  const destinationName =
-    airportNames[quote.destinationAirportCode.toUpperCase()]?.city ?? quote.destinationAirportCode;
+  const departureInfo = airportNames[quote.departureAirportCode.toUpperCase()];
+  const destinationInfo = airportNames[quote.destinationAirportCode.toUpperCase()];
+  const departureName = departureInfo?.city ?? quote.departureAirportCode;
+  const destinationName = destinationInfo?.city ?? quote.destinationAirportCode;
 
-  // Presentation-only strings, derived from real quote fields, for the
-  // proposal header and the accept-confirmation dialog. No business logic
-  // here — just formatting the same data already used elsewhere on the page.
+  // Presentation-only string, derived from real quote fields, for the
+  // accept-confirmation dialog (plain text there, so it can't use
+  // RouteDisplay directly).
   const routeLabel = `${departureName} (${quote.departureAirportCode}) \u2192 ${destinationName} (${quote.destinationAirportCode})${
     quote.isRoundTrip ? ` \u2192 ${departureName} (${quote.departureAirportCode})` : ""
   }`;
@@ -116,26 +118,13 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
           <p className="spec-readout text-xs font-medium uppercase tracking-widest text-slate-400">
             Charter proposal
           </p>
-          <h1 className="mt-3 break-words font-editorial text-3xl font-light tracking-tight text-navy-900 sm:text-4xl">
-            {departureName}{" "}
-            <span className="spec-readout align-middle text-xs font-normal tracking-widest text-slate-400">
-              {quote.departureAirportCode}
-            </span>
-            <span className="mx-2 text-slate-300">→</span>
-            {destinationName}{" "}
-            <span className="spec-readout align-middle text-xs font-normal tracking-widest text-slate-400">
-              {quote.destinationAirportCode}
-            </span>
-            {quote.isRoundTrip ? (
-              <>
-                <span className="mx-2 text-slate-300">→</span>
-                {departureName}{" "}
-                <span className="spec-readout align-middle text-xs font-normal tracking-widest text-slate-400">
-                  {quote.departureAirportCode}
-                </span>
-              </>
-            ) : null}
-          </h1>
+          <RouteDisplay
+            className="mt-3"
+            size="lg"
+            departure={{ code: quote.departureAirportCode, name: departureInfo }}
+            destination={{ code: quote.destinationAirportCode, name: destinationInfo }}
+            isRoundTrip={quote.isRoundTrip}
+          />
           <p className="mt-2 text-sm text-slate-500">
             {formatDate(quote.departureDate)}
             {quote.departureTime ? `, ${quote.departureTime}` : ""}
@@ -345,16 +334,13 @@ export default async function QuoteDetailPage({ params }: QuoteDetailPageProps) 
             <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Route</dt>
-                <dd className="mt-1.5 font-editorial text-base font-light text-navy-900">
-                  {departureName}{" "}
-                  <span className="spec-readout text-xs font-normal text-slate-400">
-                    {quote.departureAirportCode}
-                  </span>
-                  <span className="mx-1.5 text-slate-300">→</span>
-                  {destinationName}{" "}
-                  <span className="spec-readout text-xs font-normal text-slate-400">
-                    {quote.destinationAirportCode}
-                  </span>
+                <dd className="mt-1.5">
+                  <RouteDisplay
+                    size="sm"
+                    departure={{ code: quote.departureAirportCode, name: departureInfo }}
+                    destination={{ code: quote.destinationAirportCode, name: destinationInfo }}
+                    isRoundTrip={quote.isRoundTrip}
+                  />
                 </dd>
               </div>
               <div>

@@ -54,6 +54,15 @@ export const airportQuerySchema = z.object({
   nightOperations: z.coerce.boolean().optional(),
   customsAvailable: z.coerce.boolean().optional(),
   search: z.string().trim().max(100).optional(),
+  /**
+   * Comma-separated ICAO/IATA codes, e.g. "NBO,MYD" — when present the
+   * route skips the paginated list/search below entirely and instead
+   * returns a { CODE: { name, city } } lookup map for just those
+   * codes. Used by client components (e.g. the fleet comparison page)
+   * that already have an aircraft's raw baseAirportCode and need its
+   * display name without a server component's direct DB access.
+   */
+  codes: z.string().trim().max(500).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });

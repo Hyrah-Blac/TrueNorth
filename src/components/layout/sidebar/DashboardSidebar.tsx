@@ -15,104 +15,81 @@ export interface SidebarNavItem {
 
 export function DashboardSidebar({
   items,
-  footer,
+  footerItems,
 }: {
   items: SidebarNavItem[];
-  footer?: React.ReactNode;
+  footerItems?: SidebarNavItem[];
 }) {
   const pathname = usePathname();
 
+  const renderNavItem = (item: SidebarNavItem) => {
+    const isActive = item.exact
+      ? pathname === item.href
+      : pathname.startsWith(item.href);
+
+    const icon = isValidElement<{ className?: string }>(item.icon)
+      ? cloneElement(item.icon, {
+          className: `h-[15px] w-[15px] shrink-0 transition-colors duration-150 ${
+            isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
+          }`,
+        })
+      : item.icon;
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={`group relative flex items-center gap-2.5 rounded-md px-2.5 py-[7px] text-[12.5px] font-medium tracking-[0.01em] transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500/40 ${
+          isActive
+            ? "text-blue-700"
+            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+        }`}
+        style={isActive ? { background: "rgb(239 246 255)" } : undefined}
+      >
+        {isActive && (
+          <span
+            className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full"
+            style={{ background: "rgb(59 130 246)" }}
+            aria-hidden="true"
+          />
+        )}
+        {icon}
+        <span className="truncate">{item.label}</span>
+      </Link>
+    );
+  };
+
   return (
     <aside
-      className="sticky top-0 flex h-screen w-64 shrink-0 flex-col overflow-hidden xl:w-72"
+      className="sticky top-0 flex h-screen w-48 shrink-0 flex-col overflow-hidden xl:w-52"
       style={{
-        background: "linear-gradient(180deg, rgb(11 18 28) 0%, rgb(9 14 22) 100%)",
-        borderRight: "1px solid rgb(255 255 255 / 0.07)",
+        background: "#ffffff",
+        borderRight: "1px solid rgb(230 234 240)",
       }}
     >
-      {/* Subtle vertical accent on the right edge */}
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-px"
-        style={{ background: "linear-gradient(180deg, transparent 0%, rgb(43 91 191 / 0.25) 50%, transparent 100%)" }}
-        aria-hidden="true"
-      />
-
-      {/* Logo — top of sidebar, same height as header bar */}
-      <div
-        className="flex h-16 shrink-0 items-center px-5"
-        style={{ borderBottom: "1px solid rgb(255 255 255 / 0.06)" }}
-      >
-        <Link href="/" aria-label="Back to home" className="transition-opacity hover:opacity-75">
+      {/* Logo */}
+      <div className="flex h-14 shrink-0 items-center px-4">
+        <Link href="/" aria-label="Back to home" className="transition-opacity hover:opacity-60">
           <LogoImage />
         </Link>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4 xl:px-4">
-        {items.map((item) => {
-          const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+      <div className="mx-3 h-px" style={{ background: "rgb(226 232 240)" }} />
 
-          const icon = isValidElement<{ className?: string }>(item.icon)
-            ? cloneElement(item.icon, {
-                className: `h-4 w-4 shrink-0 transition-colors duration-200 ${
-                  isActive ? "text-sky-400" : "text-slate-500 group-hover:text-slate-300"
-                }`,
-              })
-            : item.icon;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/70 ${
-                isActive
-                  ? "text-white"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
-              }`}
-              style={
-                isActive
-                  ? {
-                      background: "linear-gradient(90deg, rgb(43 91 191 / 0.18) 0%, rgb(43 91 191 / 0.06) 100%)",
-                      boxShadow: "inset 1px 0 0 rgb(43 91 191 / 0.5)",
-                    }
-                  : undefined
-              }
-            >
-              {isActive ? (
-                <span
-                  className="absolute -left-3 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full"
-                  style={{ background: "rgb(108 148 227)", boxShadow: "0 0 8px rgb(43 91 191 / 0.7)" }}
-                  aria-hidden="true"
-                />
-              ) : null}
-
-              <span
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-all duration-200 ${
-                  isActive ? "" : "group-hover:bg-white/5"
-                }`}
-                style={
-                  isActive
-                    ? { background: "rgb(43 91 191 / 0.2)", boxShadow: "0 0 0 1px rgb(43 91 191 / 0.25)" }
-                    : undefined
-                }
-              >
-                {icon}
-              </span>
-
-              <span className="truncate">{item.label}</span>
-            </Link>
-          );
-        })}
+      {/* Main nav — grows to fill available space */}
+      <nav className="flex-1 overflow-y-auto px-2 py-2.5">
+        {items.map(renderNavItem)}
       </nav>
 
-      {footer ? (
-        <div
-          className="shrink-0 p-4"
-          style={{ borderTop: "1px solid rgb(255 255 255 / 0.07)" }}
-        >
-          {footer}
-        </div>
-      ) : null}
+      {/* Footer nav — pinned to bottom */}
+      {footerItems && footerItems.length > 0 && (
+        <>
+          <div className="mx-3 h-px" style={{ background: "rgb(226 232 240)" }} />
+          <nav className="shrink-0 px-2 py-2.5">
+            {footerItems.map(renderNavItem)}
+          </nav>
+        </>
+      )}
     </aside>
   );
 }
@@ -123,10 +100,10 @@ function LogoImage() {
       <Image
         src="/logo/logo.png"
         alt="True North Charters"
-        width={120}
-        height={34}
+        width={110}
+        height={30}
         priority
-        className="h-7 w-auto object-contain"
+        className="h-[22px] w-auto object-contain"
         onError={(e) => {
           const target = e.currentTarget as HTMLImageElement;
           target.style.display = "none";
@@ -135,10 +112,10 @@ function LogoImage() {
         }}
       />
       <span
-        className="hidden items-center gap-2 text-sm font-semibold tracking-tight text-white"
+        className="hidden items-center gap-1.5 text-[13px] font-semibold tracking-tight text-slate-800"
         style={{ display: "none" }}
       >
-        <Compass className="h-5 w-5 text-sky-400" weight="fill" aria-hidden="true" />
+        <Compass className="h-4 w-4 text-blue-600" weight="fill" aria-hidden="true" />
         True North
       </span>
     </span>

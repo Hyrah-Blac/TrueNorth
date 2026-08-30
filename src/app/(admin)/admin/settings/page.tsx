@@ -44,6 +44,10 @@ export default async function AdminSettingsPage() {
               starterPrompts: settings.ai.starterPrompts,
               maxConversationLength: settings.ai.maxConversationLength,
             },
+            maintenanceMode: {
+              enabled: settings.maintenanceMode.enabled,
+              message: settings.maintenanceMode.message ?? "",
+            },
           }}
         />
       </div>

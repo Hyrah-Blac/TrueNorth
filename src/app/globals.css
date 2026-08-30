@@ -7,26 +7,12 @@
 
 @layer base {
   :root {
-    /* Self-hosted via @fontsource (see layout.tsx for why) — the
-       actual @font-face rules are registered by the CSS files
-       imported there; these variables just point the rest of the
-       site's font-family declarations (tailwind.config.ts, and the
-       font-family rules below) at the right family name. --font-display
-       (Poppins, used for nav/buttons/subheads) and --font-editorial
-       (Fraunces, used for large hero/statement headlines) are now
-       intentionally different families — a geometric sans for
-       everyday UI type, and a characterful serif reserved for the
-       big editorial moments, instead of one sans doing both jobs. */
+   
     --font-display: "Poppins";
-    --font-editorial: "Fraunces";
-    --font-body: "Raleway";
-    --font-data: "IBM Plex Mono";
-    /* The dashboard-section Fraunces serif override (Bookings, Payments,
-       Quotes, Profile) — see those layout.tsx files, and the Phase 5
-       fix note there: this single, consistently-named variable
-       replaces three previously-mismatched per-section variable names
-       that meant the serif override silently never applied. */
-    --font-dashboard-serif: "Fraunces";
+--font-editorial: "Plus Jakarta Sans";
+--font-body: "Raleway";
+--font-data: "IBM Plex Mono";
+--font-dashboard-serif: "Fraunces";
   }
 
   html {
@@ -42,12 +28,7 @@
       radial-gradient(ellipse 60% 50% at 15% 0%, rgb(var(--color-sky-500) / 0.05), transparent 60%),
       radial-gradient(ellipse 50% 40% at 100% 100%, rgb(var(--color-navy-900) / 0.04), transparent 60%);
     background-repeat: no-repeat;
-    /* background-attachment: fixed dropped — unreliable on mobile browsers
-       (iOS Safari silently ignores it; mobile Chrome can stutter on
-       scroll while it recalculates a fixed background every frame).
-       The gradient is subtle decoration, not worth the mobile scroll
-       jank. Scrolling with the page (default) looks the same here since
-       the gradient is anchored to page corners, not the viewport. */
+ 
   }
 
   h1,

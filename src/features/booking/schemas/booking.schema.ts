@@ -1,9 +1,12 @@
 import { z } from "zod";
 import { BOOKING_STATUS_VALUES } from "@/database/constants/booking-status";
 import type { BookingStatus } from "@/database/constants/booking-status";
+import { CHARTER_TYPE_VALUES, CHARTER_TYPES } from "@/database/constants/charter-type";
+import type { CharterType } from "@/database/constants/charter-type";
 import { OBJECT_ID_REGEX, LOCAL_TIME_REGEX } from "@/utils/validators";
 
 const statusEnum = z.enum(BOOKING_STATUS_VALUES as [BookingStatus, ...BookingStatus[]]);
+const charterTypeEnum = z.enum(CHARTER_TYPE_VALUES as [CharterType, ...CharterType[]]);
 const objectId = z.string().regex(OBJECT_ID_REGEX, "Invalid ID");
 
 export const createBookingSchema = z.object({
@@ -14,9 +17,19 @@ export const createBookingSchema = z.object({
   departureAirportCode: z.string().trim().min(3).max(4),
   destinationAirportCode: z.string().trim().min(3).max(4),
   departureDate: z.coerce.date(),
+  departureTime: z
+    .string()
+    .trim()
+    .regex(LOCAL_TIME_REGEX, "Enter a valid 24-hour time, e.g. 09:30")
+    .optional()
+    .or(z.literal(""))
+    .transform((value) => (value ? value : undefined)),
   returnDate: z.coerce.date().optional(),
   isRoundTrip: z.boolean().default(false),
   missionType: z.string().min(1),
+  // Defaults to exclusive — an admin creating a booking directly must
+  // explicitly opt into sharing the aircraft with other customers.
+  charterType: charterTypeEnum.default(CHARTER_TYPES.EXCLUSIVE),
   totalAmount: z.number().min(1),
   currency: z.string().trim().length(3).default("KES"),
   specialRequests: z.string().trim().max(2000).optional(),

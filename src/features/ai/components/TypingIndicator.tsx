@@ -16,10 +16,14 @@ export function TypingIndicator({ label }: { label?: string | null }) {
       {label ? (
         <span className="font-body text-xs text-slate-500">{label}</span>
       ) : (
-        <div className="flex items-center gap-1 pl-1">
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" />
+        // A slow, staggered breathing pulse rather than bouncing dots —
+        // bounce reads as a generic chat-widget default; this is calmer
+        // and, in the champagne persona color, feels like it belongs to
+        // this concierge specifically rather than to chat UI in general.
+        <div className="flex items-center gap-1.5 pl-1">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-champagne-500 [animation-delay:-0.6s] [animation-duration:1.4s]" />
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-champagne-500 [animation-delay:-0.3s] [animation-duration:1.4s]" />
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-champagne-500 [animation-duration:1.4s]" />
         </div>
       )}
     </div>

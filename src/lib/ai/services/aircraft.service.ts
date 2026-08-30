@@ -143,25 +143,6 @@ export async function searchAircraftForAI(
   return items.map(toAircraftSummary);
 }
 
-/** Single aircraft by ID or slug for detailed AI responses. */
-export async function getAircraftDetailForAI(
-  idOrSlug: string
-): Promise<AircraftSummary | null> {
-  await connectToDatabase();
-
-  const { OBJECT_ID_REGEX } = await import("@/utils/validators");
-  const query = OBJECT_ID_REGEX.test(idOrSlug)
-    ? { _id: idOrSlug }
-    : { slug: idOrSlug };
-
-  const a = await Aircraft.findOne(
-    { ...query, status: AIRCRAFT_STATUSES.ACTIVE, isDeleted: { $ne: true } },
-    AI_PROJECTION
-  ).lean();
-
-  return a ? toAircraftSummary(a) : null;
-}
-
 // ── Mapping ───────────────────────────────────────────────────────────────────
 
 function toAircraftSummary(a: Record<string, unknown>): AircraftSummary {

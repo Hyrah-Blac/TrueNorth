@@ -10,6 +10,8 @@ import Airport from "../models/Airport";
 import Quote from "../models/Quote";
 import Booking from "../models/Booking";
 import Payment from "../models/Payment";
+import AircraftFlightManifest from "../models/AircraftFlightManifest";
+import AircraftDayLock from "../models/AircraftDayLock";
 import { ROLES } from "../constants/roles";
 import { AIRCRAFT_STATUSES } from "../constants/aircraft";
 import { AIRPORT_STATUSES } from "../constants/airport";
@@ -29,6 +31,18 @@ async function seed() {
     Aircraft.deleteMany({}),
     Airport.deleteMany({}),
     User.deleteMany({ email: { $regex: /@seed\.truenorthair\.co\.ke$/ } }),
+    // Both are derived/ledger collections keyed off Booking + Aircraft
+    // (see AircraftFlightManifest.ts / AircraftDayLock.ts) — clearing
+    // Booking and Aircraft above without also clearing these leaves
+    // orphaned capacity-claim buckets behind that reference bookings
+    // which no longer exist. Those ghosts silently block every future
+    // booking for the same aircraft/route/date/time forever, since
+    // nothing else ever cleans them up. See aircraftAvailability.ts's
+    // reconcileManifestBucket for the runtime self-healing half of
+    // this fix; clearing them here too keeps a fresh seed run from
+    // recreating the same problem immediately.
+    AircraftFlightManifest.deleteMany({}),
+    AircraftDayLock.deleteMany({}),
   ]);
 
   // --- Users ---------------------------------------------------------

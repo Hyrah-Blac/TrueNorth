@@ -13,7 +13,13 @@ import {
 import { acceptQuoteById } from "@/features/quote/lib/acceptQuote";
 import { declineQuoteById } from "@/features/quote/lib/declineQuote";
 
-type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
+type ActionResult<T> =
+  | { success: true; data: T }
+  // `code` is the optional AppError.code (e.g. "AIRCRAFT_UNAVAILABLE") —
+  // present only for the aircraft-availability family of failures, so
+  // the UI can offer a "contact us" next step without string-matching
+  // the human-readable message.
+  | { success: false; error: string; code?: string };
 
 export async function customerAcceptQuote(
   input: AcceptQuoteInput
@@ -35,7 +41,11 @@ export async function customerAcceptQuote(
     return { success: true, data: { status: quote.status, bookingId: String(booking._id) } };
   } catch (error) {
     logger.error("customerAcceptQuote failed", { error: String(error) });
-    return { success: false, error: isAppError(error) ? error.message : "Failed to accept quote" };
+    return {
+      success: false,
+      error: isAppError(error) ? error.message : "Failed to accept quote",
+      code: isAppError(error) ? error.code : undefined,
+    };
   }
 }
 

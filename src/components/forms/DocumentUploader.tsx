@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Upload, X, Loader2, Paperclip } from "lucide-react";
 import { uploadToCloudinary, type UploadSignatureResponse } from "@/lib/api/cloudinaryClient";
 import { formatFileSize } from "@/utils/format";
+import { QUOTE_ATTACHMENT_MAX_BYTES } from "@/lib/config/media";
 
 export interface UploadedAttachment {
   publicId: string;
@@ -24,7 +25,7 @@ interface PendingUpload {
   progress: number;
 }
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE_BYTES = QUOTE_ATTACHMENT_MAX_BYTES;
 
 export function DocumentUploader({ attachments, onChange, maxFiles = 10 }: DocumentUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);

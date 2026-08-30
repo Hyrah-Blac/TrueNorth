@@ -4,7 +4,7 @@ import { type ReactNode, useState, useTransition } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Save, CheckCircle2, Plus, Trash2 } from "lucide-react";
-import { Buildings, Phone, MapPin, ShareNetwork, Robot } from "@phosphor-icons/react";
+import { Buildings, Phone, MapPin, ShareNetwork, Robot, Wrench } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { FormField } from "@/components/forms/FormField";
 import { TextInput } from "@/components/forms/TextInput";
@@ -312,6 +312,44 @@ export function SettingsForm({ defaultValues }: { defaultValues: SiteSettingsInp
               </FormField>
             )}
           />
+        </SectionCard>
+
+        {/* ── Maintenance Mode ──────────────────────────────────────── */}
+        <SectionCard
+          title="Maintenance Mode"
+          description="Take the public site offline for visitors while you work"
+          icon={Wrench}
+          className="lg:col-span-2"
+        >
+          <Controller
+            control={control}
+            name="maintenanceMode.enabled"
+            render={({ field }) => (
+              <label className="flex items-center gap-2.5 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={field.value ?? false}
+                  onChange={(event) => field.onChange(event.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                />
+                Show visitors a maintenance page instead of the site
+              </label>
+            )}
+          />
+
+          <p className="text-xs text-slate-500">
+            Takes effect within about 10 seconds of saving. The admin panel and sign-in stay
+            reachable so you can turn this back off from here.
+          </p>
+
+          <FormField
+            label="Message"
+            htmlFor="maintenanceMode.message"
+            hint="Optional — shown on the maintenance page. Leave blank for the default message."
+            error={errors.maintenanceMode?.message?.message}
+          >
+            <Textarea id="maintenanceMode.message" rows={2} {...register("maintenanceMode.message")} />
+          </FormField>
         </SectionCard>
       </div>
 

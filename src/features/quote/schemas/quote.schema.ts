@@ -5,10 +5,13 @@ import { QUOTE_STATUS_VALUES } from "@/database/constants/quote-status";
 import type { QuoteStatus } from "@/database/constants/quote-status";
 import { DEPARTURE_TIME_PREFERENCE_VALUES } from "@/database/constants/departure-time-preference";
 import type { DepartureTimePreference } from "@/database/constants/departure-time-preference";
+import { CHARTER_TYPE_VALUES, CHARTER_TYPES } from "@/database/constants/charter-type";
+import type { CharterType } from "@/database/constants/charter-type";
 import { GENERAL_PHONE_REGEX, OBJECT_ID_REGEX, LOCAL_TIME_REGEX } from "@/utils/validators";
 
 const missionEnum = z.enum(MISSION_TYPE_VALUES as [MissionType, ...MissionType[]]);
 const statusEnum = z.enum(QUOTE_STATUS_VALUES as [QuoteStatus, ...QuoteStatus[]]);
+const charterTypeEnum = z.enum(CHARTER_TYPE_VALUES as [CharterType, ...CharterType[]]);
 const objectId = z.string().regex(OBJECT_ID_REGEX, "Invalid ID");
 
 // Phone numbers are naturally typed/pasted with spaces or dashes
@@ -122,6 +125,10 @@ export const approveQuoteSchema = z.object({
   // quote back to the customer.
   departureDate: z.coerce.date().optional(),
   departureTime: optionalTime(),
+  // Whether this customer's flight may be pooled with other bookings
+  // on the same aircraft/route/time. Defaults to exclusive — sharing
+  // is an explicit admin decision, never inferred.
+  charterType: charterTypeEnum.default(CHARTER_TYPES.EXCLUSIVE),
   adminNotes: z.string().trim().max(2000).optional(),
 });
 

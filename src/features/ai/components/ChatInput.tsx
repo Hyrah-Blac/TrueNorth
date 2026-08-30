@@ -46,7 +46,7 @@ export function ChatInput({ onSend, disabled, maxLength }: ChatInputProps) {
           and message bubbles. Send button below moves off rounded-full
           to stay consistent with the "elegant rectangle, never a pill"
           brand language, and now uses the shadow-crisp token. */}
-      <div className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 transition-colors duration-200 focus-within:border-slate-300 focus-within:bg-white">
+      <div className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 transition-all duration-200 focus-within:border-blue-200 focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(43,91,191,0.08)]">
         <textarea
           ref={textareaRef}
           value={value}

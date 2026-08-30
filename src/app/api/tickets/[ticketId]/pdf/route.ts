@@ -4,7 +4,7 @@ import { getMyTicketById } from "@/features/ticket/lib/getTicketForBooking";
 import { getTicketVerificationUrl } from "@/features/ticket/lib/ticketVerificationUrl";
 import { generateQrCodeDataUrl } from "@/features/ticket/lib/generateQrCode";
 import { generateTicketPdf } from "@/features/ticket/lib/generateTicketPdf";
-import { getTicketAirportCities } from "@/features/ticket/lib/getTicketAirportNames";
+import { getTicketAirportNames } from "@/features/ticket/lib/getTicketAirportNames";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 import { checkRateLimit, getRequestKey, RATE_LIMITS } from "@/middleware/rate-limit";
 import { resolveErrorMessage } from "@/lib/api/response";
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     const verificationUrl = getTicketVerificationUrl(ticket.verificationToken);
     const qrCodeDataUrl = await generateQrCodeDataUrl(verificationUrl);
-    const airportCities = await getTicketAirportCities([
+    const airportNames = await getTicketAirportNames([
       booking.departureAirportCode,
       booking.destinationAirportCode,
     ]);
@@ -73,8 +73,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         departureTime: booking.departureTime,
         fboName: booking.fboName,
         fboAddress: booking.fboAddress,
-        departureAirportName: airportCities[booking.departureAirportCode],
-        destinationAirportName: airportCities[booking.destinationAirportCode],
+        departureAirportName: airportNames[booking.departureAirportCode.toUpperCase()],
+        destinationAirportName: airportNames[booking.destinationAirportCode.toUpperCase()],
         companyName: settings.companyName,
         contactPhone: settings.phone,
         contactEmail: settings.email,
