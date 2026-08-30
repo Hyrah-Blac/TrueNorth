@@ -128,7 +128,20 @@ export async function acceptQuoteById(
   // conflict, so the outer catch below can fire a best-effort admin
   // alert with the real internal reason — the customer only ever sees
   // the generic message thrown into the transaction (see below).
-  let conflictForAdminAlert: { code?: AircraftCompatibilityCode; reason?: string } | null = null;
+  //
+  // Wrapped in a holder object rather than reassigned directly: this
+  // value is only ever written inside the closure passed to
+  // withTransaction below, and TypeScript's control-flow narrowing
+  // doesn't track mutations made inside a nested closure — it keeps
+  // treating a plain `let` here as its `null` initializer everywhere
+  // outside that closure, which made the `if (conflictForAdminAlert)`
+  // check in the catch block narrow to `never` and fail to compile
+  // even though the assignment does happen at runtime. Reading/writing
+  // a property on a `const` object isn't subject to that narrowing
+  // pitfall.
+  const conflictForAdminAlert: { value: { code?: AircraftCompatibilityCode; reason?: string } | null } = {
+    value: null,
+  };
 
   try {
     await dbSession.withTransaction(async () => {
@@ -211,7 +224,7 @@ export async function acceptQuoteById(
         // ops/audit only. The customer gets a generic, actionable
         // message instead: no payment was taken, and there's a clear
         // next step. Ops is alerted separately below with the specifics.
-        conflictForAdminAlert = { code: capacityClaim.code, reason: capacityClaim.reason };
+        conflictForAdminAlert.value = { code: capacityClaim.code, reason: capacityClaim.reason };
         logger.error("Aircraft capacity claim failed at quote acceptance", {
           quoteId: String(updatedQuote._id),
           quoteNumber: updatedQuote.quoteNumber,
@@ -234,7 +247,7 @@ export async function acceptQuoteById(
       booking = createdBooking;
     });
   } catch (error) {
-    if (conflictForAdminAlert) {
+    if (conflictForAdminAlert.value) {
       // Best-effort, fire-and-forget — the customer must get their
       // response immediately regardless of how slow or broken email
       // delivery is right now. sendEmail() already retries 3x with
@@ -248,7 +261,7 @@ export async function acceptQuoteById(
         quoteId: String(quote._id),
         customerName: quote.contactInfo.fullName,
         aircraftName: aircraft.name,
-        reason: conflictForAdminAlert.reason,
+        reason: conflictForAdminAlert.value.reason,
       });
     }
     throw error;
