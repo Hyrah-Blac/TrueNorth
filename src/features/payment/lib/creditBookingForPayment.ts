@@ -64,7 +64,7 @@ import { logger } from "@/lib/logging/logger";
  */
 export async function creditBookingAndNotify(payment: PaymentDocument): Promise<void> {
   let bookingNumber = "";
-  let creditAlreadyComplete = payment.bookingCreditStatus === BOOKING_CREDIT_STATUSES.COMPLETED;
+  const creditAlreadyComplete = payment.bookingCreditStatus === BOOKING_CREDIT_STATUSES.COMPLETED;
 
   if (creditAlreadyComplete) {
     // HARDENING — credit already fully applied on a previous call:
