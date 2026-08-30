@@ -661,7 +661,14 @@ async function claimManifestBucket(
   session: ClientSession
 ): Promise<{ claimed: boolean; manifestId?: string; code?: AircraftCompatibilityCode; reason?: string }> {
   for (let attempt = 0; attempt < MAX_CLAIM_ATTEMPTS; attempt += 1) {
-    let existing = await AircraftFlightManifest.findOne({
+    // Annotated with the plain document interface (rather than left to
+    // infer Mongoose's more specific HydratedDocument<...> return type)
+    // because reconcileManifestBucket below returns that same plain
+    // interface type — its findOneAndUpdate result is narrowed back
+    // down to it. Without this annotation, TS infers `existing`'s type
+    // from findOne() as the stricter hydrated type, and reassigning
+    // reconcileManifestBucket's return value into it fails to compile.
+    let existing: AircraftFlightManifestDocument | null = await AircraftFlightManifest.findOne({
       aircraft: params.aircraftId,
       groupKey: params.groupKey,
     }).session(session);
