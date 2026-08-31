@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { ClerkProvider } from "@clerk/nextjs";
 import { siteConfig } from "@/lib/config/site";
 
@@ -67,7 +68,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Reading headers() here is deliberate, not incidental: middleware
+  // (src/middleware.ts) mints a fresh CSP nonce on every request and
+  // stamps it into the Content-Security-Policy response header. Next
+  // only rewrites that same nonce into the inline scripts it renders
+  // (hydration/flight-data payloads) when the route is rendered
+  // dynamically, per-request. Any route that never touches a dynamic
+  // API (headers/cookies/etc.) gets statically rendered once, baking
+  // in whatever nonce was active at that render — which then mismatches
+  // every subsequent request's CSP header and gets the inline script
+  // blocked by the browser. Calling headers() in the root layout opts
+  // every route in the app into dynamic rendering, so the nonce in the
+  // markup always matches the nonce in that request's CSP header.
+  await headers();
+
   return (
     <ClerkProvider>
       <html lang="en">
