@@ -243,11 +243,6 @@ export default async function DashboardOverviewPage() {
                 icon={<FileText className="h-5 w-5" aria-hidden="true" />}
                 title="No quotes yet"
                 description="Submit a charter request to receive a customised quote from our team."
-                action={
-                  <Button href="/request-charter" variant="outline">
-                    Request a Charter
-                  </Button>
-                }
               />
             ) : (
               <div className="divide-y divide-slate-100 border-t border-slate-100">

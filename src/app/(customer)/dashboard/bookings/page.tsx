@@ -3,7 +3,6 @@ import { AirplaneTakeoff } from "@phosphor-icons/react/dist/ssr";
 import { BookingCard } from "@/components/booking/BookingCard/BookingCard";
 import { BookingsTable } from "@/components/booking/BookingCard/BookingsTable";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
-import { Button } from "@/components/shared/buttons/Button";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { StatusFilterTabs } from "@/components/dashboard/StatusFilterTabs";
 import { getMyBookings } from "@/features/booking/lib/getBookings";
@@ -53,11 +52,6 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
             icon={<AirplaneTakeoff className="h-5 w-5 text-champagne-500" aria-hidden="true" />}
             title="No bookings found"
             description="Bookings appear here once a charter request has been approved."
-            action={
-              <Button href="/request-charter" variant="outline">
-                Request a Charter
-              </Button>
-            }
           />
         ) : (
           <>

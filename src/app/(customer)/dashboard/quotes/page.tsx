@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { FileText } from "@phosphor-icons/react/dist/ssr";
 import { QuoteRow } from "@/components/quote/QuoteRow";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
-import { Button } from "@/components/shared/buttons/Button";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { StatusFilterTabs } from "@/components/dashboard/StatusFilterTabs";
 import { getMyQuotes } from "@/features/quote/lib/getQuotes";
@@ -59,11 +58,6 @@ export default async function QuotesPage({ searchParams }: QuotesPageProps) {
             icon={<FileText className="h-5 w-5" aria-hidden="true" />}
             title="No quotes found"
             description="Submit a charter request to see it appear here."
-            action={
-              <Button href="/request-charter" variant="outline">
-                Request a Charter
-              </Button>
-            }
           />
         </div>
       ) : (
