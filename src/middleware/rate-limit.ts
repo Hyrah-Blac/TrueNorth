@@ -146,8 +146,17 @@ export const RATE_LIMITS = {
  * app/api/upload/documents/route.ts for the combined usage (FIX 5).
  */
 export function getRequestKey(req: Request, discriminator: string): string {
+  // See src/app/api/webhooks/mpesa/route.ts's getCallerIp for the full
+  // reasoning: x-forwarded-for's leftmost entry is whatever the caller
+  // claims (fully attacker-controlled), while the rightmost entry is
+  // what our own edge actually observed. Reading [0] let anyone dodge
+  // this rate limit for free by sending a fresh fake IP on every
+  // request. Lower stakes here than the webhook allowlist (worst case
+  // is a rate limit getting evaded, not a forged payment), but the
+  // same fix applies.
   const forwardedFor = req.headers.get("x-forwarded-for");
-  const ip = forwardedFor?.split(",")[0]?.trim() ?? "unknown";
+  const hops = forwardedFor?.split(",").map((ip) => ip.trim()).filter(Boolean) ?? [];
+  const ip = hops.length > 0 ? hops[hops.length - 1] : "unknown";
   return `${discriminator}:${ip}`;
 }
 

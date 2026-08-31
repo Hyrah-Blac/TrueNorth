@@ -33,8 +33,22 @@ const SAFARICOM_IP_ALLOWLIST = new Set([
 ]);
 
 function getCallerIp(req: Request): string {
+  // x-forwarded-for is a comma-separated chain that grows by one entry
+  // per hop: client-claimed values (fully attacker-controlled) are
+  // prepended at the left, and each proxy appends the address it
+  // actually observed at the right. Reading [0] — the previous
+  // behavior — trusts whatever the caller put there, making this
+  // allowlist trivially bypassable by sending a fake
+  // `X-Forwarded-For: 196.201.214.200` header. The rightmost entry is
+  // the one our own edge (Vercel, sitting directly in front of this
+  // function) appended from the real TCP connection, which is the only
+  // segment of this header that isn't attacker-controlled in a
+  // single-hop deployment. If a proxy is ever added in front of
+  // Vercel, this needs to become "the Nth-from-right" for the number
+  // of trusted hops instead.
   const forwarded = req.headers.get("x-forwarded-for");
-  return forwarded?.split(",")[0]?.trim() ?? "";
+  const hops = forwarded?.split(",").map((ip) => ip.trim()).filter(Boolean) ?? [];
+  return hops.length > 0 ? hops[hops.length - 1] : "";
 }
 
 const callbackItemSchema = z.object({

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getRoleFromSessionClaims } from "@/lib/auth/session";
 import { ROLES } from "@/database/constants/roles";
 import { buildCspHeader } from "@/lib/security/headers";
+import { rejectUntrustedOrigin } from "@/lib/security/csrf";
 
 // Routes that bypass maintenance mode entirely — no auth check needed,
 // just infrastructure that must always work:
@@ -75,6 +76,15 @@ const isPublicRoute = createRouteMatcher([
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 
+// Webhook routes are exempt from the CSRF origin check below — they're
+// server-to-server calls authenticated by a provider signature (svix,
+// Paystack's HMAC, M-Pesa's independent re-verification), never by the
+// browser session cookie this check exists to protect, and they
+// typically carry no Origin header at all.
+const isWebhookRoute = createRouteMatcher(["/api/webhooks(.*)"]);
+
+const CSRF_GUARDED_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
 export default clerkMiddleware(async (authFn, req) => {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const cspHeader = buildCspHeader(nonce);
@@ -91,6 +101,24 @@ export default clerkMiddleware(async (authFn, req) => {
     response.headers.set("X-Request-ID", requestId);
     return response;
   };
+
+  // CSRF gate — every state-changing request to our own API must come
+  // from our own origin (or carry no Origin header at all, e.g. a
+  // same-origin navigation). This is the enforcement point for
+  // src/lib/security/csrf.ts's isTrustedOrigin/rejectUntrustedOrigin,
+  // which existed as a helper but was never actually called anywhere —
+  // every mutating API route was relying solely on the Clerk session
+  // cookie for auth, with no origin check backing it up. Centralizing
+  // it here (rather than adding a call to all 20+ route handlers)
+  // means it can't be forgotten on a new route going forward.
+  if (
+    req.nextUrl.pathname.startsWith("/api/") &&
+    !isWebhookRoute(req) &&
+    CSRF_GUARDED_METHODS.has(req.method)
+  ) {
+    const csrfRejection = rejectUntrustedOrigin(req);
+    if (csrfRejection) return csrfRejection;
+  }
 
   // Maintenance gate — runs for every route that isn't in the exempt list
   if (!isMaintenanceExemptRoute(req)) {
