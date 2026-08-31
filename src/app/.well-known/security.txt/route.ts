@@ -9,10 +9,10 @@ import { NextResponse } from "next/server";
  */
 export async function GET() {
   const body = [
-    "Contact: mailto:security@yourdomain.com",
+    "Contact: mailto:security@truenorthaircharters.com",
     "Expires: 2027-01-01T00:00:00.000Z",
     "Preferred-Languages: en",
-    "Policy: https://truenorthcharters.vercel.app/security-policy",
+    "Policy: https://truenorthaircharters.com/security-policy",
   ].join("\n");
 
   return new NextResponse(body, {
