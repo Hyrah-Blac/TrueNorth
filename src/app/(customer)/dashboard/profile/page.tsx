@@ -15,14 +15,12 @@ export default async function ProfilePage() {
 
   const { data: user } = result;
   const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase();
-  const memberSince = new Intl.DateTimeFormat("en-KE", { month: "long", year: "numeric" }).format(
-    new Date(user.createdAt)
-  );
 
   return (
     <div className="max-w-2xl">
       <PageHeader
         variant="light"
+        divider={false}
         title="Your Profile"
         description="Keep your contact details current so we can reach you about bookings and quotes."
       />
@@ -30,9 +28,6 @@ export default async function ProfilePage() {
       <ProfileForm
         initials={initials}
         name={`${user.firstName} ${user.lastName}`.trim()}
-        email={user.email}
-        memberSince={memberSince}
-        updatedAt={user.updatedAt}
         defaultValues={{
           firstName: user.firstName,
           lastName: user.lastName,

@@ -14,7 +14,10 @@ export function ListToolbar({
   const label = count === 1 ? noun : (pluralNoun ?? `${noun}s`);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-100 bg-white px-4 py-2.5">
+    <div
+      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm"
+      style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+    >
       <p className="spec-readout text-xs text-slate-400">
         <span className="font-semibold text-navy-900">{count}</span>{" "}
         {label}

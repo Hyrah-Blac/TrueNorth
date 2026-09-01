@@ -19,7 +19,7 @@ export function Pagination({ page, totalPages, buildHref }: PaginationProps) {
         href={buildHref(page - 1)}
         aria-disabled={!hasPrev}
         tabIndex={hasPrev ? undefined : -1}
-        className={`flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-sky-400 hover:text-sky-600 hover:shadow-soft active:translate-y-0 active:scale-95 ${
+        className={`flex h-10 w-10 items-center justify-center text-slate-600 transition-all duration-300 hover:-translate-x-0.5 hover:text-sky-600 active:translate-x-0 ${
           !hasPrev ? "pointer-events-none opacity-40" : ""
         }`}
       >
@@ -35,7 +35,7 @@ export function Pagination({ page, totalPages, buildHref }: PaginationProps) {
         href={buildHref(page + 1)}
         aria-disabled={!hasNext}
         tabIndex={hasNext ? undefined : -1}
-        className={`flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-sky-400 hover:text-sky-600 hover:shadow-soft active:translate-y-0 active:scale-95 ${
+        className={`flex h-10 w-10 items-center justify-center text-slate-600 transition-all duration-300 hover:translate-x-0.5 hover:text-sky-600 active:translate-x-0 ${
           !hasNext ? "pointer-events-none opacity-40" : ""
         }`}
       >

@@ -30,7 +30,10 @@ export default async function AdminCustomersPage({ searchParams }: AdminCustomer
         <CustomerSearchBox />
       </ListToolbar>
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div
+        className="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm"
+        style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+      >
         {customers.length === 0 ? (
           <div className="p-6">
             <EmptyState

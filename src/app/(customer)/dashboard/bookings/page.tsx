@@ -4,49 +4,33 @@ import { BookingCard } from "@/components/booking/BookingCard/BookingCard";
 import { BookingsTable } from "@/components/booking/BookingCard/BookingsTable";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { PageHeader } from "@/components/dashboard/PageHeader";
-import { StatusFilterTabs } from "@/components/dashboard/StatusFilterTabs";
 import { getMyBookings } from "@/features/booking/lib/getBookings";
 import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { getBookingIdsWithTickets } from "@/features/ticket/lib/getTicketForBooking";
-import { BOOKING_STATUS_VALUES, BOOKING_STATUS_LABELS, type BookingStatus } from "@/database/constants/booking-status";
 
 export const metadata: Metadata = { title: "My Bookings" };
 
-interface BookingsPageProps {
-  searchParams: Promise<{ status?: string }>;
-}
-
-export default async function BookingsPage({ searchParams }: BookingsPageProps) {
-  const params = await searchParams;
-  const status = BOOKING_STATUS_VALUES.includes(params.status as BookingStatus)
-    ? (params.status as BookingStatus)
-    : undefined;
-
-  const bookings = await getMyBookings(status);
+// No status filter here — matches the Quotes page: a customer's own
+// booking history is short enough that a bank of filter pills is more
+// chrome than the list needs. Status is still visible per-booking via
+// the badge on each row/card.
+export default async function BookingsPage() {
+  const bookings = await getMyBookings();
   const [ticketedBookingIds, airportNames] = await Promise.all([
     getBookingIdsWithTickets(bookings.map((b) => b._id)),
     getAirportNamesByCodes(bookings.flatMap((b) => [b.departureAirportCode, b.destinationAirportCode])),
   ]);
 
-  const filterOptions = [
-    { label: "All", href: "/dashboard/bookings", active: !status },
-    ...BOOKING_STATUS_VALUES.map((value) => ({
-      label: BOOKING_STATUS_LABELS[value],
-      href: `/dashboard/bookings?status=${value}`,
-      active: status === value,
-    })),
-  ];
-
   return (
-    <div>
-      <PageHeader
-        variant="light"
-        title="Your Bookings"
-        description="Every confirmed charter, from first departure to final invoice."
-      />
-      <StatusFilterTabs options={filterOptions} />
+    <div className="mx-auto flex min-h-[75vh] w-full max-w-5xl flex-col justify-center py-8 sm:py-12 lg:py-16">
+      <div>
+        <PageHeader
+          variant="light"
+          divider={false}
+          title="Your Bookings"
+          description="Every confirmed charter, from first departure to final invoice."
+        />
 
-      <div className="mt-7">
         {bookings.length === 0 ? (
           <EmptyState
             icon={<AirplaneTakeoff className="h-5 w-5 text-champagne-500" aria-hidden="true" />}

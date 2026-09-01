@@ -83,10 +83,18 @@ const HERO_ROUTES = ["/", "/fleet", "/destinations", "/about", "/contact"];
 // keep solid-page text color throughout.
 const LIGHT_HERO_ROUTES = ["/contact", "/about"];
 
+// The customer dashboard (Overview, Bookings, Quotes, Payments, Profile)
+// now renders its own background photo (see the (customer)/dashboard
+// layout) with the same light white-wash treatment as contact/about, so
+// it's handled the same way here: matched by prefix rather than an exact
+// path since every dashboard sub-route (e.g. /dashboard/bookings/abc123)
+// should behave identically, not just the bare /dashboard route itself.
+
 export function Navbar({ phone }: { phone: string }) {
   const pathname = usePathname();
-  const isHeroRoute = HERO_ROUTES.includes(pathname);
-  const isLightHero = LIGHT_HERO_ROUTES.includes(pathname);
+  const isDashboardRoute = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isHeroRoute = HERO_ROUTES.includes(pathname) || isDashboardRoute;
+  const isLightHero = LIGHT_HERO_ROUTES.includes(pathname) || isDashboardRoute;
 
   // The charter request flow gets a stripped-down bar: just the logo,
   // floating over the page with a transparent background at all times

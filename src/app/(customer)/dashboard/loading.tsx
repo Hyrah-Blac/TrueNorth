@@ -13,11 +13,12 @@ export default function QuotesLoading() {
         <Skeleton className="h-8 w-72 rounded-full" />
       </div>
 
-      <div className="divide-y divide-slate-100 border-t border-slate-100">
+      <div className="space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="flex flex-col gap-3 py-5 lg:grid lg:grid-cols-[1fr_130px_64px_180px_120px] lg:items-center lg:gap-6"
+            className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm lg:grid lg:grid-cols-[1fr_130px_64px_180px_120px] lg:items-center lg:gap-6"
+            style={{ border: "1px solid rgba(0,0,0,0.06)" }}
           >
             <div>
               <Skeleton className="h-3 w-24" />

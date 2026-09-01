@@ -39,29 +39,10 @@ export function DashboardShell({
   }, [mobileOpen]);
 
   return (
-    <div className="relative flex min-h-screen">
+    <div className="relative flex min-h-screen" style={{ background: "#2d5a3d" }}>
       <SkipLink />
 
-      {/* Background image — fixed so it doesn't scroll with content */}
-      <img
-        src="/images/gallery/sept.jpg"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 h-full w-full object-cover"
-        style={{ objectPosition: "center 35%", zIndex: 0 }}
-      />
-      {/* Wash overlay — consistent across all pages */}
-      <div
-        className="pointer-events-none fixed inset-0"
-        style={{
-          zIndex: 1,
-          background:
-            "linear-gradient(to bottom right, rgb(255 255 255 / 0.88) 0%, rgb(250 249 248 / 0.94) 100%)",
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Sidebar */}
+      {/* Sidebar — sits behind the main card */}
       <div className="relative hidden lg:block" style={{ zIndex: 10 }}>
         <DashboardSidebar items={items} footerItems={footerItems} />
       </div>
@@ -87,8 +68,16 @@ export function DashboardShell({
         </div>
       </div>
 
-      {/* Main column */}
-      <div className="relative flex min-h-screen flex-1 flex-col" style={{ zIndex: 10 }}>
+      {/* Main column — white rounded card floating over the green sidebar */}
+      <div
+        className="relative flex h-screen flex-1 flex-col"
+        style={{
+          zIndex: 20,
+          background: "#f0f4f0",
+          borderRadius: "24px 0 0 24px",
+          overflow: "hidden",
+        }}
+      >
         <DashboardTopbar
           title={title}
           mobileOpen={mobileOpen}
@@ -98,7 +87,7 @@ export function DashboardShell({
         <main
           id="main-content"
           aria-label={title}
-          className="flex-1 p-4 sm:p-6 lg:p-10"
+          className="flex-1 overflow-y-auto p-4 sm:p-6"
         >
           {children}
         </main>

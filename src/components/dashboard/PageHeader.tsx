@@ -18,6 +18,7 @@ export function PageHeader({
   backHref,
   backLabel,
   showTitle = true,
+  divider = true,
 }: {
   eyebrow?: string;
   title: string;
@@ -27,11 +28,16 @@ export function PageHeader({
   backHref?: string;
   backLabel?: string;
   showTitle?: boolean;
+  /** Set false to drop the bottom hairline — for pages whose header sits
+   *  directly on a photo/background rather than a solid card, where the
+   *  line has nothing to visually divide and just reads as a stray mark
+   *  across the image. */
+  divider?: boolean;
 }) {
   const styles = VARIANT_STYLES[variant];
 
   return (
-    <div className={`mb-8 border-b pb-7 ${styles.border}`}>
+    <div className={`mb-8 pb-7 ${divider ? `border-b ${styles.border}` : ""}`}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           {backHref ? (

@@ -25,10 +25,11 @@ export function PaymentDateFilter() {
   }
 
   const inputClass =
-    "rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500";
+    "rounded-full bg-white px-3.5 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none";
+  const inputStyle = { border: "1px solid rgba(0,0,0,0.08)" };
 
   return (
-    <div className={`flex items-center gap-2 transition-opacity ${isPending ? "opacity-60" : ""}`}>
+    <div className={`flex items-center gap-2 ${isPending ? "opacity-60" : ""}`}>
       <label className="flex items-center gap-1.5 text-xs text-slate-500">
         From
         <input
@@ -36,6 +37,7 @@ export function PaymentDateFilter() {
           defaultValue={searchParams.get("dateFrom") ?? ""}
           onChange={(event) => setDate("dateFrom", event.target.value)}
           className={inputClass}
+          style={inputStyle}
         />
       </label>
       <label className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -45,6 +47,7 @@ export function PaymentDateFilter() {
           defaultValue={searchParams.get("dateTo") ?? ""}
           onChange={(event) => setDate("dateTo", event.target.value)}
           className={inputClass}
+          style={inputStyle}
         />
       </label>
     </div>

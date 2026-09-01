@@ -7,6 +7,10 @@ import Payment from "@/database/models/Payment";
 // Mongoose so populate("aircraft") below can resolve it, the same
 // reason getAnalytics.ts imports it directly (see that file for detail).
 import Aircraft from "@/database/models/Aircraft";
+// Imported for its side effect only: registers the User schema with
+// Mongoose so the $lookup in getTopCustomers below can resolve names —
+// same reason as the Aircraft import above.
+import User from "@/database/models/User";
 import { requireAdmin } from "@/middleware/admin";
 import { QUOTE_STATUSES } from "@/database/constants/quote-status";
 import { BOOKING_STATUSES, BOOKING_STATUS_LABELS } from "@/database/constants/booking-status";
@@ -15,6 +19,7 @@ import { calculateBalance } from "@/utils/currency";
 import type { IBooking } from "@/types/booking";
 
 void Aircraft;
+void User;
 
 function serialize<T>(doc: unknown): T {
   return JSON.parse(JSON.stringify(doc)) as T;
@@ -154,6 +159,60 @@ export async function getOutstandingPayments(limit = 6): Promise<IBooking[]> {
     .map((entry) => entry.booking);
 
   return serialize<IBooking[]>(ranked);
+}
+
+export interface TopCustomer {
+  customerId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  totalSpent: number;
+  completedPaymentsCount: number;
+}
+
+/**
+ * Customers ranked by lifetime completed-payment spend — the actual
+ * "top buyers", as opposed to getOutstandingPayments (who currently
+ * owes money, which is the opposite signal).
+ */
+export async function getTopCustomers(limit = 6): Promise<TopCustomer[]> {
+  await requireAdmin();
+  await connectToDatabase();
+
+  const results = await Payment.aggregate([
+    { $match: { status: PAYMENT_STATUSES.COMPLETED } },
+    {
+      $group: {
+        _id: "$customer",
+        totalSpent: { $sum: "$amount" },
+        completedPaymentsCount: { $sum: 1 },
+      },
+    },
+    { $sort: { totalSpent: -1 } },
+    { $limit: limit },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "customer",
+      },
+    },
+    { $unwind: "$customer" },
+    {
+      $project: {
+        _id: 0,
+        customerId: { $toString: "$_id" },
+        firstName: "$customer.firstName",
+        lastName: "$customer.lastName",
+        email: "$customer.email",
+        totalSpent: 1,
+        completedPaymentsCount: 1,
+      },
+    },
+  ]);
+
+  return serialize<TopCustomer[]>(results);
 }
 
 export interface ActivityItem {

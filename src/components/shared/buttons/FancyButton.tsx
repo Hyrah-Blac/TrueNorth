@@ -5,12 +5,15 @@ interface FancyButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-// Bespoke CTA treatment: navy→sapphire gradient fill, a soft glow shadow,
+// Bespoke CTA treatment: forest-green gradient fill, a soft glow shadow,
 // and a light diagonal shine that sweeps across on hover. Reserved for
 // the single highest-emphasis action on a page (Settings' "Save
 // Changes", a list page's primary "Add X" button) — the shared pill
 // <Button> in this same folder covers every ordinary action elsewhere in
 // the app, so this shouldn't be reached for for everyday buttons.
+// Color matches the admin dashboard's green accent (#2d5a3d) so the CTA
+// reads as part of the same premium admin surface, not a leftover navy
+// theme from elsewhere in the app.
 export function FancyButton({
   icon,
   children,
@@ -26,8 +29,8 @@ export function FancyButton({
       disabled={disabled}
       className={`group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-tl-xl rounded-br-xl rounded-tr-md rounded-bl-md px-5 py-2.5 text-xs font-semibold tracking-wide text-white transition-shadow duration-300 disabled:pointer-events-none disabled:opacity-60 ${className}`}
       style={{
-        background: "linear-gradient(135deg, rgb(17 24 39) 0%, rgb(30 58 128) 55%, rgb(43 91 191) 100%)",
-        boxShadow: "0 6px 16px -6px rgba(43,91,191,0.5), inset 0 1px 0 rgba(255,255,255,0.16)",
+        background: "linear-gradient(135deg, rgb(23 42 31) 0%, rgb(45 90 61) 55%, rgb(74 138 96) 100%)",
+        boxShadow: "0 6px 16px -6px rgba(45,90,61,0.5), inset 0 1px 0 rgba(255,255,255,0.16)",
       }}
     >
       {/* Shine sweep — positioned (absolute) so it paints in its own

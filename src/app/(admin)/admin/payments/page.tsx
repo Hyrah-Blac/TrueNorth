@@ -117,7 +117,10 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
           />
         </div>
       ) : (
-        <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100">
+        <div
+          className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-2xl bg-white px-3 shadow-sm sm:px-4"
+          style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+        >
           {payments.map((payment) => (
             <AdminPaymentRow key={payment._id} payment={payment} />
           ))}

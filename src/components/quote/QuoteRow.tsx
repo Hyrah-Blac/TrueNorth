@@ -20,6 +20,12 @@ import type { AirportNameInfo } from "@/lib/api/airportNames";
  *
  * A caret on the right (absolutely positioned, so it doesn't consume a
  * grid track) signals the row is clickable at every width.
+ *
+ * Each row renders as its own rounded, softly-shadowed card — the same
+ * container treatment (rounded-2xl, shadow-sm, hairline border) used for
+ * the stat cards in the admin dashboard — rather than a flush divider row,
+ * so the customer portal's lists read as consistently "premium" as the
+ * admin side while keeping the portal's own navy/sky palette.
  */
 export function QuoteRow({
   quote,
@@ -38,7 +44,8 @@ export function QuoteRow({
   return (
     <Link
       href={`/dashboard/quotes/${quote._id}`}
-      className="group relative -mx-3 flex flex-col gap-3 rounded-lg px-3 py-5 pr-8 transition-colors hover:bg-sky-500/[0.035] lg:grid lg:grid-cols-[1fr_120px_56px_150px_110px] lg:items-center lg:gap-5 lg:pr-9"
+      className="relative flex flex-col gap-3 overflow-hidden rounded-2xl bg-white p-5 pr-9 shadow-sm lg:grid lg:grid-cols-[1fr_120px_56px_150px_110px] lg:items-center lg:gap-5"
+      style={{ border: "1px solid rgba(0,0,0,0.06)" }}
     >
       <div className="min-w-0">
         <p className="spec-readout text-[11px] text-slate-400">{quote.quoteNumber}</p>
@@ -82,7 +89,7 @@ export function QuoteRow({
       </div>
 
       <CaretRight
-        className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300 transition-colors group-hover:text-sky-500 lg:right-1.5"
+        className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300 lg:right-1.5"
         aria-hidden="true"
       />
     </Link>

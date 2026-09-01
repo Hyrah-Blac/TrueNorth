@@ -31,7 +31,7 @@ export function FilterTabs({ options }: { options: FilterTabOption[] }) {
             aria-selected={option.active}
             className={`inline-flex min-h-[1.75rem] shrink-0 items-center gap-2 rounded-full border px-3 py-1 text-[0.6875rem] font-medium uppercase tracking-wide whitespace-nowrap transition-all duration-300 ${
               option.active
-                ? "border-sky-500 bg-sky-50 text-sky-700 shadow-[inset_0_0_0_1px_rgba(14,165,233,0.15)]"
+                ? "border-[#2d5a3d] bg-[#2d5a3d]/[0.08] text-[#2d5a3d] shadow-[inset_0_0_0_1px_rgba(45,90,61,0.15)]"
                 : "border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-navy-900"
             }`}
           >
@@ -39,7 +39,7 @@ export function FilterTabs({ options }: { options: FilterTabOption[] }) {
             {typeof option.count === "number" ? (
               <span
                 className={`spec-readout rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
-                  option.active ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-400"
+                  option.active ? "bg-[#2d5a3d]/[0.12] text-[#2d5a3d]" : "bg-slate-100 text-slate-400"
                 }`}
               >
                 {option.count}

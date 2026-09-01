@@ -16,6 +16,12 @@ import type { IPayment } from "@/types/payment";
  *
  * Only completed payments have a receipt to open, so the row is only a
  * link in that case; everything else renders the same layout inert.
+ *
+ * Each row is its own rounded, softly-shadowed card — the same
+ * rounded-2xl / shadow-sm / hairline-border container used for the admin
+ * dashboard's stat cards — rather than a flush divider row, so the
+ * customer portal's lists read as consistently "premium" while keeping
+ * the portal's own navy/sky palette.
  */
 export function PaymentRow({ payment }: { payment: IPayment }) {
   const bookingNumber =
@@ -24,8 +30,9 @@ export function PaymentRow({ payment }: { payment: IPayment }) {
   const isReceiptReady = payment.status === "completed";
 
   const rowClassName =
-    "-mx-3 flex flex-col gap-4 rounded-lg px-3 py-5 transition-colors sm:px-4 lg:grid lg:grid-cols-[1fr_1.1fr_170px_140px] lg:items-center lg:gap-6 lg:py-6" +
-    (isReceiptReady ? " group cursor-pointer hover:bg-sky-500/[0.035]" : "");
+    "flex flex-col gap-4 overflow-hidden rounded-2xl bg-white p-5 shadow-sm sm:p-6 lg:grid lg:grid-cols-[1fr_1.1fr_170px_140px] lg:items-center lg:gap-6" +
+    (isReceiptReady ? " cursor-pointer" : "");
+  const rowStyle = { border: "1px solid rgba(0,0,0,0.06)" };
 
   const amount = (
     <span className="spec-readout text-base font-semibold text-navy-900 sm:text-[15px]">
@@ -34,10 +41,7 @@ export function PaymentRow({ payment }: { payment: IPayment }) {
   );
 
   const chevron = isReceiptReady ? (
-    <CaretRight
-      className="h-4 w-4 shrink-0 text-slate-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-sky-500"
-      aria-hidden="true"
-    />
+    <CaretRight className="h-4 w-4 shrink-0 text-slate-300" aria-hidden="true" />
   ) : null;
 
   const content = (
@@ -48,7 +52,7 @@ export function PaymentRow({ payment }: { payment: IPayment }) {
       <div className="flex items-start justify-between gap-4 lg:block">
         <div className="min-w-0">
           <p className="spec-readout text-[11px] text-slate-400">{payment.paymentNumber}</p>
-          <p className="mt-0.5 truncate font-editorial text-xl font-light text-navy-900 transition-colors group-hover:text-sky-700">
+          <p className="mt-0.5 truncate font-editorial text-xl font-light text-navy-900">
             {method?.label ?? payment.method}
           </p>
         </div>
@@ -93,11 +97,15 @@ export function PaymentRow({ payment }: { payment: IPayment }) {
 
   if (isReceiptReady) {
     return (
-      <Link href={`/dashboard/payments/${payment._id}`} className={rowClassName}>
+      <Link href={`/dashboard/payments/${payment._id}`} className={rowClassName} style={rowStyle}>
         {content}
       </Link>
     );
   }
 
-  return <div className={rowClassName}>{content}</div>;
+  return (
+    <div className={rowClassName} style={rowStyle}>
+      {content}
+    </div>
+  );
 }

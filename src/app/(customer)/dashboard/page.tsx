@@ -49,9 +49,10 @@ export default async function DashboardOverviewPage() {
   const hasUrgentItems = quotesNeedingAction.length > 0 || bookingsNeedingPayment.length > 0;
 
   return (
-    <div className="space-y-10" style={{ "--font-editorial": "var(--font-dashboard-serif)" } as CSSProperties}>
+    <div className="mx-auto w-full max-w-5xl space-y-10 py-8 sm:py-12 lg:py-16" style={{ "--font-editorial": "var(--font-dashboard-serif)" } as CSSProperties}>
       <PageHeader
         variant="light"
+        divider={false}
         title="Your Charter Portal"
         description="Manage your bookings, review quotes, and track payments."
       />
@@ -67,7 +68,8 @@ export default async function DashboardOverviewPage() {
               <Link
                 key={q._id}
                 href={`/dashboard/quotes/${q._id}`}
-                className="flex items-center justify-between gap-4 rounded-lg border border-sky-200 bg-white px-4 py-3 text-sm transition-colors hover:border-sky-400"
+                className="flex items-center justify-between gap-4 rounded-2xl bg-white px-4 py-3 text-sm shadow-sm"
+                style={{ border: "1px solid rgba(0,0,0,0.06)" }}
               >
                 <div className="flex items-center gap-3">
                   <span className="relative flex h-2 w-2 shrink-0">
@@ -96,7 +98,8 @@ export default async function DashboardOverviewPage() {
               <Link
                 key={b._id}
                 href={`/dashboard/bookings/${b._id}`}
-                className="flex items-center justify-between gap-4 rounded-lg border border-sky-200 bg-white px-4 py-3 text-sm transition-colors hover:border-sky-400"
+                className="flex items-center justify-between gap-4 rounded-2xl bg-white px-4 py-3 text-sm shadow-sm"
+                style={{ border: "1px solid rgba(0,0,0,0.06)" }}
               >
                 <div className="flex items-center gap-3">
                   <span className="relative flex h-2 w-2 shrink-0">
@@ -245,7 +248,7 @@ export default async function DashboardOverviewPage() {
                 description="Submit a charter request to receive a customised quote from our team."
               />
             ) : (
-              <div className="divide-y divide-slate-100 border-t border-slate-100">
+              <div className="space-y-3">
                 {sortedQuotes.slice(0, 3).map((quote) => (
                   <QuoteRow key={quote._id} quote={quote} airportNames={airportNames} />
                 ))}

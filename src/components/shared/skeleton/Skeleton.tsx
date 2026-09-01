@@ -9,27 +9,39 @@
  * stagger reads as "alive" not "broken".
  */
 
+import type { CSSProperties } from "react";
+
 interface SkeletonProps {
   className?: string;
   /** Stagger offset in ms — delays animation-delay so adjacent skeletons
    *  don't sweep in perfect lockstep. Pass the element's render index. */
   index?: number;
+  /** Extra inline styles (e.g. a percentage height for a bar-chart mock),
+   *  merged with the animation-delay Skeleton sets itself. */
+  style?: CSSProperties;
 }
 
-export function Skeleton({ className = "", index = 0 }: SkeletonProps) {
+export function Skeleton({ className = "", index = 0, style }: SkeletonProps) {
   return (
     <div
       className={`skeleton animate-shimmer rounded-md ${className}`}
-      style={{ animationDelay: `${index * 70}ms` }}
+      style={{ animationDelay: `${index * 70}ms`, ...style }}
       aria-hidden="true"
     />
   );
 }
 
-/** A generic card-shaped skeleton matching BookingCard / PaymentCard / QuoteCard. */
+/**
+ * A generic card-shaped skeleton matching BookingCard / PaymentCard / QuoteCard —
+ * rounded-2xl, shadow-sm, hairline border, the same "premium" container used
+ * for the admin dashboard's stat cards.
+ */
 export function SkeletonRowCard() {
   return (
-    <div className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-soft">
+    <div
+      className="flex flex-col gap-5 rounded-2xl bg-white p-6 shadow-sm"
+      style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+    >
       <div className="flex items-start gap-4">
         <Skeleton className="h-11 w-11 shrink-0 rounded-[10px]" index={0} />
         <div className="flex-1 space-y-2">
@@ -73,15 +85,46 @@ export function SkeletonTable({ rows = 4 }: { rows?: number }) {
   );
 }
 
-/** A stat-card shaped skeleton matching StatCard. */
-export function SkeletonStatCard() {
+/** A stat-card shaped skeleton matching the premium editorial StatCard —
+ *  same rounded-2xl / hairline-border / inset-highlight shell, with the
+ *  uppercase mono label and light editorial value replaced by shimmer bars. */
+export function SkeletonStatCard({ withHint = false }: { withHint?: boolean }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-soft">
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-3 w-20" index={0} />
-        <Skeleton className="h-8 w-8 rounded-md" index={1} />
+    <div
+      className="rounded-2xl bg-white p-5"
+      style={{
+        border: "1px solid rgba(0,0,0,0.06)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)",
+      }}
+    >
+      <Skeleton className="h-2 w-20" index={0} />
+      <Skeleton className="mt-3 h-6 w-16" index={1} />
+      {withHint ? <Skeleton className="mt-2 h-2 w-14" index={2} /> : null}
+    </div>
+  );
+}
+
+/** A donut-ring shaped skeleton matching DonutStat. */
+export function SkeletonDonut() {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <div className="relative h-[76px] w-[76px]">
+        <svg viewBox="0 0 76 76" className="h-full w-full -rotate-90">
+          <circle
+            cx="38"
+            cy="38"
+            r={30}
+            fill="none"
+            stroke="rgb(var(--color-slate-100))"
+            strokeWidth="7"
+          />
+        </svg>
+        <div className="absolute inset-[7px] overflow-hidden rounded-full">
+          <Skeleton className="h-full w-full rounded-full" index={0} />
+        </div>
       </div>
-      <Skeleton className="mt-4 h-7 w-16" index={2} />
+      <Skeleton className="mt-2.5 h-2.5 w-16" index={1} />
+      <Skeleton className="mt-1.5 h-2 w-10" index={2} />
     </div>
   );
 }

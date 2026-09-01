@@ -8,7 +8,10 @@ export default function AdminAircraftLoading() {
         <Skeleton className="h-10 w-36 rounded-md" />
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 shadow-soft">
+      <div
+        className="mt-4 overflow-hidden rounded-2xl bg-white shadow-sm"
+        style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+      >
         <div className="divide-y divide-slate-100 p-5">
           {Array.from({ length: 6 }).map((_, index) => (
             <div key={index} className="flex items-center justify-between gap-4 py-3.5">

@@ -118,7 +118,10 @@ export default async function AdminBookingsPage({ searchParams }: AdminBookingsP
           />
         </div>
       ) : (
-        <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100">
+        <div
+          className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-2xl bg-white px-3 shadow-sm sm:px-4"
+          style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+        >
           {bookings.map((booking) => (
             <AdminBookingRow key={booking._id} booking={booking} airportNames={airportNames} />
           ))}

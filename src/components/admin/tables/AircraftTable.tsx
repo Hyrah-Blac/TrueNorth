@@ -166,7 +166,10 @@ export function AircraftTable({ initialAircraft }: { initialAircraft: IAircraft[
 
       {bulkError ? <p className="mt-3 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{bulkError}</p> : null}
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
+      <div
+        className="mt-4 overflow-hidden rounded-2xl bg-white shadow-sm"
+        style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+      >
         {initialAircraft.length === 0 ? (
           <div className="p-6">
             <EmptyState

@@ -23,17 +23,14 @@ const navItems: SidebarNavItem[] = [
   { label: "Quotes",        href: "/admin/quotes",         icon: <FileText aria-hidden="true" /> },
   { label: "Payments",      href: "/admin/payments",       icon: <Receipt aria-hidden="true" /> },
   { label: "Customers",     href: "/admin/customers",      icon: <Users aria-hidden="true" /> },
-];
-
-const footerNavItems: SidebarNavItem[] = [
-  { label: "Settings", href: "/admin/settings", icon: <Gear aria-hidden="true" /> },
+  { label: "Settings",      href: "/admin/settings",       icon: <Gear aria-hidden="true" /> },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();
 
   return (
-    <DashboardShell items={navItems} footerItems={footerNavItems} title="Admin">
+    <DashboardShell items={navItems} title="Admin">
       <div style={{ "--font-editorial": "var(--font-dashboard-serif)" } as CSSProperties}>
         {children}
       </div>

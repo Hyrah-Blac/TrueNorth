@@ -13,13 +13,13 @@ import { FancyButton } from "@/components/shared/buttons/FancyButton";
 import { updateSiteSettings } from "@/features/admin/actions/settings.actions";
 import { siteSettingsSchema, type SiteSettingsInput } from "@/features/admin/schemas/settings.schema";
 
-// Each settings group renders as its own bordered card with an icon +
-// title header, laid out in a responsive grid on the page (see
+// Each settings group renders as its own card with an icon + title
+// header, laid out in a responsive grid on the page (see
 // admin/settings/page.tsx) instead of one long column of dividers — the
 // old layout left the whole right side of the page empty above ~1024px.
-// Flat by design (no shadow) — a hairline border and the off-white page
-// background underneath it do the separating, rather than a drop shadow
-// that makes the card look like it's floating above the page.
+// Matches the premium card treatment used on the dashboard overview:
+// generous rounding, a hairline border, and a soft shadow so it reads as
+// a gently raised surface rather than a flat, boxed-in panel.
 function SectionCard({
   title,
   description,
@@ -34,7 +34,10 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <div className={`rounded-xl border border-slate-200 bg-white p-7 sm:p-8 ${className}`}>
+    <div
+      className={`rounded-2xl bg-white p-7 shadow-sm sm:p-8 ${className}`}
+      style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+    >
       <div className="mb-7 flex items-start gap-4 border-b border-slate-100 pb-6">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-navy-950/5 text-navy-900">
           <Icon className="h-5 w-5" aria-hidden="true" />

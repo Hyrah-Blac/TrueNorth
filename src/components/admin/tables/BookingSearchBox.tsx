@@ -26,14 +26,15 @@ export function BookingSearchBox() {
   }
 
   return (
-    <div className={`relative max-w-sm transition-opacity ${isPending ? "opacity-60" : ""}`}>
-      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+    <div className={`relative max-w-sm ${isPending ? "opacity-60" : ""}`}>
+      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
       <input
         type="search"
         placeholder="Search reference, customer, aircraft…"
         defaultValue={searchParams.get("search") ?? ""}
         onChange={(event) => handleChange(event.target.value)}
-        className="w-full rounded-md border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-500 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"
+        className="w-full rounded-full bg-white py-2.5 pl-11 pr-4 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus-visible:outline-none"
+        style={{ border: "1px solid rgba(0,0,0,0.08)" }}
       />
     </div>
   );
