@@ -246,8 +246,8 @@ export async function deleteCloudinaryAsset(publicId: string, resourceType: "ima
  *
  * This matters because the signed upload params (see createUploadSignature
  * above) can't carry a file-size cap — Cloudinary doesn't support signing
- * one — so the 5MB check in AvatarUploader.tsx is UX only: a client that
- * skips our component and POSTs straight to Cloudinary with a valid
+ * one — so any client-side size check ahead of upload is UX only: a
+ * client that skips it and POSTs straight to Cloudinary with a valid
  * signature could still land an oversized file. Calling this right after
  * upload, before the asset is ever referenced from a User doc, is what
  * actually enforces the limit.

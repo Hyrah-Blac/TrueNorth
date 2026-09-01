@@ -44,17 +44,13 @@ interface MobileNavProps {
 // so it caps at a slim 320px there instead of ballooning into a wide
 // panel.
 //
-// "Dashboard" is listed first among the customer account links -- it
-// points at the portal overview (stat cards, action-required banner,
-// recent activity), which otherwise has no entry point anywhere in the
-// nav. Everything else (Bookings/Quotes/Payments) is a filtered view of
-// that same data, so it reads as the anchor with the record types
-// nested under it -- same pattern as NetJets member portals.
-// Profile isn't in that list separately: the name/email header block at
-// the top of this panel (avatar + name + email) is itself a link to
-// /dashboard/profile, so tapping your own identity is how you get
-// there. There's no separate avatar in the top bar (see Navbar.tsx) --
-// this panel is the only account entry point at every breakpoint.
+// There's no standalone Profile or Dashboard-overview page anymore, so
+// the name/email header block at the top of this panel (avatar + name +
+// email) is purely decorative identity — it isn't a link. Bookings,
+// Quotes, and Payments are the direct entry points into account data;
+// Sign Out sits below them. There's no separate avatar in the top bar
+// (see Navbar.tsx) — this panel is the only account entry point at
+// every breakpoint.
 //
 // Every text size in here is a flat `text-xs` at every breakpoint, no
 // `sm:text-sm` step-up — matching the footer, which uses the same flat
@@ -181,12 +177,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
             {open ? (
               <SignedIn>
                 {user ? (
-                  <Link
-                    href="/dashboard/profile"
-                    onClick={onClose}
-                    aria-label="View your profile"
-                    className="mb-4 flex items-center gap-3 rounded-md border-b border-white/15 px-2 pb-5 transition-colors duration-300 hover:bg-white/5"
-                  >
+                  <div className="mb-4 flex items-center gap-3 rounded-md border-b border-white/15 px-2 pb-5">
                     {user.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -207,7 +198,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                         {user.primaryEmailAddress?.emailAddress}
                       </p>
                     </div>
-                  </Link>
+                  </div>
                 ) : null}
               </SignedIn>
             ) : null}
@@ -254,10 +245,6 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                   </Link>
                 ) : (
                   <>
-                    <Link href="/dashboard" onClick={onClose} className={ACCOUNT_LINK_CLASS}>
-                      <Gauge className="h-4 w-4 shrink-0 sm:h-[1.125rem] sm:w-[1.125rem]" aria-hidden="true" />
-                      Dashboard
-                    </Link>
                     <Link href="/dashboard/bookings" onClick={onClose} className={ACCOUNT_LINK_CLASS}>
                       <AirplaneTakeoff className="h-4 w-4 shrink-0 sm:h-[1.125rem] sm:w-[1.125rem]" aria-hidden="true" />
                       Bookings

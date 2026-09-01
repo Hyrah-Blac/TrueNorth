@@ -5,7 +5,7 @@ import { Container } from "@/components/layout/container/Container";
 import { SkipLink } from "@/components/shared/SkipLink";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 
-// Customers reach their own data (Bookings, Quotes, Payments, Profile) as
+// Customers reach their own data (Bookings, Quotes, Payments) as
 // direct links inside the site's main nav menu, so these pages render
 // inside the standard site Navbar/Footer — same light, editorial look as
 // Fleet and Destinations — rather than a separate dashboard chrome.
@@ -23,8 +23,8 @@ export default async function CustomerDashboardLayout({ children }: { children: 
       <SkipLink />
       <Navbar phone={settings.phone} />
       <main id="main-content" className="relative min-h-screen pt-28 lg:pt-32">
-        {/* Background photo for every customer dashboard page (Overview,
-            Bookings, Quotes, Payments, Profile) — fixed so it doesn't
+        {/* Background photo for every customer dashboard page (Bookings,
+            Quotes, Payments) — fixed so it doesn't
             scroll with the content, with a soft white wash over it so the
             navy-on-white text and white premium cards stay legible. Swap
             the file at public/images/gallery/sept.jpg to change it. */}

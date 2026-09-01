@@ -156,7 +156,7 @@ export default clerkMiddleware(async (authFn, req) => {
   const role = getRoleFromSessionClaims(sessionClaims);
 
   if (isAdminRoute(req) && role !== ROLES.ADMIN) {
-    return respond(NextResponse.redirect(new URL("/dashboard", req.url)));
+    return respond(NextResponse.redirect(new URL("/dashboard/bookings", req.url)));
   }
 
   return respond(next());

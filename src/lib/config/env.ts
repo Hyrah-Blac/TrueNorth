@@ -21,8 +21,8 @@ const envSchema = z.object({
   // sign-in completes.
   NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string().min(1).default("/sign-in"),
   NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string().min(1).default("/sign-up"),
-  NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: z.string().min(1).default("/dashboard"),
-  NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: z.string().min(1).default("/dashboard"),
+  NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: z.string().min(1).default("/dashboard/bookings"),
+  NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: z.string().min(1).default("/dashboard/bookings"),
 
   MPESA_ENVIRONMENT: z.enum(["sandbox", "production"]).default("production"),
   MPESA_CONSUMER_KEY: z.string().min(1, "M-Pesa consumer key is required"),

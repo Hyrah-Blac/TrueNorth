@@ -36,7 +36,6 @@ export async function customerAcceptQuote(
     revalidatePath("/dashboard/quotes");
     revalidatePath(`/dashboard/quotes/${data.quoteId}`);
     revalidatePath("/dashboard/bookings");
-    revalidatePath("/dashboard");
 
     return { success: true, data: { status: quote.status, bookingId: String(booking._id) } };
   } catch (error) {
@@ -60,7 +59,6 @@ export async function customerDeclineQuote(
 
     revalidatePath("/dashboard/quotes");
     revalidatePath(`/dashboard/quotes/${data.quoteId}`);
-    revalidatePath("/dashboard");
 
     return { success: true, data: { status: quote.status } };
   } catch (error) {

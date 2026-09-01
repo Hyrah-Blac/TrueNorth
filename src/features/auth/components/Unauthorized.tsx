@@ -14,10 +14,10 @@ export function Unauthorized() {
         please contact our support team.
       </p>
       <Link
-        href="/dashboard"
+        href="/dashboard/bookings"
         className="mt-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
       >
-        Return to dashboard
+        Return to your account
       </Link>
     </div>
   );
