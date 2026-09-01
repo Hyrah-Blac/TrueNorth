@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import type { TooltipProps } from "recharts";
-import type { MonthlyPoint } from "@/features/admin/lib/getAnalytics";
+import type { TrendPoint } from "@/features/admin/lib/getAnalytics";
 import { formatCurrency } from "@/utils/currency";
 
 // Custom tooltip — small bordered card with a mono/tabular value and a
@@ -40,7 +40,7 @@ export function TrendChart({
   formatAsCurrency = false,
   color = "rgb(var(--color-sky-500))",
 }: {
-  data: MonthlyPoint[];
+  data: TrendPoint[];
   /**
    * Server Components can't pass functions to Client Components (only
    * serializable props), so instead of accepting a formatter function
@@ -68,7 +68,7 @@ export function TrendChart({
           </defs>
           <CartesianGrid stroke="rgb(var(--color-slate-100))" vertical={false} />
           <XAxis
-            dataKey="month"
+            dataKey="label"
             axisLine={false}
             tickLine={false}
             tickMargin={10}
