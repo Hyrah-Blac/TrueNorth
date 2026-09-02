@@ -7,7 +7,7 @@ import { Section, SectionGap } from "@/components/layout/section/Section";
 import { Pagination } from "@/components/shared/Pagination";
 import { JsonLd } from "@/components/shared/JsonLd";
 import { CompareTray } from "@/components/aircraft/compare/CompareTray";
-import { getAircraftList } from "@/features/aircraft/lib/getAircraft";
+import { getAircraftList, getAircraftFilterCounts } from "@/features/aircraft/lib/getAircraft";
 import { AIRCRAFT_CATEGORY_VALUES, type AircraftCategory } from "@/database/constants/aircraft";
 import { buildPaginationMeta } from "@/utils/pagination";
 import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
@@ -39,7 +39,10 @@ export default async function FleetPage({ searchParams }: FleetPageProps) {
   const minPassengers = params.minPassengers ? Number(params.minPassengers) : undefined;
   const page = params.page ? Math.max(Number(params.page), 1) : 1;
 
-  const { items, total, limit } = await getAircraftList({ category, minPassengers, page });
+  const [{ items, total, limit }, filterCounts] = await Promise.all([
+    getAircraftList({ category, minPassengers, page }),
+    getAircraftFilterCounts({ category, minPassengers }),
+  ]);
   const meta = buildPaginationMeta(total, page, limit);
 
   function buildHref(targetPage: number) {
@@ -63,7 +66,7 @@ export default async function FleetPage({ searchParams }: FleetPageProps) {
 
       <Section tone="slate" className="!pt-0">
         <h2 className="sr-only">Available Aircraft</h2>
-        <FleetFilters activeCategory={category} />
+        <FleetFilters activeCategory={category} filterCounts={filterCounts} />
 
         <div className="mt-6">
           <FleetGrid items={items} />

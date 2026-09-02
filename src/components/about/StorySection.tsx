@@ -27,7 +27,7 @@ export async function StorySection() {
         </p>
       </div>
 
-      <div className="relative min-h-[220px] sm:min-h-[280px] lg:min-h-full">
+      <div className="relative min-h-[220px] sm:min-h-[280px] md:min-h-[340px] lg:min-h-full">
         <Image
           src="/images/gallery/done.jpg"
           alt={`${settings.companyName} aircraft over the Kenyan landscape`}

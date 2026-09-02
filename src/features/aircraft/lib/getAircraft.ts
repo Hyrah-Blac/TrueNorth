@@ -1,7 +1,7 @@
 import "server-only";
 import connectToDatabase from "@/database/connection";
 import Aircraft from "@/database/models/Aircraft";
-import { AIRCRAFT_STATUSES } from "@/database/constants/aircraft";
+import { AIRCRAFT_STATUSES, AIRCRAFT_CATEGORY_VALUES } from "@/database/constants/aircraft";
 import { OBJECT_ID_REGEX } from "@/utils/validators";
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@/utils/pagination";
 import type { AircraftCategory } from "@/database/constants/aircraft";
@@ -43,6 +43,60 @@ export async function getAircraftList(
   ]);
 
   return { items: serialize<IAircraft[]>(items), total, page, limit };
+}
+
+export interface FleetFilterCounts {
+  total: number;
+  categoryCounts: Record<AircraftCategory, number>;
+  passengerCounts: Record<"4" | "8" | "12", number>;
+}
+
+/**
+ * Counts backing the fleet filter bar, so unavailable options can be greyed
+ * out instead of letting the user land on a dead-end "no results" screen.
+ *
+ * Each dimension is counted against the *other* active filter, not its own:
+ * category counts respect the current passenger filter (and vice versa), so
+ * a chip only greys out when it would produce zero results in combination
+ * with whatever else is currently selected — not on its own in isolation.
+ */
+export async function getAircraftFilterCounts(
+  filters: { category?: AircraftCategory; minPassengers?: number } = {}
+): Promise<FleetFilterCounts> {
+  await connectToDatabase();
+
+  const baseMatch: Record<string, unknown> = { status: AIRCRAFT_STATUSES.ACTIVE };
+
+  const categoryMatch: Record<string, unknown> = { ...baseMatch };
+  if (filters.minPassengers) categoryMatch.passengerCapacity = { $gte: filters.minPassengers };
+
+  const passengerMatch: Record<string, unknown> = { ...baseMatch };
+  if (filters.category) passengerMatch.category = filters.category;
+
+  const [categoryAgg, total, p4, p8, p12] = await Promise.all([
+    Aircraft.aggregate<{ _id: AircraftCategory; count: number }>([
+      { $match: categoryMatch },
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+    ]),
+    Aircraft.countDocuments(baseMatch),
+    Aircraft.countDocuments({ ...passengerMatch, passengerCapacity: { $gte: 4 } }),
+    Aircraft.countDocuments({ ...passengerMatch, passengerCapacity: { $gte: 8 } }),
+    Aircraft.countDocuments({ ...passengerMatch, passengerCapacity: { $gte: 12 } }),
+  ]);
+
+  const categoryCounts = AIRCRAFT_CATEGORY_VALUES.reduce(
+    (acc, category) => {
+      acc[category] = categoryAgg.find((row) => row._id === category)?.count ?? 0;
+      return acc;
+    },
+    {} as Record<AircraftCategory, number>
+  );
+
+  return {
+    total,
+    categoryCounts,
+    passengerCounts: { "4": p4, "8": p8, "12": p12 },
+  };
 }
 
 export interface AircraftOptionResult {

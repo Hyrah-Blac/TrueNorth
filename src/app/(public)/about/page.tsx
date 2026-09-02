@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Section } from "@/components/layout/section/Section";
 import { StorySection } from "@/components/about/StorySection";
-import { AboutIntro } from "@/components/about/AboutIntro";
+import { AboutPhotoBand } from "@/components/about/AboutPhotoBand";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,11 +20,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function AboutPage() {
   return (
     <>
-      <AboutIntro />
-
-      <Section tone="white">
+      <Section tone="white" className="!pb-0">
         <StorySection />
       </Section>
+
+      <AboutPhotoBand />
     </>
   );
 }

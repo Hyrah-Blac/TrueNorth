@@ -11,7 +11,7 @@ export function DestinationsHero() {
     <section className="relative flex min-h-[82svh] items-center overflow-hidden bg-navy-950 py-20 sm:py-24 lg:min-h-[85svh] lg:py-0">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <Image
-          src="/images/destinations/phone.jpg"
+          src="/images/hero/opp.jpg"
           alt=""
           fill
           priority
