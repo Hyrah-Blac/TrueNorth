@@ -32,19 +32,21 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // ---------------------------------------------------------------------------
 // Navbar
 //
-// Transparent only at the very top of hero routes (see HERO_ROUTES below);
-// everywhere else it opens already solid, since those pages have no dark
-// hero for white text to sit on. It then gains a shadow/border once the
-// page scrolls (or the mobile menu opens), so it visually lifts off the
-// content beneath it. Nav link/logo colors flip from white to dark navy at
-// the same moment (see the `solid` prop threaded through TopLink/NavbarLogo)
-// so text stays legible against whichever background is showing. Fixed
-// positioning is used everywhere (not just home) so the transparent state
-// can actually overlay page content instead of just sitting inline above
-// it; pages need top padding/margin equal to the bar's height (h-24) to
-// avoid their content being tucked underneath it. The transition is a plain
-// background-color fade (see TRANSITION), not a layout shift — height
-// stays constant so nothing jumps.
+// Transparent at the top of every public page now, not just a HERO_ROUTES
+// whitelist — it only goes solid once the page actually scrolls (or the
+// mobile menu opens). What still varies per route is text/logo color while
+// transparent: pages with a dark photo/navy band at the top get white text
+// (the default); pages that open straight into a white/light background
+// get dark text instead, via LIGHT_TEXT_ROUTES below, so the bar still
+// blends into the page rather than rendering invisible white-on-white
+// text. Either way the bar itself gains a shadow/border once scrolled, so
+// it visually lifts off the content beneath it — that part doesn't depend
+// on the light/dark split. Fixed positioning is used everywhere so the
+// transparent state can actually overlay page content instead of sitting
+// inline above it; pages need top padding/margin equal to the bar's
+// height (h-24) to avoid their content being tucked underneath it. The
+// transition is a plain background-color fade (see TRANSITION), not a
+// layout shift — height stays constant so nothing jumps.
 //
 // Fleet / Destinations / About are inline top-bar links (visible from lg
 // upward). The hamburger stays visible at every breakpoint and is the
@@ -57,44 +59,48 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // The centered logo mark is suppressed while the bar is transparent, but
 // only on the home hero ("/") — that's the only page where the Hero
 // component renders its own logo over the "Adventure, above & beyond"
-// line, so showing it here too would double it up. Every other hero
-// route (fleet, destinations, about) keeps the navbar logo visible even
-// while transparent, since nothing else on those pages is showing it.
-// It fades back in the moment the bar goes solid (scroll, menu open, or
-// a non-hero route), in sync with the same background-color transition.
+// line, so showing it here too would double it up. Every other page
+// keeps the navbar logo visible even while transparent, since nothing
+// else on those pages is showing it. It fades back in the moment the bar
+// goes solid (scroll, menu open), in sync with the same background-color
+// transition.
 // ---------------------------------------------------------------------------
 
-// Routes whose top section is a full-bleed dark/image hero — these are the
-// only pages where a transparent, white-text bar over that hero makes
-// sense. Every other route opens straight into a white page background,
-// so the bar needs to start solid there or its white text and logo
-// disappear against the page underneath it.
+// Routes (and route prefixes) whose top-of-page content is light —
+// white/slate background, no dark photo — so the transparent bar needs
+// dark text/logo there instead of the white default, or it'd be
+// unreadable against the page underneath it. Everything not listed here
+// gets the white-text default, which assumes a dark navy or photo band
+// at the top (home, fleet hub, destinations, etc.).
 //
-// request-charter used to have a dark navy/photo hero here too, but the
-// charter request flow now opens straight into a plain white page (the
-// VistaJet-style "Request a quote" layout — see the page component), so
-// it moved out of this list to match every other plain-white route.
-const HERO_ROUTES = ["/", "/fleet", "/destinations", "/about", "/contact"];
+// Prefix matches (fleet sub-routes, ticket verification, legal pages)
+// are checked with startsWith below rather than listed by exact path —
+// legal covers four sibling routes, and fleet/ticket cover dynamic
+// segments ([id], [token]).
+const LIGHT_TEXT_ROUTES = ["/contact", "/about"];
 
-// Contact and about now use a light, white-washed photo (not the dark
-// ones used on the other hero routes), so a transparent bar there still
-// needs dark text/logo to stay legible — white text would vanish against
-// it. These routes get a transparent background like the others, but
-// keep solid-page text color throughout.
-const LIGHT_HERO_ROUTES = ["/contact", "/about"];
-
-// The customer dashboard (Bookings, Quotes, Payments) now renders its
-// own background photo (see the (customer)/dashboard
-// layout) with the same light white-wash treatment as contact/about, so
-// it's handled the same way here: matched by prefix rather than an exact
-// path since every dashboard sub-route (e.g. /dashboard/bookings/abc123)
-// should behave identically, not just the bare /dashboard route itself.
+// The customer dashboard (Bookings, Quotes, Payments) renders its own
+// background photo (see the (customer)/dashboard layout) with the same
+// light white-wash treatment as contact/about, so it's handled the same
+// way here: matched by prefix rather than an exact path since every
+// dashboard sub-route (e.g. /dashboard/bookings/abc123) should behave
+// identically, not just the bare /dashboard route itself.
 
 export function Navbar({ phone }: { phone: string }) {
   const pathname = usePathname();
   const isDashboardRoute = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-  const isHeroRoute = HERO_ROUTES.includes(pathname) || isDashboardRoute;
-  const isLightHero = LIGHT_HERO_ROUTES.includes(pathname) || isDashboardRoute;
+
+  // Fleet detail (/fleet/[id]) and compare (/fleet/compare) both open
+  // into a plain slate/white top section — unlike the fleet hub itself
+  // (/fleet), which keeps its full-bleed photo hero. Ticket verification
+  // is the same plain-white treatment. Legal pages use the same
+  // white-washed photo hero as About/Contact (see LegalPageLayout). All
+  // three are prefix-matched to cover dynamic segments or sibling routes.
+  const isFleetSubRoute = pathname.startsWith("/fleet/");
+  const isTicketRoute = pathname.startsWith("/ticket/");
+  const isLegalRoute = pathname.startsWith("/legal/");
+  const isLightHero =
+    LIGHT_TEXT_ROUTES.includes(pathname) || isFleetSubRoute || isTicketRoute || isLegalRoute || isDashboardRoute;
 
   // The charter request flow gets a stripped-down bar: just the logo,
   // floating over the page with a transparent background at all times
@@ -108,6 +114,24 @@ export function Navbar({ phone }: { phone: string }) {
   const [hidden, setHidden] = useState(false);
   const lastY = useRef(0);
 
+  // Recalculate immediately on every route change, not just on scroll.
+  // This component persists across navigations in the App Router (the
+  // layout doesn't remount), so without this, `scrolled`/`hidden` state
+  // from whatever page you scrolled down before clicking a link would
+  // carry straight over — the bar could land solid, or stay hidden, on
+  // a brand-new page that's sitting at the top of a fresh scroll
+  // position. Next.js resets window.scrollY to 0 on a normal Link
+  // navigation, so re-reading it here right after route change is what
+  // makes the transparent→solid state actually match reality on
+  // arrival, instead of only fixing itself on the visitor's next
+  // scroll. This is what makes navigating between pages feel like one
+  // continuous bar rather than a glitch on every click.
+  useEffect(() => {
+    lastY.current = window.scrollY;
+    setScrolled(window.scrollY > 24);
+    setHidden(false);
+  }, [pathname]);
+
   // Runs on every page now, not just home — any page can have a light
   // or busy section scroll under the bar, not only the homepage hero.
   //
@@ -117,9 +141,12 @@ export function Navbar({ phone }: { phone: string }) {
   // from flickering on tiny scroll jitter (trackpads, mobile bounce).
   // Hiding only kicks in past 80px so the bar doesn't disappear the
   // moment someone nudges the page near the very top.
+  //
+  // Attached once for the component's lifetime (not re-attached per
+  // route) — the effect above already handles the per-navigation reset,
+  // so this only needs to run once rather than tearing down and
+  // rebuilding a scroll listener on every click.
   useEffect(() => {
-    lastY.current = window.scrollY;
-
     const handleScroll = () => {
       const currentY = window.scrollY;
       setScrolled(currentY > 24);
@@ -135,7 +162,6 @@ export function Navbar({ phone }: { phone: string }) {
       }
     };
 
-    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -159,27 +185,26 @@ export function Navbar({ phone }: { phone: string }) {
     };
   }, [menuOpen]);
 
-  // On hero routes, stay transparent until the page scrolls (or the menu
-  // opens). On every other route there's no hero to be transparent over,
-  // so the bar is solid from the first paint — it just won't show the
-  // scrolled elevation (border/shadow) until the page actually scrolls,
-  // which is what makes it read as merged with the page rather than a
-  // floating card sitting on top of it.
-  const showSolid = isMinimalNav ? false : !isHeroRoute || scrolled || menuOpen;
+  // Transparent at the top of every page now; solid only kicks in once
+  // the page actually scrolls (or the menu opens). See the top-of-file
+  // comment for how text/logo color (textSolid, below) still varies by
+  // route even though the background transparency itself no longer
+  // does.
+  const showSolid = isMinimalNav ? false : scrolled || menuOpen;
   const elevated = isMinimalNav ? false : scrolled || menuOpen;
 
   // Background transparency (showSolid) and text/logo color are usually
-  // the same toggle, but on a light-background hero like contact — and
-  // now on the minimal request-charter bar — they diverge: the bar
+  // the same toggle, but on a light-background route like contact/about
+  // — and on the minimal request-charter bar — they diverge: the bar
   // itself should still go transparent, while the text/logo stays dark
   // since there's no dark photo backing it.
   const textSolid = showSolid || isLightHero || isMinimalNav;
 
   // Only the home hero renders its own oversized logo over "Adventure,
-  // above & beyond" — the other hero routes (fleet, destinations, about)
-  // don't duplicate it, so the navbar's own logo should stay visible on
-  // those even while the bar is transparent. It's only suppressed here
-  // on "/" while transparent, to avoid showing it twice.
+  // above & beyond" — every other page doesn't duplicate it, so the
+  // navbar's own logo should stay visible everywhere else even while
+  // transparent. It's only suppressed here on "/" while transparent, to
+  // avoid showing it twice.
   const isHomeHero = pathname === "/";
   const showLogo = !(isHomeHero && !showSolid);
 
@@ -192,9 +217,7 @@ export function Navbar({ phone }: { phone: string }) {
       } ${showSolid ? "bg-white" : "bg-transparent"} ${
         elevated
           ? "border-b border-slate-200 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.15)]"
-          : !isHeroRoute && !isMinimalNav
-            ? "border-b border-slate-200/70"
-            : "border-b border-transparent"
+          : "border-b border-transparent"
       }`}
     >
       <Container className="px-4 sm:px-6 lg:px-10 xl:px-14">

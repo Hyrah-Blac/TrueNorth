@@ -45,8 +45,14 @@ export interface WhyChooseUsPoint {
 
 export const whyChooseUs: WhyChooseUsPoint[] = [
   {
-    title: "KCAA-certified operation",
-    description: "Every aircraft and crew operates under a full Kenya Civil Aviation Authority Air Operator Certificate.",
+    // Was "KCAA-certified operation" — a specific regulatory claim this
+    // content file has no way to verify or keep in sync with the
+    // operator's actual current certification status. Kept the point
+    // (safety process matters to charter customers) but dropped the
+    // named-authority claim; add it back deliberately, sourced from
+    // siteSettings, once it's confirmed and admin-maintained.
+    title: "Safety-first operations",
+    description: "Every aircraft and crew is maintained and dispatched to full regulatory compliance for Kenyan civil aviation.",
   },
   {
     title: "A fleet matched to the mission",

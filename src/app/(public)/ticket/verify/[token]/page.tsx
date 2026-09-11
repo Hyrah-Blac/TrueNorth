@@ -49,7 +49,7 @@ export default async function VerifyTicketPage({ params }: VerifyTicketPageProps
 
   if (!result) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center px-6 py-16">
+      <div className="flex min-h-[60vh] items-center justify-center px-6 pb-16 pt-28 lg:pt-32">
         <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-8 py-14 text-center">
           <SealWarning className="h-10 w-10 text-red-600" weight="light" aria-hidden="true" />
           <h1 className="font-display text-xl font-semibold text-navy-900">Invalid Ticket</h1>
@@ -73,7 +73,7 @@ export default async function VerifyTicketPage({ params }: VerifyTicketPageProps
   const airportNames = await getAirportNamesByCodes([result.departureAirportCode, result.destinationAirportCode]);
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center px-6 py-16">
+    <div className="flex min-h-[60vh] items-center justify-center px-6 pb-16 pt-28 lg:pt-32">
       <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-champagne-400/30 bg-white shadow-soft">
         <div className="flex flex-col items-center gap-3 bg-navy-950 px-8 py-8 text-center">
           <SealCheck className="h-10 w-10 text-champagne-400" weight="light" aria-hidden="true" />

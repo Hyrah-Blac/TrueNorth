@@ -4,6 +4,7 @@ import { JsonLd } from "@/components/shared/JsonLd";
 import { SkipLink } from "@/components/shared/SkipLink";
 import { WhatsAppButton } from "@/components/whatsapp/WhatsAppButton";
 import { AiConcierge } from "@/features/ai/components/AiConcierge";
+import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 import { getOrganizationSchema } from "@/lib/seo/structuredData";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 
@@ -21,6 +22,7 @@ export default async function PublicLayout({ children }: { children: React.React
       {settings.ai.enabled ? (
         <AiConcierge welcomeMessage={settings.ai.welcomeMessage} starterPrompts={settings.ai.starterPrompts} />
       ) : null}
+      <CookieConsentBanner />
     </>
   );
 }

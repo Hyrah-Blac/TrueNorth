@@ -16,7 +16,15 @@ export const siteConfig = {
     country: "Kenya",
   },
   operatingHours: "Dispatch desk: 24 / 7 · Offices: Mon–Sat, 07:00–19:00 EAT",
-  certifications: ["KCAA AOC Certified", "IS-BAO Registered", "ISAGO Compliant"],
+  // Not currently rendered anywhere on the site. Previously hardcoded as
+  // ["KCAA AOC Certified", "IS-BAO Registered", "ISAGO Compliant"] —
+  // specific regulatory claims this constants file has no way to verify
+  // or keep current. Left empty deliberately: populate it (or better,
+  // move it into siteSettings so it's admin-editable) only once each
+  // certification is confirmed current, and keep it in sync with reality
+  // going forward — an out-of-date certification claim is as much a
+  // liability as a false one.
+  certifications: [] as string[],
 } as const;
 
 export type SiteConfig = typeof siteConfig;

@@ -97,6 +97,17 @@ const NAV_LINKS = [
   { href: "/request-charter", label: "Request Charter" },
 ];
 
+// Legal/compliance pages — deliberately kept out of the main "Explore"
+// column (they're reference material, not something a visitor browses
+// to) and rendered instead, small, in the bottom bar next to the
+// copyright line, the way most sites present them.
+const LEGAL_LINKS = [
+  { href: "/legal/privacy-policy", label: "Privacy Policy" },
+  { href: "/legal/terms-and-conditions", label: "Terms & Conditions" },
+  { href: "/legal/cookie-policy", label: "Cookie Policy" },
+  { href: "/legal/refund-policy", label: "Refund Policy" },
+];
+
 export async function Footer() {
   const settings = await getSiteSettings();
 
@@ -179,6 +190,22 @@ export async function Footer() {
             </FooterAccordionSection>
           </div>
         </div>
+
+        {/* Small print — deliberately quiet (white/40, tiny tracking-normal
+            text) so it reads as reference material rather than competing
+            with the Explore/Contact columns above for attention. Wraps
+            naturally on phones instead of forcing a scroll. */}
+        <nav aria-label="Legal" className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-white/10 pt-5 sm:mt-8 sm:justify-start sm:pt-6 lg:pr-16">
+          {LEGAL_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-[0.6875rem] text-white/40 transition-colors duration-300 ease-out hover:text-sky-300"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
 
         <div className="flex flex-col items-center gap-4 pb-2 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:pb-0 sm:pt-8 lg:pr-16">
           <p className="order-2 text-xs text-white/50 sm:order-1">

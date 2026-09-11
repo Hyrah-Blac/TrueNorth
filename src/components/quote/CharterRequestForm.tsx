@@ -92,6 +92,12 @@ export function CharterRequestForm({ defaultValues }: CharterRequestFormProps) {
   const [isPending, startTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [quoteNumber, setQuoteNumber] = useState<string | null>(null);
+  // Consent to how submitted data is used — required before we'll send
+  // the request. Kept as simple local state rather than wired into the
+  // quote schema/DB: it's a client-side gate on submission, not booking
+  // data the backend needs to persist.
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [consentError, setConsentError] = useState<string | null>(null);
 
   const {
     register,
@@ -245,6 +251,19 @@ export function CharterRequestForm({ defaultValues }: CharterRequestFormProps) {
     }
   }
 
+  // Gate on the consent checkbox before react-hook-form's own submit
+  // handler runs, so an unchecked box blocks submission the same way a
+  // required-field error would, rather than silently sending the request
+  // without a recorded basis for processing the contact's data.
+  function handleSubmitClick() {
+    if (!consentGiven) {
+      setConsentError("Please confirm you've read our Privacy Policy and Terms before submitting.");
+      return;
+    }
+    setConsentError(null);
+    handleSubmit(onSubmit)();
+  }
+
   function onSubmit(data: CreateQuoteInput) {
     handleContactSubmit((contact) => {
       setSubmitError(null);
@@ -316,7 +335,48 @@ export function CharterRequestForm({ defaultValues }: CharterRequestFormProps) {
             </p>
           ) : null}
 
-          <div className="mt-10 flex flex-col-reverse items-center gap-4 sm:mt-12 sm:flex-row sm:justify-between">
+          <div className="mt-8 sm:mt-10">
+            <label className="flex items-start gap-2.5 text-xs leading-relaxed text-slate-600 sm:text-[0.8125rem]">
+              <input
+                type="checkbox"
+                checked={consentGiven}
+                onChange={(event) => {
+                  setConsentGiven(event.target.checked);
+                  if (event.target.checked) setConsentError(null);
+                }}
+                aria-describedby={consentError ? "consent-error" : undefined}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+              />
+              <span>
+                I&apos;ve read and agree to the{" "}
+                <a
+                  href="/legal/privacy-policy"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-sky-600 underline underline-offset-2 hover:text-sky-700"
+                >
+                  Privacy Policy
+                </a>{" "}
+                and{" "}
+                <a
+                  href="/legal/terms-and-conditions"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-sky-600 underline underline-offset-2 hover:text-sky-700"
+                >
+                  Terms &amp; Conditions
+                </a>
+                , including how my contact details are used to prepare this quote.
+              </span>
+            </label>
+            {consentError ? (
+              <p id="consent-error" className="mt-2 pl-[1.625rem] text-xs text-red-600" role="alert">
+                {consentError}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="mt-6 flex flex-col-reverse items-center gap-4 sm:mt-8 sm:flex-row sm:justify-between">
             <Button type="button" variant="outline" size="md" onClick={goBack} className="w-full sm:w-auto">
               Back
             </Button>
@@ -325,7 +385,7 @@ export function CharterRequestForm({ defaultValues }: CharterRequestFormProps) {
               type="button"
               variant="primary"
               size="md"
-              onClick={handleSubmit(onSubmit)}
+              onClick={handleSubmitClick}
               disabled={isPending}
               icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
               className="w-full sm:w-auto"
