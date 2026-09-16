@@ -48,7 +48,7 @@ export function CompareTable({ aircraft, airportNames = {}, onRemove }: CompareT
   const columnWidth = `minmax(220px, 1fr)`;
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-soft">
+    <div className="overflow-x-auto rounded-xl border border-slate-200">
       <div
         className="grid min-w-[720px]"
         style={{ gridTemplateColumns: `200px repeat(${aircraft.length}, ${columnWidth})` }}

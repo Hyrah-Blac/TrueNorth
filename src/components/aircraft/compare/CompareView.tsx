@@ -1,9 +1,8 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Scales, Stack } from "@phosphor-icons/react";
+import { Scales, Stack } from "@phosphor-icons/react";
 import { Container } from "@/components/layout/container/Container";
 import { Skeleton } from "@/components/shared/skeleton/Skeleton";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
@@ -96,15 +95,7 @@ function CompareContent() {
   return (
     <div className="border-t border-slate-200 bg-slate-50 py-14 lg:py-16">
       <Container>
-        <Link
-          href="/fleet"
-          className="inline-flex items-center gap-2 text-[0.6875rem] font-medium uppercase tracking-[0.15em] text-slate-400 transition-colors duration-300 hover:text-navy-900"
-        >
-          <ArrowLeft className="h-3 w-3" weight="thin" aria-hidden="true" />
-          Back to fleet
-        </Link>
-
-        <div className="mt-6 flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-900 text-white">
             <Scales className="h-4 w-4" weight="thin" aria-hidden="true" />
           </span>
@@ -115,7 +106,7 @@ function CompareContent() {
           {loading ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {slugs.map((slug) => (
-                <div key={slug} className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 shadow-soft">
+                <div key={slug} className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
                   <Skeleton className="aspect-[4/3] w-full" />
                   <Skeleton className="h-5 w-2/3" />
                   <Skeleton className="h-3.5 w-1/2" />
