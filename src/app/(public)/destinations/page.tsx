@@ -13,12 +13,14 @@ const description =
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
+  const ogImage = { url: `${siteConfig.url}/images/destinations/pc.jpg`, alt: "Kenya and East Africa charter destinations" };
 
   return {
     title: "Destinations",
     description,
-    openGraph: { title: `Destinations | ${settings.companyName}`, description },
-    twitter: { title: `Destinations | ${settings.companyName}`, description },
+    alternates: { canonical: `${siteConfig.url}/destinations` },
+    openGraph: { title: `Destinations | ${settings.companyName}`, description, images: [ogImage] },
+    twitter: { title: `Destinations | ${settings.companyName}`, description, images: [ogImage.url] },
   };
 }
 

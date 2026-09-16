@@ -5,17 +5,22 @@ import Image from "next/image";
 import { Phone, WhatsappLogo, EnvelopeSimple, MapPin, Clock } from "@phosphor-icons/react/dist/ssr";
 import { Container } from "@/components/layout/container/Container";
 import { Button } from "@/components/shared/buttons/Button";
+import { JsonLd } from "@/components/shared/JsonLd";
+import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
 import { getSiteSettings } from "@/lib/config/siteSettings";
+import { siteConfig } from "@/lib/config/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const description = `Get in touch with ${settings.companyName} via WhatsApp or phone for charter requests, fleet questions, or general inquiries.`;
+  const ogImage = { url: `${siteConfig.url}/images/gallery/sept.jpg`, alt: `Contact ${settings.companyName}` };
 
   return {
     title: "Contact",
     description,
-    openGraph: { title: `Contact | ${settings.companyName}`, description },
-    twitter: { title: `Contact | ${settings.companyName}`, description },
+    alternates: { canonical: `${siteConfig.url}/contact` },
+    openGraph: { title: `Contact | ${settings.companyName}`, description, images: [ogImage] },
+    twitter: { title: `Contact | ${settings.companyName}`, description, images: [ogImage.url] },
   };
 }
 
@@ -79,7 +84,15 @@ export default async function ContactPage() {
   const whatsappNumber = settings.whatsapp || settings.phone;
 
   return (
-    <section className="relative min-h-dvh overflow-hidden bg-white lg:flex lg:min-h-screen lg:items-center lg:py-16">
+    <>
+      <JsonLd
+        data={getBreadcrumbSchema([
+          { name: "Home", url: siteConfig.url },
+          { name: "Contact", url: `${siteConfig.url}/contact` },
+        ])}
+      />
+
+      <section className="relative min-h-dvh overflow-hidden bg-white lg:flex lg:min-h-screen lg:items-center lg:py-16">
       <style>{`
         @keyframes contactFadeIn {
           from { opacity: 0; transform: translateY(8px); }
@@ -210,6 +223,7 @@ export default async function ContactPage() {
           </div>
         </div>
       </Container>
-    </section>
+      </section>
+    </>
   );
 }

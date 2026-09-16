@@ -8,9 +8,9 @@ export async function StorySection() {
   return (
     <div className="grid grid-cols-1 overflow-hidden rounded-xl lg:grid-cols-2">
       <div className="flex flex-col justify-center bg-slate-50 px-6 py-10 sm:px-8 sm:py-12 lg:px-14 lg:py-16">
-        <h2 className="font-editorial text-balance text-base font-light uppercase leading-[1.35] tracking-[0.03em] text-navy-900 sm:text-lg lg:text-xl">
+        <h1 className="font-editorial text-balance text-base font-light uppercase leading-[1.35] tracking-[0.03em] text-navy-900 sm:text-lg lg:text-xl">
           Built around Kenya&apos;s actual charter needs
-        </h2>
+        </h1>
 
         <p className="mt-4 max-w-xl text-[0.75rem] leading-relaxed tracking-wide text-slate-600 sm:text-[0.8125rem]">
           {settings.companyName} operates from {settings.addressLine1} with a fleet spanning

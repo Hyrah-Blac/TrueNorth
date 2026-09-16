@@ -12,6 +12,7 @@ export async function getOrganizationSchema(): Promise<Record<string, unknown>> 
     name: settings.companyName,
     description: settings.companyDescription || siteConfig.description,
     url: siteConfig.url,
+    image: `${siteConfig.url}/images/gallery/sept.jpg`,
     telephone: settings.phone,
     email: settings.email,
     address: {
@@ -22,6 +23,7 @@ export async function getOrganizationSchema(): Promise<Record<string, unknown>> 
     },
     areaServed: ["Kenya", "East Africa"],
     priceRange: "$$$",
+    ...(settings.socialLinks.length > 0 ? { sameAs: settings.socialLinks.map((link) => link.href) } : {}),
   };
 }
 

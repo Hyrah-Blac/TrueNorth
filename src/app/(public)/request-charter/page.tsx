@@ -3,20 +3,25 @@ import { Container } from "@/components/layout/container/Container";
 import { CharterRequestForm } from "@/components/quote/CharterRequestForm";
 import { Reveal } from "@/components/shared/Reveal";
 import { AboutIntro } from "@/components/about/AboutIntro";
+import { JsonLd } from "@/components/shared/JsonLd";
+import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
 import { getAircraftByIdOrSlug } from "@/features/aircraft/lib/getAircraft";
 import { getSiteSettings } from "@/lib/config/siteSettings";
+import { siteConfig } from "@/lib/config/site";
 import { recordQuoteStart } from "@/lib/ai/analytics";
 import type { CreateQuoteInput } from "@/features/quote/schemas/quote.schema";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const description = `Tell us your route, dates, and mission and ${settings.companyShortName || settings.companyName}'s operations team will follow up with aircraft recommendations and pricing.`;
+  const ogImage = { url: `${siteConfig.url}/images/gallery/sept.jpg`, alt: `Request a charter with ${settings.companyName}` };
 
   return {
     title: "Request a Charter",
     description,
-    openGraph: { title: `Request a Charter | ${settings.companyName}`, description },
-    twitter: { title: `Request a Charter | ${settings.companyName}`, description },
+    alternates: { canonical: `${siteConfig.url}/request-charter` },
+    openGraph: { title: `Request a Charter | ${settings.companyName}`, description, images: [ogImage] },
+    twitter: { title: `Request a Charter | ${settings.companyName}`, description, images: [ogImage.url] },
   };
 }
 
@@ -62,6 +67,13 @@ export default async function RequestCharterPage({ searchParams }: RequestCharte
 
   return (
     <>
+      <JsonLd
+        data={getBreadcrumbSchema([
+          { name: "Home", url: siteConfig.url },
+          { name: "Request a Charter", url: `${siteConfig.url}/request-charter` },
+        ])}
+      />
+
       <section className="relative z-10 bg-white pt-32 sm:pt-40 lg:pt-44">
         <Container>
           <Reveal variant="fade-up">

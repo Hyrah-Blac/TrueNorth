@@ -17,12 +17,14 @@ import { siteConfig } from "@/lib/config/site";
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const description = `Browse ${settings.companyName}'s fleet of helicopters, turboprops, light jets, utility, medevac, safari, and cargo aircraft available for charter across Kenya and East Africa.`;
+  const ogImage = { url: `${siteConfig.url}/images/hero/hunt.jpg`, alt: `${settings.companyName} fleet` };
 
   return {
     title: "Fleet",
     description,
-    openGraph: { title: `Fleet | ${settings.companyName}`, description },
-    twitter: { title: `Fleet | ${settings.companyName}`, description },
+    alternates: { canonical: `${siteConfig.url}/fleet` },
+    openGraph: { title: `Fleet | ${settings.companyName}`, description, images: [ogImage] },
+    twitter: { title: `Fleet | ${settings.companyName}`, description, images: [ogImage.url] },
   };
 }
 
