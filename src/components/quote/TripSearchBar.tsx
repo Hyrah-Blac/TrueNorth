@@ -58,8 +58,8 @@ export function TripSearchBar({ values, onChange, errors, onSubmit, isSubmitting
   const isReady = Boolean(values.departureAirportCode && values.destinationAirportCode && values.departureDate);
 
   return (
-    <div className="flex flex-col rounded-[28px] border border-navy-950/25 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] sm:flex-row sm:items-stretch sm:rounded-full">
-      <div className="flex min-w-0 flex-1 items-center px-6 py-4 sm:py-3 [&>*]:min-w-0 [&>*]:flex-1">
+    <div className="flex flex-col lining-nums rounded-3xl border border-slate-400 bg-white sm:flex-row sm:items-stretch sm:rounded-full sm:border-navy-950/25 sm:shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+      <div className="flex min-w-0 flex-1 items-center px-6 py-6 sm:py-3 [&>*]:min-w-0 [&>*]:flex-1">
         <AirportPillField
           id="departureAirportCode"
           direction="from"
@@ -73,9 +73,9 @@ export function TripSearchBar({ values, onChange, errors, onSubmit, isSubmitting
       </div>
 
       <div className="hidden h-10 w-px shrink-0 self-center bg-navy-950/20 sm:block" />
-      <div className="h-px w-full shrink-0 bg-navy-950/20 sm:hidden" />
+      <div className="h-px w-full shrink-0 bg-slate-200 sm:hidden" />
 
-      <div className="flex min-w-0 flex-1 items-center px-6 py-4 sm:py-3 [&>*]:min-w-0 [&>*]:flex-1">
+      <div className="flex min-w-0 flex-1 items-center px-6 py-6 sm:py-3 [&>*]:min-w-0 [&>*]:flex-1">
         <AirportPillField
           id="destinationAirportCode"
           direction="to"
@@ -89,9 +89,9 @@ export function TripSearchBar({ values, onChange, errors, onSubmit, isSubmitting
       </div>
 
       <div className="hidden h-10 w-px shrink-0 self-center bg-navy-950/20 sm:block" />
-      <div className="h-px w-full shrink-0 bg-navy-950/20 sm:hidden" />
+      <div className="h-px w-full shrink-0 bg-slate-200 sm:hidden" />
 
-      <div className="flex min-w-0 flex-1 items-center px-6 py-4 sm:py-3 [&>*]:min-w-0 [&>*]:flex-1">
+      <div className="flex min-w-0 flex-1 items-center sm:px-6 sm:py-3 [&>*]:min-w-0 [&>*]:flex-1">
         <DateRangeField
           departureDate={values.departureDate}
           returnDate={values.returnDate}
@@ -106,9 +106,9 @@ export function TripSearchBar({ values, onChange, errors, onSubmit, isSubmitting
       </div>
 
       <div className="hidden h-10 w-px shrink-0 self-center bg-navy-950/20 sm:block" />
-      <div className="h-px w-full shrink-0 bg-navy-950/20 sm:hidden" />
+      <div className="h-px w-full shrink-0 bg-slate-200 sm:hidden" />
 
-      <div className="flex shrink-0 items-center px-6 py-4 sm:py-3">
+      <div className="flex shrink-0 items-center px-6 py-6 sm:py-3">
         <PassengerStepper
           value={values.passengerCount}
           onChange={(value) => onChange("passengerCount", value)}
@@ -117,7 +117,7 @@ export function TripSearchBar({ values, onChange, errors, onSubmit, isSubmitting
 
       {onSubmit ? (
         <div
-          className={`flex shrink-0 items-center justify-center px-6 py-2 transition-colors duration-300 sm:py-0 ${
+          className={`flex shrink-0 items-center justify-center transition-colors duration-300 sm:py-0 ${
             isReady ? "sm:items-stretch sm:px-0" : "sm:pl-2 sm:pr-6"
           }`}
         >
@@ -137,24 +137,28 @@ export function TripSearchBar({ values, onChange, errors, onSubmit, isSubmitting
             corners line up without the container needing overflow-
             hidden — which would otherwise clip the From/To/Date
             dropdown menus that pop out below the pill.
-            On the stacked mobile layout it's a plain circular CTA
-            instead, since there's no single trailing edge to fill.
+            On the stacked mobile layout it's a full-width "NEXT" bar
+            along the card's bottom edge (grey until the trip is
+            complete, blue once ready), matching the mobile reference.
           */}
           <button
             type="button"
             onClick={onSubmit}
             disabled={isSubmitting || !isReady}
             aria-label="Search"
-            className={`flex shrink-0 items-center justify-center transition-colors duration-300 ${
+            className={`flex shrink-0 items-center justify-center transition-colors duration-300 max-sm:h-11 max-sm:w-full max-sm:rounded-b-[23px] max-sm:text-xs max-sm:font-medium max-sm:uppercase max-sm:tracking-[0.2em] max-sm:text-white ${
               isReady
-                ? "h-12 w-12 rounded-full bg-blue-600 text-white hover:bg-blue-700 sm:h-auto sm:w-20 sm:self-stretch sm:rounded-none sm:rounded-r-full"
-                : "pointer-events-none h-10 w-10 rounded-full text-slate-300"
+                ? "bg-blue-600 text-white hover:bg-blue-700 sm:h-auto sm:w-20 sm:self-stretch sm:rounded-r-full"
+                : "pointer-events-none bg-slate-200 sm:h-10 sm:w-10 sm:rounded-full sm:bg-transparent sm:text-slate-300"
             }`}
           >
             {isSubmitting ? (
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
             ) : (
-              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              <>
+                <span className="sm:hidden">Next</span>
+                <ArrowRight className="hidden h-5 w-5 sm:block" aria-hidden="true" />
+              </>
             )}
           </button>
         </div>

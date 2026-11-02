@@ -107,8 +107,8 @@ export function AirportPillField({
 
   return (
     <div ref={rootRef} className="relative">
-      <div className="flex items-center gap-3">
-        <Icon className="h-5 w-5 shrink-0 text-navy-900" aria-hidden="true" />
+      <div className="flex items-center gap-5 sm:gap-3">
+        <Icon className="h-6 w-6 shrink-0 text-navy-900 sm:h-5 sm:w-5" strokeWidth={1.25} aria-hidden="true" />
         <div className="min-w-0 flex-1">
           <input
             ref={inputRef}
@@ -127,12 +127,12 @@ export function AirportPillField({
             }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="w-full min-w-0 cursor-pointer truncate bg-transparent text-sm text-navy-900 outline-none placeholder:text-slate-500 sm:text-base"
+            className="w-full min-w-0 cursor-pointer truncate bg-transparent text-base max-sm:font-light text-navy-900 outline-none placeholder:text-navy-900/80 sm:placeholder:text-slate-500"
           />
           {selected ? <span className="block truncate text-xs text-slate-400">{selected.name}</span> : null}
         </div>
         <ChevronDown
-          className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`hidden h-3.5 w-3.5 shrink-0 text-slate-400 sm:block transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           aria-hidden="true"
         />
       </div>
@@ -141,7 +141,7 @@ export function AirportPillField({
         <ul
           id={listId}
           role="listbox"
-          className="absolute bottom-[calc(100%+10px)] left-0 right-0 z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-lifted ring-1 ring-black/[0.03] sm:right-auto sm:w-72"
+          className="absolute left-0 right-0 top-[calc(100%+12px)] sm:bottom-[calc(100%+10px)] sm:top-auto z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-lifted ring-1 ring-black/[0.03] sm:right-auto sm:w-72"
         >
           {isLoading ? (
             <li className="flex items-center justify-center gap-2 px-3.5 py-6 text-center text-xs text-slate-400">

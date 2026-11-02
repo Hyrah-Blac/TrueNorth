@@ -1,6 +1,7 @@
 "use client";
 
-import { Headset, X, MessageSquarePlus } from "lucide-react";
+import Image from "next/image";
+import { X, MessageSquarePlus } from "lucide-react";
 
 interface ConciergeHeaderProps {
   onClose: () => void;
@@ -38,25 +39,19 @@ export function ConciergeHeader({ onClose, onRequestNewConversation, hasConversa
         className="relative flex items-center justify-between px-6 pb-5 sm:px-10"
       >
         <div className="flex items-center gap-3">
-          {/* rounded-xl, not rounded-full — matches the persona-marker
-              treatment used for the avatar in MessageBubble/TypingIndicator.
-              overflow-hidden + the conic-gradient span inside gives a slow
-              radar-style scan sweep across the badge, the signature
-              "futuristic" detail. Online-status dot stays circular and
-              sits outside the clipped avatar so it isn't cut off. */}
-          <div className="relative h-10 w-10 shrink-0">
-            <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-champagne-500 to-champagne-600 text-navy-950 shadow-crisp">
-              <span
-                className="absolute inset-0 animate-spin motion-reduce:hidden [animation-duration:5s]"
-                style={{
-                  backgroundImage:
-                    "conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.55) 35deg, transparent 70deg)",
-                }}
-                aria-hidden="true"
-              />
-              <Headset className="relative z-10 h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
-            </div>
-            <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full border-2 border-white bg-green-500">
+          {/* The robot mascot stands free — no tile or badge behind it.
+              The online dot is circular and tucked at its lower right. */}
+          <div className="relative h-12 w-12 shrink-0">
+            <Image
+              src="/images/concierge-robot.png"
+              alt=""
+              aria-hidden="true"
+              width={128}
+              height={128}
+              className="h-12 w-12 select-none drop-shadow-[0_4px_6px_rgba(15,23,42,0.3)]"
+              draggable={false}
+            />
+            <span className="absolute bottom-0.5 right-0 flex h-3 w-3 items-center justify-center rounded-full border-2 border-white bg-green-500">
               <span className="absolute h-3 w-3 animate-ping rounded-full bg-green-500/60 motion-reduce:hidden" />
             </span>
           </div>

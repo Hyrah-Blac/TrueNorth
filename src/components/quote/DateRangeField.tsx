@@ -90,8 +90,10 @@ export function DateRangeField({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-        <CalendarBlank className="h-5 w-5 shrink-0 text-navy-900" aria-hidden="true" />
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1.5">
+        {/* Mobile: Date and Add return are two stacked rows (hairline between them) to match the stacked From/To rows; sm:contents dissolves both wrappers so desktop keeps its single inline row. */}
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-6 py-6 sm:contents">
+        <CalendarBlank className="h-6 w-6 shrink-0 text-navy-900 sm:h-5 sm:w-5" weight="light" aria-hidden="true" />
 
         <div className="relative shrink-0">
           <input
@@ -100,23 +102,23 @@ export function DateRangeField({
             min={today}
             value={departureDate ?? ""}
             onChange={(event) => onChangeDeparture(event.target.value)}
-            className={`peer relative min-w-0 cursor-pointer bg-transparent text-sm outline-none transition-colors [color-scheme:light] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 hover:text-blue-600 focus:text-navy-900 sm:text-base ${
+            className={`peer relative min-w-0 cursor-pointer bg-transparent text-base max-sm:font-light outline-none transition-colors [color-scheme:light] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 hover:text-blue-600 focus:text-navy-900 ${
               departureDate ? "text-navy-900" : "text-transparent"
             }`}
           />
           {!departureDate ? (
-            <span className="pointer-events-none absolute inset-0 flex items-center bg-white text-sm text-navy-900 transition-colors peer-hover:text-blue-600 peer-focus:hidden sm:text-base">
+            <span className="pointer-events-none absolute inset-0 flex items-center bg-white text-base max-sm:font-light text-navy-900 transition-colors peer-hover:text-blue-600 peer-focus:hidden">
               Date
             </span>
           ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-x-2">
+        <div className={`ml-auto shrink-0 items-center gap-x-2 sm:ml-0 sm:flex ${departureDate ? "flex" : "hidden"}`}>
           <select
             aria-label="Departure time"
             value={selectValue}
             onChange={(event) => handleTimeSelectChange(event.target.value)}
-            className={`cursor-pointer rounded-md bg-transparent text-sm outline-none transition-colors hover:text-blue-600 focus:text-navy-900 sm:text-base ${
+            className={`cursor-pointer rounded-md bg-transparent text-sm max-sm:font-light outline-none transition-colors hover:text-blue-600 focus:text-navy-900 sm:text-base ${
               selectValue === "any" ? "text-slate-500" : "text-navy-900"
             }`}
           >
@@ -139,14 +141,16 @@ export function DateRangeField({
             />
           ) : null}
         </div>
+        </div>
 
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-200 px-6 py-6 sm:contents">
         <button
           type="button"
           role="checkbox"
           aria-checked={isRoundTrip}
           onClick={() => onToggleRoundTrip(!isRoundTrip)}
-          className={`shrink-0 whitespace-nowrap text-sm transition-colors hover:text-blue-600 sm:text-base ${
-            isRoundTrip ? "text-navy-900" : "text-slate-500"
+          className={`ml-11 shrink-0 whitespace-nowrap text-base max-sm:font-light transition-colors hover:text-blue-600 sm:ml-0 ${
+            isRoundTrip ? "text-navy-900" : "text-navy-900/80 sm:text-slate-500"
           }`}
         >
           Add return
@@ -160,21 +164,22 @@ export function DateRangeField({
               min={departureDate || today}
               value={returnDate ?? ""}
               onChange={(event) => onChangeReturn(event.target.value)}
-              className={`peer relative min-w-0 cursor-pointer bg-transparent text-sm outline-none transition-colors [color-scheme:light] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 hover:text-blue-600 focus:text-navy-900 sm:text-base ${
+              className={`peer relative min-w-0 cursor-pointer bg-transparent text-base max-sm:font-light outline-none transition-colors [color-scheme:light] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 hover:text-blue-600 focus:text-navy-900 sm:text-base ${
                 returnDate ? "text-navy-900" : "text-transparent"
               }`}
             />
             {!returnDate ? (
-              <span className="pointer-events-none absolute inset-0 flex items-center bg-white text-sm text-navy-900 transition-colors peer-hover:text-blue-600 peer-focus:hidden sm:text-base">
+              <span className="pointer-events-none absolute inset-0 flex items-center bg-white text-base max-sm:font-light text-navy-900 transition-colors peer-hover:text-blue-600 peer-focus:hidden">
                 Date
               </span>
             ) : null}
           </div>
         ) : null}
+        </div>
       </div>
 
       {error ? (
-        <p className="mt-1 text-xs text-red-600" role="alert">
+        <p className="-mt-3 px-6 pb-4 text-xs text-red-600 sm:mt-1 sm:p-0" role="alert">
           {error}
         </p>
       ) : null}

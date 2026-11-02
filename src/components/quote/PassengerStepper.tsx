@@ -29,18 +29,18 @@ export function PassengerStepper({ value, onChange, min = 1, max = 100 }: Passen
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-5 sm:gap-3">
       <button
         type="button"
         onClick={decrement}
         disabled={value <= min}
         aria-label="Decrease passengers"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-navy-900/30 text-navy-900 transition-colors hover:border-sky-500 hover:text-sky-600 disabled:pointer-events-none disabled:border-navy-900/20 disabled:text-navy-900/40"
+        className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border border-navy-900/60 sm:h-8 sm:w-8 sm:border-navy-900/30 text-navy-900 transition-colors hover:border-sky-500 hover:text-sky-600 disabled:pointer-events-none disabled:border-navy-900/20 disabled:text-navy-900/40"
       >
-        <Minus className="h-3.5 w-3.5" aria-hidden="true" />
+        <Minus className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
       </button>
 
-      <span className="whitespace-nowrap text-sm text-navy-900 sm:text-base">
+      <span className="whitespace-nowrap text-base max-sm:font-light text-navy-900">
         {value} {value === 1 ? "Passenger" : "Passengers"}
       </span>
 
@@ -49,9 +49,9 @@ export function PassengerStepper({ value, onChange, min = 1, max = 100 }: Passen
         onClick={increment}
         disabled={value >= max}
         aria-label="Increase passengers"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-navy-900/30 text-navy-900 transition-colors hover:border-sky-500 hover:text-sky-600 disabled:pointer-events-none disabled:border-navy-900/20 disabled:text-navy-900/40"
+        className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border border-navy-900/60 sm:h-8 sm:w-8 sm:border-navy-900/30 text-navy-900 transition-colors hover:border-sky-500 hover:text-sky-600 disabled:pointer-events-none disabled:border-navy-900/20 disabled:text-navy-900/40"
       >
-        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+        <Plus className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
       </button>
     </div>
   );

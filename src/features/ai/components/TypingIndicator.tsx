@@ -1,4 +1,4 @@
-import { Headset } from "lucide-react";
+import Image from "next/image";
 
 export function TypingIndicator({ label }: { label?: string | null }) {
   return (
@@ -7,12 +7,17 @@ export function TypingIndicator({ label }: { label?: string | null }) {
       role="status"
       aria-label={label ?? "AI Concierge is typing"}
     >
-      {/* rounded-xl + champagne gradient — same persona-marker treatment
-          as the avatar in MessageBubble and ConciergeHeader, so the
-          concierge reads as the same "character" everywhere it shows up. */}
-      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-champagne-500 to-champagne-600 text-navy-950 shadow-crisp">
-        <Headset className="h-3 w-3" strokeWidth={1.5} aria-hidden="true" />
-      </div>
+      {/* Robot mascot — same persona marker as MessageBubble and
+          ConciergeHeader, so the concierge reads as one character. */}
+      <Image
+        src="/images/concierge-robot.png"
+        alt=""
+        aria-hidden="true"
+        width={64}
+        height={64}
+        className="h-7 w-7 shrink-0 select-none drop-shadow-[0_2px_3px_rgba(15,23,42,0.25)]"
+        draggable={false}
+      />
       {label ? (
         <span className="font-body text-xs text-slate-500">{label}</span>
       ) : (
