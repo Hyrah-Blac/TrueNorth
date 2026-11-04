@@ -18,6 +18,9 @@ const HIDDEN_PATH_PREFIXES = [
   // Opened by whoever scans a ticket's QR code to check someone in; a
   // focused verification result, not a browsing page.
   "/ticket/verify",
+  // Contact page: the page itself is the contact channel, and it should
+  // stay free of floating elements.
+  "/contact",
   // Defensive: never show on staff or maintenance routes even if a layout
   // change later moves them under a shared wrapper.
   "/admin",

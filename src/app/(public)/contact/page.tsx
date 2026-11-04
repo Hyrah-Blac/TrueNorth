@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
-import type { Icon } from "@phosphor-icons/react";
 import Image from "next/image";
-import { Phone, WhatsappLogo, EnvelopeSimple, MapPin, Clock } from "@phosphor-icons/react/dist/ssr";
 import { Container } from "@/components/layout/container/Container";
-import { Button } from "@/components/shared/buttons/Button";
+import { ContactIllustration } from "@/components/contact/ContactIllustration";
 import { JsonLd } from "@/components/shared/JsonLd";
 import { getBreadcrumbSchema } from "@/lib/seo/structuredData";
 import { getSiteSettings } from "@/lib/config/siteSettings";
@@ -32,56 +29,121 @@ function getWhatsAppHref(whatsapp: string) {
   return `https://wa.me/${digitsOnly}`;
 }
 
-interface ContactRowProps {
+interface Channel {
+  key: string;
   label: string;
-  children: ReactNode;
-  caption?: string;
   href: string;
-  actionLabel: string;
-  icon: Icon;
-  emphasize?: boolean;
+  title: string;
+  lines: string[];
+  hint: string;
+  external?: boolean;
+  logo: { src: string; width: number; height: number; className: string };
 }
 
-// Each method now reads as its own compact "instrument" — label, value,
-// and a real tappable Button (44px+ target) instead of a small underlined
-// text link, so the row holds up as a touch target on phones, not just a
-// desktop hover affordance. Stacks to a column below `sm`, sits inline
-// beside the value from `sm` up.
-function ContactRow({ label, children, caption, href, actionLabel, icon: IconComponent, emphasize }: ContactRowProps) {
+// One channel: a round full-colour logo with its label. It is a real link, so
+// click/tap/Enter performs the action; hovering or keyboard-focusing it opens
+// a small card with the details. `align` keeps the card inside the column.
+function ChannelLink({ channel, align }: { channel: Channel; align: "left" | "right" }) {
+  const { logo } = channel;
+  const anchor = align === "left" ? "left-0" : "right-0";
+
   return (
-    <div className="flex flex-col gap-4 border-b border-navy-900/10 py-6 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-champagne-50 text-champagne-600">
-            <IconComponent className="h-2.5 w-2.5" weight="light" aria-hidden="true" />
-          </span>
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">{label}</p>
-        </div>
-        <div
-          className={`font-editorial mt-2 break-words font-light leading-snug text-navy-900 ${
-            emphasize ? "text-sm sm:text-base" : "text-xs sm:text-sm"
-          }`}
-        >
-          {children}
-        </div>
-        {caption ? <p className="mt-1.5 text-[0.6875rem] text-slate-500">{caption}</p> : null}
-      </div>
-      <Button
-        href={href}
-        variant="outline"
-        size="sm"
-        icon={<IconComponent className="h-3 w-3" weight="light" aria-hidden="true" />}
-        className="group relative w-full shrink-0 isolate overflow-hidden whitespace-nowrap bg-white/80 !text-xs shadow-sm backdrop-blur-sm before:pointer-events-none before:absolute before:inset-y-0 before:-left-1/3 before:w-1/3 before:-skew-x-12 before:bg-gradient-to-r before:from-transparent before:via-white/80 before:to-transparent before:content-[''] before:transition-transform before:duration-700 before:ease-out hover:!translate-y-0 hover:!border-slate-300 hover:!bg-white/80 hover:!text-navy-900 hover:shadow-sm hover:before:translate-x-[400%] sm:w-32"
+    <li className="group/channel relative w-20">
+      <a
+        href={channel.href}
+        {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        aria-label={`${channel.title}: ${channel.lines.join(", ")}`}
+        className="flex flex-col items-center gap-3 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy-950"
       >
-        {actionLabel}
-      </Button>
-    </div>
+        <span className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-slate-200/80 bg-white shadow-[0_8px_20px_-10px_rgba(11,18,32,0.3)]">
+          {/* Light shine sweep, same treatment as the admin Save button. */}
+          <span
+            className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-300/60 to-transparent transition-transform duration-700 ease-out group-hover/channel:translate-x-full group-focus-within/channel:translate-x-full"
+            aria-hidden="true"
+          />
+          <Image src={logo.src} width={logo.width} height={logo.height} alt="" unoptimized className={`relative ${logo.className}`} />
+        </span>
+        <span className="text-[0.6rem] font-medium uppercase tracking-[0.14em] text-slate-500">
+          {channel.label}
+        </span>
+      </a>
+
+      <span
+        role="tooltip"
+        className={`pointer-events-none invisible absolute top-full z-30 mt-3.5 w-max min-w-[14rem] max-w-[18rem] rounded-2xl text-left opacity-0 shadow-[0_24px_48px_-16px_rgba(11,18,32,0.6)] group-hover/channel:visible group-hover/channel:opacity-100 group-focus-within/channel:visible group-focus-within/channel:opacity-100 ${anchor}`}
+      >
+        <span className="block overflow-hidden rounded-2xl border border-white/10 bg-navy-950">
+        <span className="block px-5 pb-4 pt-4">
+          <span className="block text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-white/50">
+            {channel.title}
+          </span>
+          <span className="mt-2 block">
+            {channel.lines.map((line) => (
+              <span key={line} className="block break-words text-[0.8rem] font-medium leading-relaxed text-white">
+                {line}
+              </span>
+            ))}
+          </span>
+        </span>
+        <span className="block border-t border-white/10 bg-white/[0.04] px-5 py-2.5 text-[0.65rem] font-medium tracking-wide text-white/75">
+          <span>
+            <span className="hidden [@media(hover:hover)]:inline">Click</span>
+            <span className="[@media(hover:hover)]:hidden">Tap</span> {channel.hint}
+          </span>
+        </span>
+        </span>
+      </span>
+    </li>
   );
 }
 
 export default async function ContactPage() {
   const settings = await getSiteSettings();
   const whatsappNumber = settings.whatsapp || settings.phone;
+
+  const addressParts = [settings.addressLine1, settings.addressLine2, settings.city].filter(Boolean);
+  const directionsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressParts.join(", "))}`;
+
+  const channels: Channel[] = [
+    {
+      key: "phone",
+      label: "Call",
+      href: `tel:${settings.phone}`,
+      title: "Call us",
+      lines: [settings.phone],
+      hint: "to call",
+      logo: { src: "/images/brand/phone.svg", width: 48, height: 48, className: "h-7 w-7" },
+    },
+    {
+      key: "whatsapp",
+      label: "WhatsApp",
+      href: getWhatsAppHref(whatsappNumber),
+      title: "WhatsApp",
+      lines: [whatsappNumber],
+      hint: "to start a chat",
+      external: true,
+      logo: { src: "/images/brand/whatsapp.svg", width: 256, height: 258, className: "h-8 w-8" },
+    },
+    {
+      key: "email",
+      label: "Email",
+      href: `mailto:${settings.email}`,
+      title: "Email us",
+      lines: [settings.email],
+      hint: "to write an email",
+      logo: { src: "/images/brand/gmail.svg", width: 256, height: 204, className: "h-5 w-auto" },
+    },
+    {
+      key: "visit",
+      label: "Visit us",
+      href: directionsHref,
+      title: "Visit us",
+      lines: addressParts,
+      hint: "to open in Google Maps",
+      external: true,
+      logo: { src: "/images/brand/google-maps.png", width: 184, height: 256, className: "h-7 w-auto" },
+    },
+  ];
 
   return (
     <>
@@ -92,137 +154,36 @@ export default async function ContactPage() {
         ])}
       />
 
-      <section className="relative min-h-dvh overflow-hidden bg-white lg:flex lg:min-h-screen lg:items-center lg:py-16">
-      <style>{`
-        @keyframes contactFadeIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .contact-fade { animation: contactFadeIn 0.7s ease-out both; }
-        @media (prefers-reduced-motion: reduce) {
-          .contact-fade { animation: none; }
-        }
-      `}</style>
+      {/* Hero: heading, intro and contact icons on the left, the illustration
+          on the right. */}
+      <section className="bg-gradient-to-r from-white to-slate-100">
+        <Container className="pb-16 pt-28 sm:pb-20 sm:pt-32 lg:pb-24 lg:pt-36">
+          <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-12 lg:gap-x-10">
+            <div className="lg:col-span-5">
+              {/* Same classes as the "Not Sure Which Aircraft You Need?" heading on the
+                  fleet page: font-body (Raleway), uppercase, light, wide tracking. */}
+              <h1 className="font-body text-balance text-[clamp(0.875rem,0.75rem+0.6vw,1.125rem)] font-light uppercase leading-[1.15] tracking-[0.1em] text-navy-950">
+                Contact
+              </h1>
+              <p className="mt-5 max-w-sm text-xs leading-relaxed text-slate-600">
+                Speak directly with our charter team. We are available around the clock to arrange your flight,
+                answer fleet questions, or handle any request, with no forms and no waiting for a callback.
+              </p>
 
-      {/* Full-page background photo — a slow, continuous zoom (same
-          animate-zoom-slow used on the other hero routes) gives it a
-          little ambient life instead of sitting static. saturate/contrast
-          keep the photo's actual color alive under the white scrim
-          instead of reading as a flat grey wash. The scrim is light —
-          just enough to keep the navy/slate copy legible directly on
-          top of it, since there's no separate card panel dimming things
-          further. A matching top/bottom fade grounds both edges of the
-          section instead of the photo cutting off abruptly. */}
-      <div className="absolute inset-0" aria-hidden="true">
-        <Image
-          src="/images/gallery/sept.jpg"
-          alt=""
-          fill
-          priority
-          className="animate-zoom-slow object-cover [filter:saturate(1.25)_contrast(1.05)]"
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/72 to-white/85" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(255,255,255,0.35)_100%)]" />
-        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/95 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/70 to-transparent" />
-      </div>
+              <nav aria-label="Ways to reach us" className="mt-9">
+                <ul className="-ml-2 flex flex-wrap gap-x-3 gap-y-8">
+                  {channels.map((channel, index) => (
+                    <ChannelLink key={channel.key} channel={channel} align={index < 2 ? "left" : "right"} />
+                  ))}
+                </ul>
+              </nav>
+            </div>
 
-
-      {/* Content sits directly on the full-page photo/scrim behind it —
-          no separate card panel, so the page reads as one continuous
-          surface rather than a floating sheet on top of the photo. */}
-      <Container className="relative pb-16 pt-24 sm:pb-20 sm:pt-32 lg:py-0">
-        <div className="contact-fade relative grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-x-16">
-          <div className="relative lg:col-span-5">
-            <h1 className="font-body relative max-w-md text-balance text-[clamp(0.875rem,0.75rem+0.6vw,1.125rem)] font-light uppercase leading-[1.15] tracking-[0.1em] text-navy-950">
-              Speak With Our Charter Team
-            </h1>
-            <p className="relative mt-5 max-w-sm text-sm leading-relaxed text-slate-600">
-              Our concierge is available around the clock to arrange your
-              flight, answer fleet questions, or handle any request directly —
-              no forms, no waiting for a callback.
-            </p>
-
-            <div className="horizon-divider relative mt-10 lg:mt-14" />
-
-            <div className="relative mt-8 grid grid-cols-1 gap-6 sm:mt-10 sm:grid-cols-2 sm:gap-8">
-              <div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-3 w-3 text-champagne-600" weight="light" aria-hidden="true" />
-                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
-                    Office
-                  </p>
-                </div>
-                <div className="font-editorial mt-2 text-xs font-light leading-relaxed text-navy-900">
-                  <span className="block">{settings.addressLine1}</span>
-                  {settings.addressLine2 ? <span className="block">{settings.addressLine2}</span> : null}
-                  <span className="block">{settings.city}</span>
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-3 w-3 text-champagne-600" weight="light" aria-hidden="true" />
-                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
-                    Hours
-                  </p>
-                </div>
-                <p className="font-editorial mt-2 text-xs font-light text-navy-900">
-                  {settings.operatingHours}
-                </p>
-                {settings.emergencyContact ? (
-                  <>
-                    <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
-                      Emergency
-                    </p>
-                    <p className="font-editorial mt-2 text-xs font-light text-navy-900">
-                      {settings.emergencyContact}
-                    </p>
-                  </>
-                ) : null}
-              </div>
+            <div className="lg:col-span-7">
+              <ContactIllustration className="mx-auto h-auto w-full max-w-lg lg:ml-auto lg:mr-0" />
             </div>
           </div>
-
-          <div
-            className="lg:col-span-6 lg:col-start-7 lg:border-l lg:border-navy-900/10 lg:pl-14"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <ContactRow
-              label="Call Us"
-              caption="Available 24 hours"
-              emphasize
-              href={`tel:${settings.phone}`}
-              actionLabel="Call"
-              icon={Phone}
-            >
-              {settings.phone}
-            </ContactRow>
-
-            <ContactRow
-              label="WhatsApp"
-              caption="Typically replies within minutes"
-              emphasize
-              href={getWhatsAppHref(whatsappNumber)}
-              actionLabel="WhatsApp"
-              icon={WhatsappLogo}
-            >
-              {whatsappNumber}
-            </ContactRow>
-
-            <ContactRow
-              label="Email"
-              caption="For charter quotations and operational enquiries"
-              emphasize
-              href={`mailto:${settings.email}`}
-              actionLabel="Email"
-              icon={EnvelopeSimple}
-            >
-              {settings.email}
-            </ContactRow>
-          </div>
-        </div>
-      </Container>
+        </Container>
       </section>
     </>
   );
