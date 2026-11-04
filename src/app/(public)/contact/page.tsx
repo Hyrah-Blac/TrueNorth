@@ -101,7 +101,9 @@ export default async function ContactPage() {
   const settings = await getSiteSettings();
   const whatsappNumber = settings.whatsapp || settings.phone;
 
-  const addressParts = [settings.addressLine1, settings.addressLine2, settings.city].filter(Boolean);
+  const addressParts = [settings.addressLine1, settings.addressLine2, settings.city].filter(
+    (part): part is string => Boolean(part),
+  );
   const directionsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressParts.join(", "))}`;
 
   const channels: Channel[] = [
