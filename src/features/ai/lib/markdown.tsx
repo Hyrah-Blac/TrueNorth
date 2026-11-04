@@ -87,6 +87,9 @@ export function renderMarkdown(content: string): ReactNode {
  * response could render a clickable XSS vector.
  */
 function isSafeUrl(url: string): boolean {
+  // A leading "//" (or "/\", which browsers normalise to "//") is a
+  // protocol-relative URL pointing at another host, not an internal path.
+  if (/^\/[\/\\]/.test(url)) return false;
   if (url.startsWith("/") || url.startsWith("#")) return true;
   return /^(https?|mailto|tel):/i.test(url);
 }

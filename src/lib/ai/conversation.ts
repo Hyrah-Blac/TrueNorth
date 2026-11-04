@@ -33,6 +33,13 @@ export async function findOrCreateConversation(params: {
     };
     if (params.clerkUserId) {
       ownershipQuery.clerkUserId = params.clerkUserId;
+    } else {
+      // Anonymous callers may only resume anonymous conversations. Without
+      // this, someone who learned a signed-in user's conversationId +
+      // sessionId (the sessionId defaults to the Clerk user id) could
+      // attach to that conversation while signed out. `null` matches both
+      // an unset field and an explicit null.
+      ownershipQuery.clerkUserId = null;
     }
 
     const existing = await Conversation.findOne(ownershipQuery);

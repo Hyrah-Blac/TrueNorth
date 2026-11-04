@@ -8,24 +8,20 @@ import type { IQuote } from "@/types/quote";
 import type { AirportNameInfo } from "@/lib/api/airportNames";
 
 /**
- * One row, every breakpoint.
+ * One row, every breakpoint — same pattern as PaymentRow and BookingRow.
+ * Below lg it stacks: quote number + route on the top line, a hairline
+ * separates the date · passengers meta line, then status and price share
+ * the last line. At lg+ it becomes a four-column grid — Quote (wide, so the route
+ * stays on one line) / Meta / Status / Price — so the list reads evenly with no horizontal scrolling
+ * at any width. The status + price wrapper uses `lg:contents` so it
+ * disappears as a box at lg and its children become direct grid items,
+ * without separate markup per breakpoint.
  *
- * - Below lg: route on its own line, then date/passengers/status flow
- *   together as a wrapping meta line, then price. The meta group uses
- *   `lg:contents` so it disappears as a box at lg — its children become
- *   direct grid items instead — without needing separate markup per
- *   breakpoint.
- * - At lg+: a defined 5-column grid (route / date / passengers / status /
- *   price), evenly distributed instead of one loose flex block.
+ * Each row is its own rounded, softly-shadowed card (rounded-2xl,
+ * shadow-sm, hairline border, no hover effects) and the whole card is the
+ * link; the caret sits inline beside the price.
  *
- * A caret on the right (absolutely positioned, so it doesn't consume a
- * grid track) signals the row is clickable at every width.
- *
- * Each row renders as its own rounded, softly-shadowed card — the same
- * container treatment (rounded-2xl, shadow-sm, hairline border) used for
- * the stat cards in the admin dashboard — rather than a flush divider row,
- * so the customer portal's lists read as consistently "premium" as the
- * admin side while keeping the portal's own navy/sky palette.
+ * quotes/loading.tsx mirrors this layout — keep the two in step.
  */
 export function QuoteRow({
   quote,
@@ -41,57 +37,63 @@ export function QuoteRow({
   const departureInfo = airportNames?.[quote.departureAirportCode.toUpperCase()];
   const destinationInfo = airportNames?.[quote.destinationAirportCode.toUpperCase()];
 
+  const amount =
+    quote.quotedAmount != null ? (
+      <span className="spec-readout text-base font-semibold text-navy-900 sm:text-[15px]">
+        {formatCurrency(quote.quotedAmount, quote.quotedCurrency ?? quote.currency)}
+      </span>
+    ) : (
+      <span className="text-xs text-slate-400">Pricing pending</span>
+    );
+
   return (
     <Link
       href={`/dashboard/quotes/${quote._id}`}
-      className="relative flex flex-col gap-3 overflow-hidden rounded-2xl bg-white p-5 pr-9 shadow-sm lg:grid lg:grid-cols-[1fr_120px_56px_150px_110px] lg:items-center lg:gap-5"
+      className="flex cursor-pointer flex-col gap-4 overflow-hidden rounded-2xl bg-white p-5 shadow-sm sm:p-6 lg:grid lg:grid-cols-[minmax(0,1fr)_160px_140px_130px] lg:items-center lg:gap-5"
       style={{ border: "1px solid rgba(0,0,0,0.06)" }}
     >
+      {/* Identity — quote number + route */}
       <div className="min-w-0">
         <p className="spec-readout text-[11px] text-slate-400">{quote.quoteNumber}</p>
         <RouteDisplay
-          className="mt-0.5"
-          size="md"
+          className="mt-1"
+          size="sm"
           departure={{ code: quote.departureAirportCode, name: departureInfo }}
           destination={{ code: quote.destinationAirportCode, name: destinationInfo }}
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 lg:contents">
-        <span className="flex items-center gap-1.5 text-sm text-slate-500">
-          <CalendarBlank className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      {/* Meta — date · passengers on one line, separated by a middot */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-slate-100 pt-4 text-sm text-slate-500 lg:border-0 lg:pt-0">
+        <span className="inline-flex items-center gap-1.5">
+          <CalendarBlank className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
           {formatDate(quote.departureDate)}
         </span>
-
-        <span className="flex items-center gap-1.5 text-sm text-slate-500">
-          <Users className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <span className="text-slate-300" aria-hidden="true">
+          &middot;
+        </span>
+        <span
+          className="inline-flex items-center gap-1.5"
+          aria-label={`${quote.passengerCount} passengers`}
+        >
+          <Users className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
           {quote.passengerCount}
         </span>
-
-        {/* The status badge itself already carries the "action needed"
-            signal (pulsing dot + a label like "Quote Ready" for approved
-            quotes) — a second "Ready to review" tag next to it repeated
-            the same message and, at narrower widths (e.g. this row inside
-            the dashboard's 3-column card grid), forced the two onto
-            separate lines. One clear signal reads calmer and fits at any
-            width without wrapping. */}
-        <CustomerQuoteStatusBadge status={quote.status} />
       </div>
 
-      <div className="lg:text-right">
-        {quote.quotedAmount != null ? (
-          <span className="spec-readout text-sm font-semibold text-navy-900">
-            {formatCurrency(quote.quotedAmount, quote.quotedCurrency ?? quote.currency)}
-          </span>
-        ) : (
-          <span className="text-xs text-slate-400">Pricing pending</span>
-        )}
-      </div>
+      {/* Status + price: share a line below lg, separate grid columns at lg+.
+          The status badge already carries the "action needed" signal (pulsing
+          dot + a label like "Quote Ready"), so no second tag sits beside it. */}
+      <div className="flex items-center justify-between gap-3 lg:contents">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <CustomerQuoteStatusBadge status={quote.status} />
+        </div>
 
-      <CaretRight
-        className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300 lg:right-1.5"
-        aria-hidden="true"
-      />
+        <div className="flex items-center justify-end gap-2">
+          {amount}
+          <CaretRight className="h-4 w-4 shrink-0 text-slate-300" aria-hidden="true" />
+        </div>
+      </div>
     </Link>
   );
 }

@@ -7,6 +7,7 @@ import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "@/utils/pagination";
 import type { AircraftCategory } from "@/database/constants/aircraft";
 import type { MissionType } from "@/database/constants/mission-type";
 import type { IAircraft } from "@/types/aircraft";
+import { PUBLIC_HIDDEN_AIRCRAFT_FIELDS } from "./aircraftFieldVisibility";
 
 export interface FleetPageFilters {
   category?: AircraftCategory;
@@ -38,7 +39,11 @@ export async function getAircraftList(
   const skip = (page - 1) * limit;
 
   const [items, total] = await Promise.all([
-    Aircraft.find(query).sort({ isFeatured: -1, createdAt: -1 }).skip(skip).limit(limit),
+    Aircraft.find(query)
+      .select(PUBLIC_HIDDEN_AIRCRAFT_FIELDS)
+      .sort({ isFeatured: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
     Aircraft.countDocuments(query),
   ]);
 
@@ -116,14 +121,25 @@ export async function getAircraftOptions(): Promise<AircraftOptionResult[]> {
   return serialize<AircraftOptionResult[]>(items);
 }
 
-export async function getAircraftByIdOrSlug(idOrSlug: string): Promise<IAircraft | null> {
+/**
+ * Public by default: createdBy and aiNotes are internal and are stripped,
+ * because these results are serialized into pages (and client component
+ * props) that any visitor can read. The admin edit page needs the full
+ * record and must opt in with { includeInternal: true }.
+ */
+export async function getAircraftByIdOrSlug(
+  idOrSlug: string,
+  options: { includeInternal?: boolean } = {}
+): Promise<IAircraft | null> {
   await connectToDatabase();
 
   const query = OBJECT_ID_REGEX.test(idOrSlug) ? { _id: idOrSlug } : { slug: idOrSlug };
-  const aircraft = await Aircraft.findOne({
+  const finder = Aircraft.findOne({
     ...query,
     status: AIRCRAFT_STATUSES.ACTIVE,
   });
+  if (!options.includeInternal) finder.select(PUBLIC_HIDDEN_AIRCRAFT_FIELDS);
+  const aircraft = await finder;
 
   return aircraft ? serialize<IAircraft>(aircraft) : null;
 }
@@ -135,6 +151,7 @@ export async function getFeaturedAircraft(limit = 6): Promise<IAircraft[]> {
     isFeatured: true,
     status: AIRCRAFT_STATUSES.ACTIVE,
   })
+    .select(PUBLIC_HIDDEN_AIRCRAFT_FIELDS)
     .sort({ createdAt: -1 })
     .limit(limit);
 
@@ -153,7 +170,9 @@ export async function getRelatedAircraft(
     category,
     status: AIRCRAFT_STATUSES.ACTIVE,
     _id: { $ne: excludeId },
-  }).limit(limit);
+  })
+    .select(PUBLIC_HIDDEN_AIRCRAFT_FIELDS)
+    .limit(limit);
 
   return serialize<IAircraft[]>(items);
 }

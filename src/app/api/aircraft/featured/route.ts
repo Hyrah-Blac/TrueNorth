@@ -4,6 +4,7 @@ import Aircraft from "@/database/models/Aircraft";
 import { AIRCRAFT_STATUSES } from "@/database/constants/aircraft";
 import { successResponse, handleApiError } from "@/lib/api/response";
 import { checkRateLimit, getRequestKey, rateLimitResponse, RATE_LIMITS } from "@/middleware/rate-limit";
+import { PUBLIC_HIDDEN_AIRCRAFT_FIELDS } from "@/features/aircraft/lib/aircraftFieldVisibility";
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,6 +17,7 @@ export async function GET(req: NextRequest) {
       isFeatured: true,
       status: AIRCRAFT_STATUSES.ACTIVE,
     })
+      .select(PUBLIC_HIDDEN_AIRCRAFT_FIELDS)
       .sort({ createdAt: -1 })
       .limit(6);
 

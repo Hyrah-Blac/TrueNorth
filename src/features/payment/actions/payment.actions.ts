@@ -20,12 +20,11 @@ import { PAYMENT_STATUSES } from "@/database/constants/payment-status";
 import { checkRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { MPESA_SUCCESS, shouldTrustQueryFailure } from "@/lib/api/mpesaResultCodes";
 import { logger } from "@/lib/logging/logger";
+import { getClientIpFromHeaders } from "@/lib/security/clientIp";
 
 /** Extracts the caller IP from Next.js server action request headers. */
 async function getCallerIp(): Promise<string> {
-  const hdrs = await headers();
-  const forwarded = hdrs.get("x-forwarded-for");
-  return forwarded?.split(",")[0]?.trim() ?? "unknown";
+  return getClientIpFromHeaders(await headers());
 }
 
 export interface InitiatePaymentResult {

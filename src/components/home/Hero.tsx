@@ -9,12 +9,13 @@ interface HeroProps {
   tagline: string;
 }
 
-export function Hero({ companyName, tagline }: HeroProps) {
-  const words = companyName.split(" ");
+export function Hero({ companyName }: HeroProps) {
+  // Show the company name exactly as set in the admin settings.
+  const words = companyName.trim().split(/\s+/);
   const grainId = useId();
 
   return (
-    <section className="hero-section relative flex h-[calc(100vh-140px)] min-h-[480px] items-center overflow-hidden bg-navy-950 py-14 lg:h-[calc(100vh-150px)] lg:py-16">
+    <section className="hero-section relative flex h-[calc(100vh-140px)] min-h-[480px] items-center overflow-hidden bg-navy-950 py-14 lg:h-[calc(100vh-150px)] lg:pb-16">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <Image
           src="/images/hero/phone3.jpg"
@@ -26,17 +27,17 @@ export function Hero({ companyName, tagline }: HeroProps) {
           sizes="100vw"
         />
         <Image
-          src="/images/gallery/done.jpg"
+          src="/images/gallery/pix.jpg"
           alt=""
           fill
           priority
           quality={90}
-          className="animate-kenburns hidden object-cover lg:block"
+          className="animate-kenburns hidden object-cover object-[50%_70%] lg:block"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-navy-950/55 via-navy-950/15 to-navy-950/70 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(6,12,28,0.42)_100%)]" />
+        {/* Light overlays only: the hero image is pre-graded (navy sky, bright jet),
+            so we just add a soft top fade for the nav and a faint bottom fade. */}
+        <div className="absolute inset-0 bg-gradient-to-b from-navy-950/45 via-transparent to-black/25" />
         <svg className="absolute inset-0 h-full w-full opacity-[0.05] mix-blend-overlay">
           <filter id={grainId}>
             <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
@@ -45,58 +46,35 @@ export function Hero({ companyName, tagline }: HeroProps) {
         </svg>
       </div>
 
-      <Container className="relative flex justify-center">
-        <div className="relative mx-auto flex w-full max-w-xl flex-col items-center px-4 text-center sm:px-6">
+      <Container className="relative flex w-full justify-center lg:mt-[14vh]">
+        <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-4 text-center sm:px-6">
           <div
             className="pointer-events-none absolute inset-x-[-10%] inset-y-[-15%] -z-10 bg-[radial-gradient(ellipse_65%_60%_at_50%_40%,rgba(4,10,26,0.4)_0%,transparent_72%)]"
             aria-hidden="true"
           />
 
-          <div
-            className="animate-fade-in-up"
-            style={{ animationDelay: "0ms" }}
-          >
-            <Image
-              src="/logo/logo.png"
-              alt=""
-              width={280}
-              height={82}
-              priority
-              className="w-auto object-contain"
-              style={{ height: "clamp(1.9rem, 1.3rem + 2.6vw, 3.75rem)" }}
-            />
-          </div>
-
           <h1
-            className="animate-fade-in-up text-balance font-body text-[clamp(2rem,1.4rem+2.6vw,3.75rem)] font-light uppercase leading-[1.12] tracking-[-0.015em] text-white"
+            className="animate-fade-in-up text-balance font-body text-[clamp(1.875rem,1.3rem+2.3vw,3.25rem)] font-light uppercase leading-[1.12] tracking-[0.01em] text-white [text-shadow:0_2px_24px_rgba(4,10,26,0.65),0_1px_2px_rgba(4,10,26,0.35)]"
             style={{
               animationDelay: "60ms",
-              marginTop: "clamp(1.25rem, 0.9rem + 1.2vw, 2.25rem)",
             }}
           >
             {words.map((word, i) => (
               <span
                 key={i}
-                className={i === words.length - 1 ? "text-champagne-400" : undefined}
+                className={i === words.length - 1 ? "text-champagne-400 lg:text-champagne-300" : undefined}
               >
                 {word}
-                {i < words.length - 1 ? (i === 0 ? "\u00A0" : " ") : ""}
+                {i < words.length - 1 ? " " : ""}
               </span>
             ))}
           </h1>
 
           <p
-            className="animate-fade-in-up font-mono text-[clamp(0.9375rem,0.85rem+0.5vw,1.25rem)] font-light uppercase tracking-[0.18em] text-white/75"
-            style={{ animationDelay: "180ms", marginTop: "clamp(1.5rem, 1.1rem + 1vw, 2.25rem)" }}
+            className="animate-fade-in-up font-mono text-[clamp(0.75rem,0.7rem+0.35vw,1rem)] font-light uppercase tracking-[0.34em] text-white/90 [text-shadow:0_1px_14px_rgba(4,10,26,0.7)]"
+            style={{ animationDelay: "180ms", marginTop: "clamp(1rem, 0.8rem + 0.8vw, 1.75rem)" }}
           >
             Adventure, above &amp; beyond
-          </p>
-
-          <p
-            className="animate-fade-in-up max-w-[21rem] text-balance text-[clamp(0.6875rem,0.63rem+0.2vw,0.8125rem)] font-light leading-relaxed tracking-wide text-white/85"
-            style={{ animationDelay: "380ms", marginTop: "clamp(1.75rem, 1.3rem + 1.2vw, 2.75rem)" }}
-          >
-            {tagline}
           </p>
         </div>
       </Container>
@@ -125,10 +103,11 @@ export function Hero({ companyName, tagline }: HeroProps) {
             transform: scale(1) translate(0, 0);
           }
           100% {
-            transform: scale(1.12) translate(-1%, -1%);
+            transform: scale(1.05) translate(-0.5%, 0);
           }
         }
         .animate-kenburns {
+          transform-origin: 50% 60%;
           animation: kenburns 40s ease-out forwards;
         }
 

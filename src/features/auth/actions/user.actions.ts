@@ -31,6 +31,14 @@ export async function updateUserRole(
 
     await connectToDatabase();
 
+    // An admin can't change their own role. Self-demotion is the only way
+    // to remove the last admin (another admin can't demote them if they're
+    // the only one), so blocking it prevents an accidental lock-out.
+    const target = await User.findById(parsed.data.userId).select("clerkId");
+    if (target && target.clerkId === admin.clerkId) {
+      return { success: false, error: "You can't change your own role." };
+    }
+
     const user = await User.findByIdAndUpdate(
       parsed.data.userId,
       { role: parsed.data.role },
@@ -77,10 +85,44 @@ export async function toggleUserActive(
     const admin = await requireAdmin();
     await connectToDatabase();
 
+    if (!isActive) {
+      const target = await User.findById(userId).select("clerkId");
+      if (target && target.clerkId === admin.clerkId) {
+        return { success: false, error: "You can't deactivate your own account." };
+      }
+    }
+
     const user = await User.findByIdAndUpdate(userId, { isActive }, { new: true });
 
     if (!user) {
       return { success: false, error: "User not found" };
+    }
+
+    // The isActive flag alone is only enforced where getCurrentUserOrThrow()
+    // is called; routes that use plain requireAuth() (and a Clerk session
+    // that is still valid) would otherwise keep working. Ban/unban at Clerk
+    // so the block applies at sign-in too, and so a deactivated user can't
+    // simply delete and recreate their Clerk account to get a fresh,
+    // active record.
+    try {
+      const client = await clerkClient();
+      if (isActive) {
+        await client.users.unbanUser(user.clerkId);
+      } else {
+        await client.users.banUser(user.clerkId);
+      }
+    } catch (clerkError) {
+      logger.error("toggleUserActive: Clerk ban/unban failed", {
+        error: String(clerkError),
+        targetClerkId: user.clerkId,
+        isActive,
+      });
+      return {
+        success: false,
+        error: isActive
+          ? "The account was reactivated in the app, but unblocking sign-in at Clerk failed. Please try again."
+          : "The account was marked inactive in the app, but blocking sign-in at Clerk failed. Please try again.",
+      };
     }
 
     auditLog({

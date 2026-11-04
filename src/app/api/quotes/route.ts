@@ -11,6 +11,7 @@ import { checkRateLimit, getRequestKey, rateLimitResponse, RATE_LIMITS } from "@
 import { buildPaginatedResult } from "@/utils/pagination";
 import { createQuoteSchema, quoteQuerySchema } from "@/features/quote/schemas/quote.schema";
 import { createQuoteFromInput } from "@/features/quote/lib/createQuote";
+import { CUSTOMER_HIDDEN_QUOTE_FIELDS } from "@/features/quote/lib/quoteFieldVisibility";
 
 export async function GET(req: NextRequest) {
   try {
@@ -29,14 +30,16 @@ export async function GET(req: NextRequest) {
 
     const skip = (query.page - 1) * query.limit;
 
-    const [items, total] = await Promise.all([
-      Quote.find(filter)
-        .populate("aircraftPreference", "name slug category")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(query.limit),
-      Quote.countDocuments(filter),
-    ]);
+    const listQuery = Quote.find(filter)
+      .populate("aircraftPreference", "name slug category")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(query.limit);
+
+    // Staff-only fields (internal notes, reviewer) never go to customers.
+    if (session.role !== ROLES.ADMIN) listQuery.select(CUSTOMER_HIDDEN_QUOTE_FIELDS);
+
+    const [items, total] = await Promise.all([listQuery, Quote.countDocuments(filter)]);
 
     return successResponse(buildPaginatedResult(items, total, query.page, query.limit));
   } catch (error) {

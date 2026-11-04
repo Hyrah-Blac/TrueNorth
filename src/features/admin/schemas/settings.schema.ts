@@ -29,7 +29,15 @@ const optionalPhoneField = z
 
 const socialLinkSchema = z.object({
   platform: z.string().trim().min(1).max(30),
-  href: z.string().trim().url("Enter a valid URL").max(300),
+  // .url() alone accepts any scheme, including javascript: and data:.
+  // These links are rendered as <a href> and emitted as JSON-LD sameAs,
+  // so only allow web URLs.
+  href: z
+    .string()
+    .trim()
+    .url("Enter a valid URL")
+    .max(300)
+    .refine((value) => /^https?:\/\//i.test(value), "URL must start with http:// or https://"),
   label: z.string().trim().min(1).max(100),
 });
 

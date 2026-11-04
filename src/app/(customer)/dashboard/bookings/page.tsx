@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AirplaneTakeoff } from "@phosphor-icons/react/dist/ssr";
-import { BookingCard } from "@/components/booking/BookingCard/BookingCard";
-import { BookingsTable } from "@/components/booking/BookingCard/BookingsTable";
+import { BookingRow } from "@/components/booking/BookingCard/BookingRow";
 import { EmptyState } from "@/components/shared/empty-state/EmptyState";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { getMyBookings } from "@/features/booking/lib/getBookings";
@@ -10,10 +9,9 @@ import { getBookingIdsWithTickets } from "@/features/ticket/lib/getTicketForBook
 
 export const metadata: Metadata = { title: "My Bookings" };
 
-// No status filter here — matches the Quotes page: a customer's own
-// booking history is short enough that a bank of filter pills is more
-// chrome than the list needs. Status is still visible per-booking via
-// the badge on each row/card.
+// No status filter here — matches the Quotes and Payments pages: a customer's
+// own booking history is short enough that a bank of filter pills is more
+// chrome than the list needs. Status is still visible per-booking on each row.
 export default async function BookingsPage() {
   const bookings = await getMyBookings();
   const [ticketedBookingIds, airportNames] = await Promise.all([
@@ -32,20 +30,24 @@ export default async function BookingsPage() {
         />
 
         {bookings.length === 0 ? (
-          <EmptyState
-            icon={<AirplaneTakeoff className="h-5 w-5 text-champagne-500" aria-hidden="true" />}
-            title="No bookings found"
-            description="Bookings appear here once a charter request has been approved."
-          />
+          <div className="py-16">
+            <EmptyState
+              icon={<AirplaneTakeoff className="h-5 w-5 text-champagne-500" aria-hidden="true" />}
+              title="No bookings found"
+              description="Bookings appear here once a charter request has been approved."
+            />
+          </div>
         ) : (
-          <>
-            <BookingsTable bookings={bookings} airportNames={airportNames} />
-            <div className="space-y-4 md:hidden">
-              {bookings.map((booking) => (
-                <BookingCard key={booking._id} booking={booking} hasTicket={ticketedBookingIds.has(booking._id)} airportNames={airportNames} />
-              ))}
-            </div>
-          </>
+          <div className="space-y-3">
+            {bookings.map((booking) => (
+              <BookingRow
+                key={booking._id}
+                booking={booking}
+                hasTicket={ticketedBookingIds.has(booking._id)}
+                airportNames={airportNames}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>

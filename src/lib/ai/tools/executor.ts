@@ -62,7 +62,9 @@ export async function executeTool(
   name: AiToolName,
   args: Record<string, unknown>
 ): Promise<unknown> {
-  logger.debug("Executing AI tool", { name, args });
+  // Log argument NAMES only — args can contain customer PII (email, phone)
+  // for the quote-submission tool.
+  logger.debug("Executing AI tool", { name, argKeys: Object.keys(args) });
 
   const result = await resolveTool(name, args);
 

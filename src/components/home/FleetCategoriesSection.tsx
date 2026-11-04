@@ -50,23 +50,23 @@ export function FleetCategoriesSection() {
       */}
       <Section tone="white" size="slim" className="shadow-none">
         {/*
-          Same family, weight, and case as PlanAFlightBanner's "Plan a
-          Flight" eyebrow above (font-body, uppercase, font-light,
-          navy-950) — sized down and tracked tighter here since this
-          heading runs five words instead of three, so it stays
-          legible and calm rather than sprawling.
+          Right-aligned so the heading's edge lines up with the right
+          edge of the first image below. Same family, weight, and case as
+          PlanAFlightBanner's eyebrow, with wide tracking for a refined
+          feel; the negative right margin cancels the trailing letter-
+          spacing so the last letter sits flush with the image edge.
         */}
         <div className="ml-auto max-w-2xl text-right">
-          <h2 className="font-body text-balance text-[clamp(0.875rem,0.75rem+0.6vw,1.125rem)] font-light uppercase leading-[1.15] tracking-[0.1em] text-navy-950">
+          <h2 className="-mr-[0.24em] font-body text-balance text-[clamp(1rem,0.8rem+0.8vw,1.5rem)] font-light uppercase leading-[1.2] tracking-[0.24em] text-navy-950">
             The Right Aircraft, Every Mission
           </h2>
-          <p className="ml-auto mt-5 max-w-xl font-body text-xs leading-relaxed text-slate-500 lg:text-sm">
+          <p className="ml-auto mt-6 max-w-md text-pretty font-body text-[13px] font-light leading-[1.85] text-navy-950/60 lg:max-w-lg lg:text-sm">
             We don&apos;t fly one type of aircraft for every mission. Each category below is matched to a
             different kind of trip — tell us the mission and we&apos;ll recommend the aircraft.
           </p>
         </div>
 
-        <div className="mt-10 flex flex-col gap-8 sm:gap-10">
+        <div className="mt-12 flex flex-col gap-8 sm:gap-10 lg:mt-14">
           {featured.map((item, index) => {
             const image = categoryImages[item.category];
             // Zigzag layout: first row shows text-left/image-right, the

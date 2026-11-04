@@ -5,6 +5,7 @@ import { createQuoteSchema, type CreateQuoteInput } from "../schemas/quote.schem
 import { createQuoteFromInput } from "../lib/createQuote";
 import { checkRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
 import { logger } from "@/lib/logging/logger";
+import { getClientIpFromHeaders } from "@/lib/security/clientIp";
 
 export interface SubmitQuoteResult {
   success: boolean;
@@ -25,9 +26,7 @@ export interface SubmitQuoteResult {
 
 export async function submitCharterRequest(input: CreateQuoteInput): Promise<SubmitQuoteResult> {
   try {
-    const headerList = await headers();
-    const forwardedFor = headerList.get("x-forwarded-for");
-    const ip = forwardedFor?.split(",")[0]?.trim() ?? "unknown";
+    const ip = getClientIpFromHeaders(await headers());
 
     const rate = checkRateLimit(`quotes:create:${ip}`, RATE_LIMITS.PUBLIC_WRITE);
     if (!rate.allowed) {

@@ -32,7 +32,7 @@ export function ConciergeButton({
       aria-haspopup="dialog"
       aria-expanded={open}
       style={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}
-      className={`group animate-fade-up-editorial fixed right-5 z-40 flex h-[76px] w-[76px] items-center justify-center rounded-full transition-all duration-300 ease-editorial focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-champagne-500 ${
+      className={`group animate-fade-up-editorial fixed print:hidden right-5 z-40 flex h-[76px] w-[76px] items-center justify-center rounded-full transition-all duration-300 ease-editorial focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-champagne-500 ${
         open ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
     >

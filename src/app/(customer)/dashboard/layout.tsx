@@ -3,6 +3,7 @@ import { Navbar } from "@/components/layout/navbar/Navbar";
 import { Footer } from "@/components/layout/footer/Footer";
 import { Container } from "@/components/layout/container/Container";
 import { SkipLink } from "@/components/shared/SkipLink";
+import { FloatingActions } from "@/features/ai/components/FloatingActions";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 
 // Customers reach their own data (Bookings, Quotes, Payments) as
@@ -46,6 +47,12 @@ export default async function CustomerDashboardLayout({ children }: { children: 
         <Container className="pb-16 lg:pb-24">{children}</Container>
       </main>
       <Footer />
+      <FloatingActions
+        whatsapp={settings.whatsapp || settings.phone}
+        aiEnabled={settings.ai.enabled}
+        welcomeMessage={settings.ai.welcomeMessage}
+        starterPrompts={settings.ai.starterPrompts}
+      />
     </>
   );
 }

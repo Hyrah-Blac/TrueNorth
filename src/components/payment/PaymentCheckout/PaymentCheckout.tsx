@@ -9,6 +9,16 @@ import { initiatePaystackPayment } from "@/features/payment/actions/payment.acti
 
 type PaystackChannel = "mobile_money" | "card";
 
+const METHODS: {
+  channel: PaystackChannel;
+  title: string;
+  subtitle: string;
+  Icon: typeof DeviceMobile;
+}[] = [
+  { channel: "mobile_money", title: "M-Pesa", subtitle: "Pay by mobile money", Icon: DeviceMobile },
+  { channel: "card", title: "Debit / Credit Card", subtitle: "Visa, Mastercard & more", Icon: CreditCard },
+];
+
 /**
  * Primary customer-facing payment UI, backed by Paystack. Offers the
  * two channels Paystack exposes for Kenyan charter customers — M-Pesa
@@ -35,6 +45,7 @@ export function PaymentCheckout({
   /** If a pending payment already has a hosted checkout link, offer to resume it. */
   activePaymentAuthorizationUrl?: string;
 }) {
+  const [selected, setSelected] = useState<PaystackChannel>("mobile_money");
   const [pendingChannel, setPendingChannel] = useState<PaystackChannel | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,63 +99,67 @@ export function PaymentCheckout({
       ) : null}
 
       <div>
-        <p className="mb-3 flex items-baseline justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+        <p className="mb-4 flex items-baseline justify-between border-b border-slate-100 pb-3 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400">
           <span>Choose payment method</span>
-          <span className="normal-case tracking-normal text-slate-500">{formatCurrency(amount, currency)}</span>
+          <span className="font-display text-sm normal-case tracking-normal text-navy-900">{formatCurrency(amount, currency)}</span>
         </p>
-        {/* Selectable cards (icon chip + label + a leading radio dot) read
-            as a proper checkout method picker — the pattern Stripe/Paystack
-            themselves use — rather than two same-shaped buttons that just
-            happen to sit side by side. Each card gets its own brand tint
-            (M-Pesa green, a neutral navy for card) instead of one channel
-            being visually "primary" over the other. */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => handlePay("mobile_money")}
-            disabled={pendingChannel !== null}
-            className="group relative flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left transition-all hover:border-green-300 hover:shadow-[0_2px_8px_rgba(15,23,42,0.06)] disabled:pointer-events-none disabled:opacity-60"
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-500/10">
-              {pendingChannel === "mobile_money" ? (
-                <Loader2 className="h-4 w-4 animate-spin text-green-600" aria-hidden="true" />
-              ) : (
-                <DeviceMobile className="h-4 w-4 text-green-600" weight="fill" aria-hidden="true" />
-              )}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-navy-900">M-Pesa</span>
-              <span className="block text-xs text-slate-500">Pay by mobile money</span>
-            </span>
-            <span
-              className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300 transition-colors group-hover:border-green-400"
-              aria-hidden="true"
-            />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handlePay("card")}
-            disabled={pendingChannel !== null}
-            className="group relative flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left transition-all hover:border-navy-900/25 hover:shadow-[0_2px_8px_rgba(15,23,42,0.06)] disabled:pointer-events-none disabled:opacity-60"
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-900/5">
-              {pendingChannel === "card" ? (
-                <Loader2 className="h-4 w-4 animate-spin text-navy-700" aria-hidden="true" />
-              ) : (
-                <CreditCard className="h-4 w-4 text-navy-700" weight="fill" aria-hidden="true" />
-              )}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-navy-900">Debit / Credit Card</span>
-              <span className="block text-xs text-slate-500">Visa, Mastercard &amp; more</span>
-            </span>
-            <span
-              className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300 transition-colors group-hover:border-navy-400"
-              aria-hidden="true"
-            />
-          </button>
+        {/* Method tiles. Selecting a tile only marks it (green radio dot);
+            checkout starts from the pay button below, so there's an
+            explicit confirm step. Tiles are static — no hover movement or
+            colour shifts. */}
+        <div role="radiogroup" aria-label="Payment method" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {METHODS.map(({ channel, title, subtitle, Icon }) => {
+            const isSelected = selected === channel;
+            const isPending = pendingChannel === channel;
+            return (
+              <button
+                key={channel}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                onClick={() => setSelected(channel)}
+                disabled={pendingChannel !== null}
+                className={`relative flex flex-col gap-4 rounded-2xl border bg-white p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/60 focus-visible:ring-offset-2 disabled:pointer-events-none ${
+                  isSelected
+                    ? "border-green-600/50 shadow-[0_0_0_1px_rgba(22,163,74,0.35),0_10px_24px_-16px_rgba(22,163,74,0.35)]"
+                    : "border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+                } ${pendingChannel !== null && !isPending ? "opacity-60" : ""}`}
+              >
+                <span className="flex items-start justify-between">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy-900/[0.035] ring-1 ring-inset ring-navy-900/10">
+                    {isPending ? (
+                      <Loader2 className="h-[18px] w-[18px] animate-spin text-navy-800" aria-hidden="true" />
+                    ) : (
+                      <Icon className="h-[18px] w-[18px] text-navy-800" weight="light" aria-hidden="true" />
+                    )}
+                  </span>
+                  <span
+                    className={`flex h-5 w-5 items-center justify-center rounded-full border-[1.5px] bg-white ${
+                      isSelected ? "border-green-600" : "border-slate-300"
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {isSelected ? <span className="h-2.5 w-2.5 rounded-full bg-green-600" /> : null}
+                  </span>
+                </span>
+                <span className="block">
+                  <span className="block font-display text-sm font-medium tracking-tight text-navy-900">{title}</span>
+                  <span className="mt-0.5 block text-xs leading-snug text-slate-500">{subtitle}</span>
+                </span>
+              </button>
+            );
+          })}
         </div>
+
+        <Button
+          variant="primary"
+          size="md"
+          className="mt-4 w-full justify-center"
+          onClick={() => handlePay(selected)}
+          disabled={pendingChannel !== null}
+        >
+          {pendingChannel !== null ? "Redirecting…" : `Pay ${formatCurrency(amount, currency)}`}
+        </Button>
       </div>
 
       <p className="text-center text-[11px] text-slate-400">

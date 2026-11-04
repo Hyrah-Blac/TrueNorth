@@ -6,6 +6,7 @@ import { RouteDisplay } from "@/components/shared/RouteDisplay";
 import { verifyTicket } from "@/features/ticket/lib/verifyTicket";
 import { getAirportNamesByCodes } from "@/lib/api/airportNames";
 import { checkRateLimit, RATE_LIMITS } from "@/middleware/rate-limit";
+import { getClientIpFromHeaders } from "@/lib/security/clientIp";
 import { formatDate } from "@/utils/date";
 
 // Ticket verification links are meant to be scanned/opened by whoever
@@ -20,9 +21,7 @@ interface VerifyTicketPageProps {
 }
 
 async function getCallerIp(): Promise<string> {
-  const hdrs = await headers();
-  const forwarded = hdrs.get("x-forwarded-for");
-  return forwarded?.split(",")[0]?.trim() ?? "unknown";
+  return getClientIpFromHeaders(await headers());
 }
 
 /**

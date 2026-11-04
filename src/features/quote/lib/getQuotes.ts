@@ -8,6 +8,7 @@ import { NotFoundError, ForbiddenError } from "@/lib/errors/AppError";
 import { getSignedAttachmentUrl } from "@/lib/api/cloudinary";
 import type { IQuote } from "@/types/quote";
 import type { QuoteStatus } from "@/database/constants/quote-status";
+import { CUSTOMER_HIDDEN_QUOTE_FIELDS } from "./quoteFieldVisibility";
 
 function serialize<T>(doc: unknown): T {
   return JSON.parse(JSON.stringify(doc)) as T;
@@ -37,6 +38,7 @@ export async function getMyQuotes(status?: QuoteStatus): Promise<IQuote[]> {
   if (status) filter.status = status;
 
   const quotes = await Quote.find(filter)
+    .select(CUSTOMER_HIDDEN_QUOTE_FIELDS)
     .populate("aircraftPreference", "name slug category")
     .sort({ createdAt: -1 });
 
@@ -47,7 +49,10 @@ export async function getMyQuoteById(quoteId: string): Promise<IQuote> {
   const user = await getCurrentUserOrThrow();
   await connectToDatabase();
 
-  const quote = await Quote.findById(quoteId).populate("aircraftPreference").populate("selectedAircraft");
+  const quote = await Quote.findById(quoteId)
+    .select(CUSTOMER_HIDDEN_QUOTE_FIELDS)
+    .populate("aircraftPreference")
+    .populate("selectedAircraft");
   if (!quote) throw new NotFoundError("Quote not found");
 
   if (String(quote.customer) !== String(user._id)) {

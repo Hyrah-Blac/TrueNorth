@@ -52,11 +52,16 @@ async function syncUserFromClerk(clerkId: string): Promise<UserDocument> {
   const clerk = await clerkClient();
   const clerkUser = await clerk.users.getUser(clerkId);
 
-  const primaryEmail = clerkUser.emailAddresses.find(
+  const primaryEmailRecord = clerkUser.emailAddresses.find(
     (email) => email.id === clerkUser.primaryEmailAddressId
-  )?.emailAddress;
+  );
+  const primaryEmail = primaryEmailRecord?.emailAddress;
 
-  if (!primaryEmail) {
+  // This path attaches an existing Mongo record to the Clerk account by
+  // matching on email (below), so the email MUST be one Clerk has verified —
+  // otherwise anyone could claim someone else's record by registering with
+  // their address.
+  if (!primaryEmail || primaryEmailRecord?.verification?.status !== "verified") {
     throw new UnauthorizedError("Your account is missing a verified email address.");
   }
 
@@ -76,7 +81,9 @@ async function syncUserFromClerk(clerkId: string): Promise<UserDocument> {
     lastName: clerkUser.lastName || "",
     avatarUrl: clerkUser.imageUrl,
     role: "customer" as Role,
-    isActive: true,
+    // isActive is deliberately NOT set here: new documents get the schema
+    // default (true), but re-linking an existing record must not silently
+    // re-activate an account an admin deactivated.
     isDeleted: false,
     deletedAt: null,
   };

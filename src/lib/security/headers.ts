@@ -88,15 +88,24 @@ export function buildCspHeader(nonce: string): string {
     ? `https://${CLERK_FRONTEND_API_DOMAIN}`
     : "";
 
+  // https://*.clerk.accounts.dev is a SHARED domain used by every Clerk
+  // development instance, so allowing the whole wildcard in script-src is
+  // broader than this app needs. Only include it where it's actually
+  // required: local/dev, or a deployment that has not (yet) configured a
+  // custom Clerk Frontend API domain. Once CLERK_FRONTEND_API_DOMAIN is set
+  // in production, that single host is all that's allowed.
+  const clerkSharedDevHost =
+    isDev || !clerkFrontendApiDomain ? "https://*.clerk.accounts.dev" : "";
+
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://*.clerk.accounts.dev https://clerk.com ${clerkFrontendApiDomain} https://challenges.cloudflare.com`,
+    `script-src 'self' 'nonce-${nonce}' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${clerkSharedDevHost} https://clerk.com ${clerkFrontendApiDomain} https://challenges.cloudflare.com`,
     "worker-src 'self' blob:",
     "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data: blob: https://res.cloudinary.com https://img.clerk.com ${clerkFrontendApiDomain}`,
     "font-src 'self' data:",
-    `connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com ${clerkFrontendApiDomain} https://challenges.cloudflare.com https://api.cloudinary.com https://o4511865337872384.ingest.us.sentry.io`,
-    `frame-src 'self' https://*.clerk.accounts.dev ${clerkFrontendApiDomain} https://challenges.cloudflare.com`,
+    `connect-src 'self' ${clerkSharedDevHost} https://api.clerk.com ${clerkFrontendApiDomain} https://challenges.cloudflare.com https://api.cloudinary.com https://o4511865337872384.ingest.us.sentry.io`,
+    `frame-src 'self' ${clerkSharedDevHost} ${clerkFrontendApiDomain} https://challenges.cloudflare.com`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

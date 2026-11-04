@@ -10,6 +10,7 @@ import { ROLES } from "@/database/constants/roles";
 import { successResponse, handleApiError } from "@/lib/api/response";
 import { updateQuoteNotesSchema } from "@/features/quote/schemas/quote.schema";
 import { NotFoundError, ForbiddenError } from "@/lib/errors/AppError";
+import { CUSTOMER_HIDDEN_QUOTE_FIELDS } from "@/features/quote/lib/quoteFieldVisibility";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -22,7 +23,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     await connectToDatabase();
 
-    const quote = await Quote.findById(id).populate("aircraftPreference", "name slug category");
+    const quoteQuery = Quote.findById(id).populate("aircraftPreference", "name slug category");
+
+    // Staff-only fields (internal notes, reviewer) never go to customers.
+    if (session.role !== ROLES.ADMIN) quoteQuery.select(CUSTOMER_HIDDEN_QUOTE_FIELDS);
+
+    const quote = await quoteQuery;
     if (!quote) throw new NotFoundError("Quote not found");
 
     if (session.role !== ROLES.ADMIN) {

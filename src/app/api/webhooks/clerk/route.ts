@@ -47,12 +47,24 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "user.created": {
         const data = event.data;
-        const primaryEmail = data.email_addresses.find(
+        const primaryEmailRecord = data.email_addresses.find(
           (email) => email.id === data.primary_email_address_id
-        )?.email_address;
+        );
+        const primaryEmail = primaryEmailRecord?.email_address;
 
         if (!primaryEmail) {
           logger.warn("user.created event missing a primary email, skipping sync", {
+            clerkId: data.id,
+          });
+          break;
+        }
+
+        // The upsert below re-attaches an existing record to this clerkId by
+        // matching on email, so only do it for an email Clerk has verified.
+        // If it isn't verified yet, skip: getCurrentDbUser()'s self-heal
+        // creates the record on first sign-in once verification completes.
+        if (primaryEmailRecord?.verification?.status !== "verified") {
+          logger.warn("user.created event has an unverified primary email, skipping sync", {
             clerkId: data.id,
           });
           break;
@@ -83,7 +95,8 @@ export async function POST(req: Request) {
             lastName: data.last_name || "",
             avatarUrl: data.image_url,
             role: ROLES.CUSTOMER,
-            isActive: true,
+            // isActive intentionally omitted: new docs take the schema
+            // default (true); an existing deactivated record stays deactivated.
             isDeleted: false,
             deletedAt: null,
           },

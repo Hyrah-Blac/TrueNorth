@@ -56,14 +56,8 @@ const TRANSITION = "transition-all duration-[450ms] ease-editorial";
 // itself; the panel's own name/email header links to Profile (see
 // MobileNav.tsx).
 //
-// The centered logo mark is suppressed while the bar is transparent, but
-// only on the home hero ("/") — that's the only page where the Hero
-// component renders its own logo over the "Adventure, above & beyond"
-// line, so showing it here too would double it up. Every other page
-// keeps the navbar logo visible even while transparent, since nothing
-// else on those pages is showing it. It fades back in the moment the bar
-// goes solid (scroll, menu open), in sync with the same background-color
-// transition.
+// The centered logo mark is always visible on every page, including the
+// home hero, where it sits in the navbar above the headline.
 // ---------------------------------------------------------------------------
 
 // Routes (and route prefixes) whose top-of-page content is light —
@@ -200,13 +194,13 @@ export function Navbar({ phone }: { phone: string }) {
   // since there's no dark photo backing it.
   const textSolid = showSolid || isLightHero || isMinimalNav;
 
-  // Only the home hero renders its own oversized logo over "Adventure,
-  // above & beyond" — every other page doesn't duplicate it, so the
-  // navbar's own logo should stay visible everywhere else even while
-  // transparent. It's only suppressed here on "/" while transparent, to
-  // avoid showing it twice.
-  const isHomeHero = pathname === "/";
-  const showLogo = !(isHomeHero && !showSolid);
+  // The navbar logo is always visible, including over the home hero
+  // (the hero itself no longer renders a logo).
+  const showLogo = true;
+
+  // On the home hero the logo is larger for a more elegant, brand-forward
+  // look; it eases back to the standard size once the bar goes solid.
+  const largeLogo = pathname === "/" && !showSolid;
 
   // --- render ----------------------------------------------------------------
 
@@ -238,7 +232,7 @@ export function Navbar({ phone }: { phone: string }) {
           )}
 
           {showLogo && (
-            <NavbarLogo logoError={logoError} onLogoError={() => setLogoError(true)} solid={textSolid} />
+            <NavbarLogo logoError={logoError} onLogoError={() => setLogoError(true)} solid={textSolid} large={largeLogo} />
           )}
 
           {!isMinimalNav && (
@@ -281,10 +275,12 @@ function NavbarLogo({
   logoError,
   onLogoError,
   solid,
+  large,
 }: {
   logoError: boolean;
   onLogoError: () => void;
   solid: boolean;
+  large: boolean;
 }) {
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -311,7 +307,9 @@ function NavbarLogo({
             height={82}
             priority
             onError={onLogoError}
-            className="h-8 w-auto object-contain"
+            className={`w-auto object-contain transition-[height] duration-[450ms] ease-editorial ${
+              large ? "h-11 sm:h-12 lg:h-14" : "h-8"
+            }`}
           />
         )}
       </Link>

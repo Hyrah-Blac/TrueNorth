@@ -8,6 +8,7 @@ import { checkRateLimit, getRequestKey, rateLimitResponse, RATE_LIMITS } from "@
 import { buildPaginatedResult } from "@/utils/pagination";
 import { aircraftQuerySchema, createAircraftSchema } from "@/features/aircraft/schemas/aircraft.schema";
 import { AIRCRAFT_STATUSES } from "@/database/constants/aircraft";
+import { PUBLIC_HIDDEN_AIRCRAFT_FIELDS } from "@/features/aircraft/lib/aircraftFieldVisibility";
 
 export async function GET(req: NextRequest) {
   try {
@@ -29,7 +30,11 @@ export async function GET(req: NextRequest) {
     const skip = (query.page - 1) * query.limit;
 
     const [items, total] = await Promise.all([
-      Aircraft.find(filter).sort({ isFeatured: -1, createdAt: -1 }).skip(skip).limit(query.limit),
+      Aircraft.find(filter)
+        .select(PUBLIC_HIDDEN_AIRCRAFT_FIELDS)
+        .sort({ isFeatured: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(query.limit),
       Aircraft.countDocuments(filter),
     ]);
 

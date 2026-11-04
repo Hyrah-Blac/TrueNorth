@@ -11,13 +11,13 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const aircraft = await getAircraftByIdOrSlug(id);
+  const aircraft = await getAircraftByIdOrSlug(id, { includeInternal: true });
   return { title: aircraft ? `${aircraft.name} — Detail` : "Aircraft Not Found" };
 }
 
 export default async function AdminAircraftDetailPage({ params }: Props) {
   const { id } = await params;
-  const aircraft = await getAircraftByIdOrSlug(id);
+  const aircraft = await getAircraftByIdOrSlug(id, { includeInternal: true });
 
   if (!aircraft) notFound();
 

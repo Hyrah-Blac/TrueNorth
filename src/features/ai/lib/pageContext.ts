@@ -12,8 +12,15 @@ const STATIC_PAGE_LABELS: Record<string, string> = {
   "/about": "the About page",
   "/contact": "the Contact page",
   "/request-charter": "the charter request form",
-  "/privacy": "the Privacy Policy page",
-  "/terms": "the Terms of Service page",
+  "/legal/privacy-policy": "the Privacy Policy page",
+  "/legal/terms-and-conditions": "the Terms and Conditions page",
+  "/legal/refund-policy": "the Refund Policy page",
+  "/legal/cookie-policy": "the Cookie Policy page",
+  "/sign-in": "the sign-in page",
+  "/sign-up": "the sign-up page",
+  "/dashboard/bookings": "the customer's My Bookings list",
+  "/dashboard/quotes": "the customer's My Quotes list",
+  "/dashboard/payments": "the customer's My Payments list",
 };
 
 /**
@@ -49,7 +56,11 @@ export function usePageContext(): string | undefined {
     return title ? `the ${title} aircraft detail page` : "an aircraft detail page";
   }
 
-  // Unrecognized route (admin, sign-in, etc.) — omit context rather than
+  if (pathname.startsWith("/dashboard/bookings/")) return "one of the customer's booking detail pages";
+  if (pathname.startsWith("/dashboard/quotes/")) return "one of the customer's quote detail pages";
+  if (pathname.startsWith("/dashboard/payments/")) return "one of the customer's payment pages";
+
+  // Unrecognized route (admin, etc.) — omit context rather than
   // guess at what it is.
   return undefined;
 }

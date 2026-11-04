@@ -1,5 +1,4 @@
-import { WhatsAppButton } from "@/components/whatsapp/WhatsAppButton";
-import { AiConcierge } from "@/features/ai/components/AiConcierge";
+import { FloatingActions } from "@/features/ai/components/FloatingActions";
 import { getSiteSettings } from "@/lib/config/siteSettings";
 
 // Route group layout for authentication pages (sign-in, sign-up).
@@ -21,10 +20,12 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   return (
     <>
       {children}
-      <WhatsAppButton whatsapp={settings.whatsapp || settings.phone} />
-      {settings.ai.enabled ? (
-        <AiConcierge welcomeMessage={settings.ai.welcomeMessage} starterPrompts={settings.ai.starterPrompts} />
-      ) : null}
+      <FloatingActions
+        whatsapp={settings.whatsapp || settings.phone}
+        aiEnabled={settings.ai.enabled}
+        welcomeMessage={settings.ai.welcomeMessage}
+        starterPrompts={settings.ai.starterPrompts}
+      />
     </>
   );
 }
