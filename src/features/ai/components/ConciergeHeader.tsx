@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { X, MessageSquarePlus } from "lucide-react";
+import { ConciergeRobot } from "./ConciergeRobot";
 
 interface ConciergeHeaderProps {
   onClose: () => void;
@@ -42,15 +42,7 @@ export function ConciergeHeader({ onClose, onRequestNewConversation, hasConversa
           {/* The robot mascot stands free — no tile or badge behind it.
               The online dot is circular and tucked at its lower right. */}
           <div className="relative h-12 w-12 shrink-0">
-            <Image
-              src="/images/concierge-robot.png"
-              alt=""
-              aria-hidden="true"
-              width={128}
-              height={128}
-              className="h-12 w-12 select-none drop-shadow-[0_4px_6px_rgba(15,23,42,0.3)]"
-              draggable={false}
-            />
+            <ConciergeRobot className="h-12 w-12 drop-shadow-[0_4px_6px_rgba(15,23,42,0.3)]" />
             <span className="absolute bottom-0.5 right-0 flex h-3 w-3 items-center justify-center rounded-full border-2 border-white bg-green-500">
               <span className="absolute h-3 w-3 animate-ping rounded-full bg-green-500/60 motion-reduce:hidden" />
             </span>

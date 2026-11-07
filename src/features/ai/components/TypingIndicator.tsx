@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ConciergeRobot } from "./ConciergeRobot";
 
 export function TypingIndicator({ label }: { label?: string | null }) {
   return (
@@ -9,15 +9,7 @@ export function TypingIndicator({ label }: { label?: string | null }) {
     >
       {/* Robot mascot — same persona marker as MessageBubble and
           ConciergeHeader, so the concierge reads as one character. */}
-      <Image
-        src="/images/concierge-robot.png"
-        alt=""
-        aria-hidden="true"
-        width={64}
-        height={64}
-        className="h-7 w-7 shrink-0 select-none drop-shadow-[0_2px_3px_rgba(15,23,42,0.25)]"
-        draggable={false}
-      />
+      <ConciergeRobot className="h-7 w-7 shrink-0 drop-shadow-[0_2px_3px_rgba(15,23,42,0.25)]" />
       {label ? (
         <span className="font-body text-xs text-slate-500">{label}</span>
       ) : (

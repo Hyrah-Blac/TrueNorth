@@ -1,11 +1,11 @@
 import { memo, useMemo } from "react";
-import Image from "next/image";
 import { AlertTriangle } from "lucide-react";
 import { formatTime } from "@/utils/date";
 import { renderMarkdown } from "../lib/markdown";
 import { hasSubmittedQuote } from "../lib/quoteStatus";
 import { ToolResultRail } from "./cards/ToolResultRail";
 import type { ConciergeMessage } from "../types";
+import { ConciergeRobot } from "./ConciergeRobot";
 
 interface MessageBubbleProps {
   message: ConciergeMessage;
@@ -74,15 +74,7 @@ export const MessageBubble = memo(function MessageBubble({
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-2">
         {/* Robot mascot as the concierge's persona marker. */}
-        <Image
-          src="/images/concierge-robot.png"
-          alt=""
-          aria-hidden="true"
-          width={64}
-          height={64}
-          className="h-7 w-7 shrink-0 select-none drop-shadow-[0_2px_3px_rgba(15,23,42,0.25)]"
-          draggable={false}
-        />
+        <ConciergeRobot className="h-7 w-7 shrink-0 drop-shadow-[0_2px_3px_rgba(15,23,42,0.25)]" />
         <span className="font-display text-xs font-medium uppercase tracking-widest2 text-slate-500">
           AI Concierge
         </span>
