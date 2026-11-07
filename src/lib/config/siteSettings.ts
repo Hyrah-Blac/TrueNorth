@@ -95,12 +95,38 @@ export function toEmailContact(settings: ResolvedSiteSettings) {
   };
 }
 
+const SITE_SETTINGS_TTL_MS = 30_000;
+let siteSettingsCache: { value: ResolvedSiteSettings; expires: number } | null = null;
+let siteSettingsInFlight: Promise<ResolvedSiteSettings> | null = null;
+
+/**
+ * Cached for 30 seconds per server instance, so chat turns and public page
+ * renders don't each query the database for the same document. Concurrent
+ * callers share one in-flight load. Admin changes appear within the TTL.
+ */
+export function getSiteSettings(): Promise<ResolvedSiteSettings> {
+  if (siteSettingsCache && siteSettingsCache.expires > Date.now()) {
+    return Promise.resolve(siteSettingsCache.value);
+  }
+  if (!siteSettingsInFlight) {
+    siteSettingsInFlight = loadSiteSettings()
+      .then((value) => {
+        siteSettingsCache = { value, expires: Date.now() + SITE_SETTINGS_TTL_MS };
+        return value;
+      })
+      .finally(() => {
+        siteSettingsInFlight = null;
+      });
+  }
+  return siteSettingsInFlight;
+}
+
 /**
  * Returns admin-configured site settings, falling back to static
  * defaults in site.ts for any field not yet set. Safe to call from
  * public pages — no auth check.
  */
-export async function getSiteSettings(): Promise<ResolvedSiteSettings> {
+async function loadSiteSettings(): Promise<ResolvedSiteSettings> {
   await connectToDatabase();
 
   const settings = await SiteSettings.findById(SITE_SETTINGS_ID).lean();

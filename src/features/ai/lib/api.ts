@@ -2,9 +2,14 @@ import type { ChatRequest, ChatResponse, ChatStreamEvent } from "@/types/ai";
 import type { ConciergeError } from "../types";
 import { isBrowser } from "./storage";
 
-// 5s longer than the server-side Gemini timeout (30s) so the server's
-// structured error event has time to arrive before the client aborts.
-const REQUEST_TIMEOUT_MS = 35_000;
+// Idle timeout: the timer restarts on every chunk the server sends, so a
+// healthy stream is never cut short. It only fires if the connection stalls.
+// Sized above the longest gap between events (one model round is bounded by
+// a 30s Gemini timeout, plus tool execution).
+const IDLE_TIMEOUT_MS = 60_000;
+// Hard ceiling for the whole request. Matches the server's maxDuration (180s)
+// plus a small margin, so a long multi-step answer is never cut off early.
+const MAX_TOTAL_MS = 190_000;
 
 class ConciergeApiError extends Error {
   kind: ConciergeError["kind"];
@@ -44,7 +49,13 @@ export async function sendConciergeMessage(
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
+  const armIdleTimer = () => {
+    if (idleTimer !== undefined) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => controller.abort(), IDLE_TIMEOUT_MS);
+  };
+  armIdleTimer();
+  const ceilingTimer = setTimeout(() => controller.abort(), MAX_TOTAL_MS);
 
   // Let an external abort (e.g. the panel closing mid-request) cancel
   // the fetch too, without losing our own timeout-driven abort.
@@ -76,11 +87,12 @@ export async function sendConciergeMessage(
       throw new ConciergeApiError("unknown", message);
     }
 
-    await consumeEventStream(response, callbacks);
+    await consumeEventStream(response, callbacks, armIdleTimer);
   } catch (error) {
     callbacks.onError(toConciergeError(error));
   } finally {
-    clearTimeout(timeout);
+    if (idleTimer !== undefined) clearTimeout(idleTimer);
+    clearTimeout(ceilingTimer);
   }
 }
 
@@ -89,7 +101,11 @@ export async function sendConciergeMessage(
  * separated by blank lines into typed ChatStreamEvents and dispatching
  * them to the matching callback as they arrive.
  */
-async function consumeEventStream(response: Response, callbacks: ConciergeStreamCallbacks): Promise<void> {
+async function consumeEventStream(
+  response: Response,
+  callbacks: ConciergeStreamCallbacks,
+  onActivity: () => void
+): Promise<void> {
   const reader = response.body?.getReader();
   if (!reader) {
     callbacks.onError({ kind: "unknown", message: "Streaming isn't supported in this browser." });
@@ -103,6 +119,7 @@ async function consumeEventStream(response: Response, callbacks: ConciergeStream
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
+    onActivity();
 
     buffer += decoder.decode(value, { stream: true });
 
